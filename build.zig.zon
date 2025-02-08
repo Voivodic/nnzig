@@ -1,0 +1,25 @@
+.{
+    // Name of the program
+    .name = "NNzig",
+
+    // Version of the program
+    .version = "0.1.0",
+
+    // Minimum version of zig
+    .minimum_zig_version = "0.13.0",
+
+    // Set the dependencies
+    .dependencies = .{
+        .eigen = .{
+            .url = "https://gitlab.com/libeigen/eigen/-/archive/3.4.0/eigen-3.4.0.tar.gz",
+            .hash = "12201b04b6b0c3c70a3be1dc859d1fb7e07150e10ec90b5349c7037610b32f7fe999",
+        },
+    },
+
+    // Define the path used by the program
+    .paths = .{
+        "build.zig",
+        "build.zig.zon",
+        "src",
+    },
+}
