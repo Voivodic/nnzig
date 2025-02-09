@@ -1,0 +1,3 @@
+# Ignore the zig-cache generated in compilation
+./.zig-cache
+./zig-out
