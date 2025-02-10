@@ -20,8 +20,8 @@ pub fn MLP(comptime T: type) type {
 
             // Compute the total number of hidden values
             var nHidden: usize = 0;
-            for (0..nNeurons.len) |i| {
-                nHidden += nNeurons[i];
+            for (nNeurons) |*nN| {
+                nHidden += nN.*;
             }
 
             // Alloc space for the hidden values
@@ -72,8 +72,8 @@ pub fn MLP(comptime T: type) type {
         // Compute the output of the NN to a single input
         pub fn forward(self: *const MLP(T), input: []const T, nNeurons: []const usize, weights: []const T, biases: []const T, activations: []const act.Activation) []T {
             // Save the input in first hidden values
-            for (input, 0..input.len) |in, i| {
-                self.y[i] = in;
+            for (input, 0..input.len) |*in, i| {
+                self.y[i] = in.*;
                 self.dy[i] = 0.0;
             }
 
@@ -107,37 +107,38 @@ pub fn MLP(comptime T: type) type {
             var nwEnd: usize = weights.len;
             var nbIni: usize = biases.len - nNeurons[layer];
             var nbEnd: usize = biases.len;
+            var nyIni: usize = self.y.len - nNeurons[layer];
+            var nyEnd: usize = self.y.len;
 
             // Compute the initial value for the vector V
             eigen.vectorVInit(dL.ptr, self.V.ptr, dL.len);
 
             // Iterate from the last to the first layer
             while (layer > 0) : (layer -= 1) {
-                std.debug.print("{}\n", .{layer});
                 // Multiply the propagated vector V by the derivative of the activation function
-                eigen.vectorMul(self.V[0..(nNeurons[layer])].ptr, self.dy[nbIni..nbEnd].ptr, nNeurons[layer]);
-                std.debug.print("{}\n", .{layer});
+                eigen.vectorMul(self.V[0..(nNeurons[layer])].ptr, self.dy[nyIni..nyEnd].ptr, nNeurons[layer]);
+
                 // Update the gradient for the weights
-                std.debug.print("{} {} {} {} {} {}\n", .{ nNeurons[layer - 1], nNeurons[layer], nbIni, nbEnd, nwIni, nwEnd });
-                eigen.updateGradWeights(self.V[0..nNeurons[layer]].ptr, self.y[(nbIni - nNeurons[layer - 1])..nbIni].ptr, gradW[nwIni..nwEnd].ptr, nNeurons[layer], nNeurons[layer - 1]);
-                std.debug.print("{}\n", .{layer});
+                eigen.updateGradWeights(self.V[0..nNeurons[layer]].ptr, self.y[(nyIni - nNeurons[layer - 1])..nyIni].ptr, gradW[nwIni..nwEnd].ptr, nNeurons[layer], nNeurons[layer - 1]);
+
                 // Update the gradient for the biases
                 eigen.updateGradBiases(self.V[0..nNeurons[layer]].ptr, gradB[nbIni..nbEnd].ptr, nNeurons[layer]);
-                std.debug.print("{}\n", .{layer});
+
                 // Do not run this part in the last iteration
                 if (layer > 1) {
-                    std.debug.print("{}\n", .{layer});
+
                     // Update the M matrix using the current weight matrix
                     eigen.vectorMatrixMul(self.V[0..(nNeurons[layer])].ptr, weights[nwIni..nwEnd].ptr, nNeurons[layer], nNeurons[layer - 1]);
-                    std.debug.print("{}\n", .{layer});
+
                     // Update the counters
+                    nyEnd = nyIni;
+                    nyIni -= nNeurons[layer - 1];
                     nbEnd = nbIni;
                     nbIni -= nNeurons[layer - 1];
                     nwEnd = nwIni;
                     nwIni -= nNeurons[layer - 1] * nNeurons[layer - 2];
                 }
             }
-            std.debug.print("Done!\n", .{});
         }
     };
 }

@@ -19,9 +19,14 @@ pub const activations = [_]activation{
 pub const seed: u64 = 12345;
 
 // Set the parameters used by the adam optimizator
+pub const eps: f32 = 1e-8;
 pub const beta1: f32 = 0.9;
 pub const beta2: f32 = 0.999;
-pub const lr: f32 = 0.001;
-pub const nEpochs: usize = 100;
+pub const lr: f32 = 0.01;
+pub const nEpochs: usize = 500;
 pub const batchSize: usize = 50;
 pub const lossFunc: loss.losses = loss.losses.MSE;
+pub const printEvery: usize = 50;
+pub const nTrain: f32 = 0.7;
+pub const nVal: f32 = 0.2;
+pub const nTest: f32 = 1.0 - nTrain - nVal;

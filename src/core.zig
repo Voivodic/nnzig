@@ -8,3 +8,11 @@ pub const NNError = error{
     ForwardPass,
     BackProp,
 };
+
+//Define possible erros for handling the data
+pub const DataError = error{
+    InputAllocation,
+    OutputAllocation,
+    LossesAllocation,
+    Normalization,
+};
