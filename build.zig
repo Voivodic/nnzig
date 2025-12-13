@@ -15,15 +15,15 @@ pub fn build(b: *std.Build) void {
     });
 
     // Compile the cpp static library
-    const eigen_cpp = b.addStaticLibrary(.{
+    const eigen_cpp = b.addObject(.{
         .name = "eigen_cpp",
         .target = target,
         .optimize = optimize,
     });
     eigen_cpp.addCSourceFiles(.{
-        .root = b.path("src"),
+        .root = b.path("src/eigen"),
         .files = &.{
-            "c_wrapper.cpp",
+            "eigen.cpp",
         },
         .flags = &.{
             "-O3",
@@ -35,29 +35,29 @@ pub fn build(b: *std.Build) void {
 
     // Create the wrapper module
     const eigen_wrapper = b.createModule(.{
-        .root_source_file = b.path("src/c_wrapper.zig"),
+        .root_source_file = b.path("src/eigen/wrappers.zig"),
         .target = target,
         .optimize = optimize,
     });
-    eigen_wrapper.linkLibrary(eigen_cpp);
+    eigen_wrapper.addObject(eigen_cpp);
 
     // Create the module with the core structures
     const core = b.createModule(.{
-        .root_source_file = b.path("src/core.zig"),
+        .root_source_file = b.path("src/core/erros.zig"),
         .target = target,
         .optimize = optimize,
     });
 
     // Create the module with the activation functions
     const activation = b.createModule(.{
-        .root_source_file = b.path("src/activation.zig"),
+        .root_source_file = b.path("src/cpu/activations.zig"),
         .target = target,
         .optimize = optimize,
     });
 
     // Create the module with the loss functions
     const loss = b.createModule(.{
-        .root_source_file = b.path("src/loss.zig"),
+        .root_source_file = b.path("src/cpu/losses.zig"),
         .target = target,
         .optimize = optimize,
     });
@@ -73,7 +73,7 @@ pub fn build(b: *std.Build) void {
 
     // Create the module to the MLP
     const MLP = b.createModule(.{
-        .root_source_file = b.path("src/mlp.zig"),
+        .root_source_file = b.path("src/layers/mlp.zig"),
         .target = target,
         .optimize = optimize,
     });

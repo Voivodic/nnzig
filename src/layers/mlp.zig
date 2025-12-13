@@ -1,9 +1,11 @@
+//! This module defines a simple multi layer perceptron (MPL)
+
+// Import the used modules
 const std = @import("std");
-const core = @import("core");
 const eigen = @import("eigen");
 const act = @import("act");
 
-// Define the structure for the MLP
+/// Define the structure for the MLP
 pub fn MLP(comptime T: type) type {
     return struct {
         allocator: std.mem.Allocator,

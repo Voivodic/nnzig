@@ -1,12 +1,17 @@
+//! Main module that defines the main structure used by the library
+
+// Import the modules used
 const std = @import("std");
-const core = @import("core");
 const act = @import("act");
 const loss = @import("loss");
 const eigen = @import("eigen");
 const mlp = @import("mlp");
 const params = @import("params");
+const mem = @import("mem");
+const errors = @import("erros");
+const err = errors.NNErrors;
 
-// Create the main structure for the NN
+/// Create the main structure for the NN
 pub fn NN(comptime T: type) type {
     return struct {
         allocator: std.mem.Allocator,
@@ -20,21 +25,11 @@ pub fn NN(comptime T: type) type {
         vW: []T = &.{},
         mB: []T = &.{},
         vB: []T = &.{},
-        muIn: []T = &.{},
-        stdIn: []T = &.{},
-        muOut: []T = &.{},
-        stdOut: []T = &.{},
         lossesTraining: []T = &.{},
         lossesValidation: []T = &.{},
 
         // Initialize the structure
         pub fn init(allocator: std.mem.Allocator) !NN(T) {
-            // Check if the size of the nNeurons and activations is consistent
-            if (params.activations.len != params.nNeurons.len - 1) {
-                std.debug.print("Number of activation functions must be of the size of nNeurons - 1!\n", .{});
-                return core.NNError.IncompatibleSizes;
-            }
-
             // Initialize the random generator
             var xoshiro256 = std.Random.Xoshiro256.init(params.seed);
 
@@ -57,35 +52,35 @@ pub fn NN(comptime T: type) type {
             }
 
             // Alloc memory for the weights
-            if (allocator.alloc(T, nWeights)) |slice| {
+            if (mem.alloc(allocator, T, nWeights)) |slice| {
                 nn.weights = slice;
             } else |_| {
                 std.debug.print("Failure when trying to allocate memory for the weights!\n", .{});
-                return core.NNError.AllocationOfWeights;
+                return err.AllocationOfWeights;
             }
 
             // Alloc memory for the gradients of the weights
-            if (allocator.alloc(T, nWeights)) |slice| {
+            if (mem.alloc(allocator, T, nWeights)) |slice| {
                 nn.gradW = slice;
             } else |_| {
                 std.debug.print("Failure when trying to allocate memory for the gradient of the weights!\n", .{});
-                return core.NNError.AllocationOfWeights;
+                return err.AllocationOfWeights;
             }
 
             // Alloc memory for the wt of the weights used in adam
-            if (allocator.alloc(T, nWeights)) |slice| {
+            if (mem.alloc(allocator, T, nWeights)) |slice| {
                 nn.mW = slice;
             } else |_| {
                 std.debug.print("Failure when trying to allocate memory for the mt of the weights!\n", .{});
-                return core.NNError.AllocationOfWeights;
+                return err.AllocationOfWeights;
             }
 
             // Alloc memory for the vt of the weights used in adam
-            if (allocator.alloc(T, nWeights)) |slice| {
+            if (mem.alloc(allocator, T, nWeights)) |slice| {
                 nn.vW = slice;
             } else |_| {
                 std.debug.print("Failure when trying to allocate memory for the vt of the weights!\n", .{});
-                return core.NNError.AllocationOfWeights;
+                return err.AllocationOfWeights;
             }
 
             // Set mW and vW to zero
@@ -93,35 +88,35 @@ pub fn NN(comptime T: type) type {
             eigen.setZero(nn.vW.ptr, nn.vW.len);
 
             // Alloc memory for the biases
-            if (allocator.alloc(T, nBiases)) |slice| {
+            if (mem.alloc(allocator, T, nBiases)) |slice| {
                 nn.biases = slice;
             } else |_| {
                 std.debug.print("Failure when trying to allocate memory for the biases!\n", .{});
-                return core.NNError.AllocationOfBiases;
+                return err.AllocationOfBiases;
             }
 
             // Alloc memory for the gradients of the biases
-            if (allocator.alloc(T, nBiases)) |slice| {
+            if (mem.alloc(allocator, T, nBiases)) |slice| {
                 nn.gradB = slice;
             } else |_| {
                 std.debug.print("Failure when trying to allocate memory for the gradient of the biases!\n", .{});
-                return core.NNError.AllocationOfBiases;
+                return err.AllocationOfBiases;
             }
 
             // Alloc memory for the wt of the biases used in adam
-            if (allocator.alloc(T, nBiases)) |slice| {
+            if (mem.alloc(allocator, T, nBiases)) |slice| {
                 nn.mB = slice;
             } else |_| {
                 std.debug.print("Failure when trying to allocate memory for the mt of the biases!\n", .{});
-                return core.NNError.AllocationOfBiases;
+                return err.AllocationOfBiaser;
             }
 
             // Alloc memory for the vt of the biases used in adam
-            if (allocator.alloc(T, nBiases)) |slice| {
+            if (mem.alloc(allocator, T, nBiases)) |slice| {
                 nn.vB = slice;
             } else |_| {
                 std.debug.print("Failure when trying to allocate memory for the vt of the biases!\n", .{});
-                return core.NNError.AllocationOfBiases;
+                return err.AllocationOfBiases;
             }
 
             // Set mb and vb to zero
@@ -145,29 +140,29 @@ pub fn NN(comptime T: type) type {
             self.nn.deinit();
 
             // Deinit the slices used to optimize the weights by adam
-            self.allocator.free(self.weights);
-            self.allocator.free(self.gradW);
-            self.allocator.free(self.mW);
-            self.allocator.free(self.vW);
+            mem.free(self.allocator, T, &self.weights);
+            mem.free(self.allocator, T, &self.gradW);
+            mem.free(self.allocator, T, &self.mW);
+            mem.free(self.allocator, T, &self.vW);
 
             // Deinit the slices used to optimize the biases by adam
-            self.allocator.free(self.biases);
-            self.allocator.free(self.gradB);
-            self.allocator.free(self.mB);
-            self.allocator.free(self.vB);
+            mem.free(self.allocator, T, &self.biases);
+            mem.free(self.allocator, T, &self.gradB);
+            mem.free(self.allocator, T, &self.mB);
+            mem.free(self.allocator, T, &self.vB);
 
             // Free the memory used in the normalization
             if (self.muIn.len > 0) {
-                self.allocator.free(self.muIn);
-                self.allocator.free(self.stdIn);
-                self.allocator.free(self.muOut);
-                self.allocator.free(self.stdOut);
+                mem.free(self.allocator, T, &self.muIn);
+                mem.free(self.allocator, T, &self.stdIn);
+                mem.free(self.allocator, T, &self.muOut);
+                mem.free(self.allocator, T, &self.stdOut);
             }
 
             // Free the memory used in the losses array
             if (self.lossesTraining.len > 0) {
-                self.allocator.free(self.lossesTraining);
-                self.allocator.free(self.lossesValidation);
+                mem.free(self.allocator, T, &self.lossesTraining);
+                mem.free(self.allocator, T, &self.lossesValidation);
             }
         }
 
@@ -182,7 +177,7 @@ pub fn NN(comptime T: type) type {
             // Check the size of the input
             if (input.len != params.nNeurons[0]) {
                 std.debug.print("The input has a size different of nNeurons[0]!\n", .{});
-                return core.NNError.IncompatibleSizes;
+                return err.IncompatibleSizes;
             }
 
             // Pass the input trough the NN
@@ -194,19 +189,19 @@ pub fn NN(comptime T: type) type {
             // Check the dimensions of the inputs
             if (inputs[0].len != params.nNeurons[0]) {
                 std.debug.print("Incompatible dimension of inputs and number of neurons in layer 0!\n", .{});
-                return core.NNError.IncompatibleSizes;
+                return err.IncompatibleSizes;
             }
 
             // Check the dimensions of the outputs
             if (outputs[0].len != params.nNeurons[params.nNeurons.len - 1]) {
                 std.debug.print("Incompatible dimension of outputs and number of neurons in layer -1!\n", .{});
-                return core.NNError.IncompatibleSizes;
+                return err.IncompatibleSizes;
             }
 
             // Check the number of inputs and outputs
             if (inputs.len != outputs.len) {
                 std.debug.print("Incompatible number of inputs and outputs!\n", .{});
-                return core.NNError.IncompatibleSizes;
+                return err.IncompatibleSizes;
             }
 
             // Get the data size
@@ -217,13 +212,13 @@ pub fn NN(comptime T: type) type {
 
             // Slice to keep the derivatives of the loss
             var dL: []T = undefined;
-            if (self.allocator.alloc(T, outputs[0].len)) |slice| {
+            if (self.mem.alloc(T, outputs[0].len)) |slice| {
                 dL = slice;
             } else |_| {
                 std.debug.print("Problem to allocate the array for the derivatives of the loss!\n", .{});
-                return core.NNError.BackProp;
+                return err.BackProp;
             }
-            defer self.allocator.free(dL);
+            defer mem.free(dL);
 
             // Save the value of the total loss
             var lossTotal: T = 0.0;
@@ -282,45 +277,42 @@ pub fn NN(comptime T: type) type {
         // Function used to train the NN
         pub fn train(self: *NN(T), inputs: [][]T, outputs: [][]T) !void {
             // Create the slice for the losses of the training
-            if (self.allocator.alloc(T, params.nEpochs)) |slice| {
+            if (self.mem.alloc(T, params.nEpochs)) |slice| {
                 self.lossesTraining = slice;
             } else |_| {
                 std.debug.print("Error while allocating the slice for the losses of the training!\n", .{});
-                return core.DataError.LossesAllocation;
+                return err.LossesAllocation;
             }
 
             // Create the slice for the losses of the validation
-            if (self.allocator.alloc(T, params.nEpochs)) |slice| {
+            if (self.mem.alloc(T, params.nEpochs)) |slice| {
                 self.lossesValidation = slice;
             } else |_| {
                 std.debug.print("Error while allocating the slice for the losses of the validation!\n", .{});
-                return core.DataError.LossesAllocation;
+                return err.LossesAllocation;
             }
 
             // Alloc the dL array used in the computation of the loss of the validation
             var dL: []T = &.{};
-            if (self.allocator.alloc(T, outputs[0].len)) |slice| {
+            if (self.mem.alloc(T, outputs[0].len)) |slice| {
                 dL = slice;
             } else |_| {
                 std.debug.print("Error while allocating the slice for dL!", .{});
-                return core.NNError.BackProp;
+                return err.BackProp;
             }
-            defer self.allocator.free(dL);
+            defer mem.free(dL);
 
             // Compute the size of training and validation
-            const nTrain: usize = @as(usize, @intFromFloat(@as(T, @floatFromInt(inputs.len)) * params.nTrain));
-            const nValF: T = @as(T, @floatFromInt(inputs.len)) * params.nVal;
+            const nTrain: usize = @as(usize, @intFromFloat(@as(T, @floatFromInt(inputs.len)) * params.rTrain));
+            const nValF: T = @as(T, @floatFromInt(inputs.len)) * params.rVal;
 
             // Compute the number of batches
             const nBatches: usize = nTrain / params.batchSize;
             const nBatchesF: T = @as(T, @floatFromInt(nBatches));
 
-            // Keep the current loss for each epoch
-            var lossEpoch: T = 0.0;
-
             // Run over all epochs
             for (0..params.nEpochs) |epoch| {
-                lossEpoch = 0.0;
+                var lossEpoch = 0.0;
 
                 // Run over the batches
                 for (0..nBatches) |batch| {
@@ -329,7 +321,7 @@ pub fn NN(comptime T: type) type {
                         lossEpoch += lossE / nBatchesF;
                     } else |_| {
                         std.debug.print("Problem when trying to backprop in epoch {} and batch {}!\n", .{ epoch, batch });
-                        return core.NNError.BackProp;
+                        return err.BackProp;
                     }
 
                     // Compute mt and vt used by adam optimizer
@@ -352,132 +344,6 @@ pub fn NN(comptime T: type) type {
                 // Print the current state
                 if (epoch % params.printEvery == 0) {
                     try std.io.getStdOut().writer().print("Loss[{}] = ({}, {})\n", .{ epoch, self.lossesTraining[epoch], self.lossesValidation[epoch] });
-                }
-            }
-        }
-
-        // Normalize the data
-        pub fn computeNormalization(self: *NN(T), inputs: [][]T, outputs: [][]T) !void {
-            // Check if the size of inputs and outputs are the same
-            if (inputs.len != outputs.len) {
-                std.debug.print("Inputs and outputs size must be the same!\n", .{});
-                return core.NNError.IncompatibleSizes;
-            }
-
-            // Alloc the slices for the mean and std of inputs and outputs
-            if (self.allocator.alloc(T, inputs[0].len)) |slice| {
-                self.muIn = slice;
-            } else |_| {
-                std.debug.print("Problem in the allocation of the mean of inputs!\n", .{});
-                return core.DataError.InputAllocation;
-            }
-
-            // Allocate the slice for the std of the input
-            if (self.allocator.alloc(T, inputs[0].len)) |slice| {
-                self.stdIn = slice;
-            } else |_| {
-                std.debug.print("Problem in the allocation of the std of inputs!\n", .{});
-                return core.DataError.InputAllocation;
-            }
-
-            // Zero the input arrays
-            for (self.muIn, self.stdIn) |*mu, *st| {
-                mu.* = 0.0;
-                st.* = 0.0;
-            }
-
-            // Allocate the slice for the mean of the outputs
-            if (self.allocator.alloc(T, outputs[0].len)) |slice| {
-                self.muOut = slice;
-            } else |_| {
-                std.debug.print("Problem in the allocation of the mean of outputs!\n", .{});
-                return core.DataError.OutputAllocation;
-            }
-
-            // Allocate the slice for the std of the outputs
-            if (self.allocator.alloc(T, outputs[0].len)) |slice| {
-                self.stdOut = slice;
-            } else |_| {
-                std.debug.print("Problem in the allocation of the std of outputs!\n", .{});
-                return core.DataError.OutputAllocation;
-            }
-
-            // Zero the outputs arrys
-            for (self.muOut, self.stdOut) |*mu, *st| {
-                mu.* = 0.0;
-                st.* = 0.0;
-            }
-
-            // Get the number of data points
-            const N = inputs.len;
-
-            // Compute the means
-            for (inputs, outputs) |*ins, *outs| {
-                for (ins.*, self.muIn) |*in, *mu| {
-                    mu.* += in.* / @as(T, @floatFromInt(N));
-                }
-                for (outs.*, self.muOut) |*out, *mu| {
-                    mu.* += out.* / @as(T, @floatFromInt(N));
-                }
-            }
-
-            // Compute the stds
-            for (inputs, outputs) |*ins, *outs| {
-                for (ins.*, self.muIn, self.stdIn) |*in, *mu, *st| {
-                    st.* += (in.* - mu.*) * (in.* - mu.*) / @as(T, @floatFromInt(N));
-                }
-                for (outs.*, self.muOut, self.stdOut) |*out, *mu, *st| {
-                    st.* += (out.* - mu.*) * (out.* - mu.*) / @as(T, @floatFromInt(N));
-                }
-            }
-        }
-
-        // Normalize the slice
-        pub fn normalize(self: NN(T), inputs: [][]T, outputs: [][]T) !void {
-            // Check if the size of inputs and outputs are the same
-            if (inputs.len != outputs.len) {
-                std.debug.print("Inputs and outputs size must be the same!\n", .{});
-                return core.NNError.IncompatibleSizes;
-            }
-
-            // Check if the normalizations were computed
-            if (self.muIn.len == 0) {
-                std.debug.print("The normalizations were not computed!\n", .{});
-                return core.DataError.Normalization;
-            }
-
-            // Normalize the inputs and outputs
-            for (inputs, outputs) |*ins, *outs| {
-                for (ins.*, self.muIn, self.stdIn) |*in, *mu, *st| {
-                    in.* = (in.* - mu.*) / st.*;
-                }
-                for (outs.*, self.muOut, self.stdOut) |*out, *mu, *st| {
-                    out.* = (out.* - mu.*) / st.*;
-                }
-            }
-        }
-
-        // deNormalize the slice
-        pub fn deNormalize(self: NN(T), inputs: [][]T, outputs: [][]T) !void {
-            // Check if the size of inputs and outputs are the same
-            if (inputs.len != outputs.len) {
-                std.debug.print("Inputs and outputs size must be the same!\n", .{});
-                return core.NNError.IncompatibleSizes;
-            }
-
-            // Check if the normalizations were computed
-            if (self.muIn.len == 0) {
-                std.debug.print("The normalizations were not computed!\n", .{});
-                return core.DataError.Normalization;
-            }
-
-            // Normalize the inputs and outputs
-            for (inputs, outputs) |*ins, *outs| {
-                for (ins.*, self.muIn, self.stdIn) |*in, *mu, *st| {
-                    in.* = (in.*) * (st.*) + mu.*;
-                }
-                for (outs.*, self.muOut, self.stdOut) |*out, *mu, *st| {
-                    out.* = (out.*) * st.* + mu.*;
                 }
             }
         }
