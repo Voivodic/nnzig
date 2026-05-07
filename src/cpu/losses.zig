@@ -2,7 +2,7 @@
 
 // Imports the modules used
 const std = @import("std");
-const params = @import("params");
+const params = @import("params").params;
 const errors = @import("errors");
 const err = errors.lossError;
 
@@ -20,21 +20,21 @@ fn MSE(comptime T: type, pred: []const T, out: []const T, dL: []T, value: *T) vo
 }
 
 /// Function that computes the loss and its derivatives for a given choice of loss function
-pub fn computeLoss(comptime T: type, pred: []const T, out: []const T, dL: []T, lossFunc: params.loss) T {
+pub fn computeLoss(comptime T: type, pred: []const T, out: []const T, dL: []T, lossFunc: params.loss) !T {
     // Compute the chunck size
     const chunkSize: usize = (pred.len + params.numThreads - 1) / params.numThreads;
 
     // Define the array of threads
-    const threads: [params.numThreads]std.Thread = undefined;
-    const lossThread: [params.numThreads]T = undefined;
-    for (lossThread) |*lt| {
+    var threads: [params.numThreads]std.Thread = undefined;
+    var lossThread: [params.numThreads]T = undefined;
+    for (&lossThread) |*lt| {
         lt.* = 0.0;
     }
 
     // Compute the chuncks for each thread
-    for (threads, lossThread, 0..params.numThreads) |*thread, *lt, i| {
+    for (&threads, &lossThread, 0..params.numThreads) |*thread, *lt, i| {
         const start: usize = i * chunkSize;
-        const end: usize = std.min(start + chunkSize, pred.len);
+        const end: usize = @min(start + chunkSize, pred.len);
 
         // Check which loss function to use
         switch (lossFunc) {
@@ -50,13 +50,13 @@ pub fn computeLoss(comptime T: type, pred: []const T, out: []const T, dL: []T, l
     }
 
     // Await all threads to finish
-    for (threads) |*thread| {
+    for (&threads) |*thread| {
         thread.*.join();
     }
 
     // Compute the total final loss
     var totalLoss: T = 0.0;
-    for (lossThread) |*lt| {
+    for (&lossThread) |*lt| {
         totalLoss += lt.*;
     }
 

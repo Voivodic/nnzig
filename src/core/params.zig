@@ -1,7 +1,9 @@
-//! This module sets all the parameters of the neural network at comptime
+//! This module reads and parses the parameters from ../../params.json at comptime
+const std = @import("std");
+const config = @import("config");
 
 /// Enum of the possible activation functions
-pub const activation = enum(u8) {
+pub const Activation = enum(u8) {
     none,
     relu,
     tanh,
@@ -9,52 +11,51 @@ pub const activation = enum(u8) {
 };
 
 /// Enum of the possible loss functions
-pub const loss = enum(u8) {
+pub const Loss = enum(u8) {
     MSE,
 };
 
-/// Set the number of threads to use on the cpu
-pub const numThreads: usize = 1;
-
 /// Enum of the possible ways to normalize the data
-pub const normType = enum(u8) {
+pub const NormType = enum(u8) {
     meanStd,
 };
 
-/// Set the number of neurons in each layer, including the input and output layers
-/// [Ninputs, Nhidden1, ..., NhiddenN, Noutputs]
-pub const nNeurons = [4]usize{ 2, 16, 16, 2 };
-
-/// Set the activation function used in each layer
-/// It should have the size of the nNeurons array - 1
-pub const activations = [3]activation{
-    activation.relu,
-    activation.relu,
-    activation.none,
+/// The structure must match the JSON keys exactly
+const Config = struct {
+    numThreads: usize,
+    nNeurons: []const usize,
+    activations: []const Activation,
+    lossFunc: Loss,
+    normType: NormType,
+    seed: u64,
+    rTrain: f32,
+    rVal: f32,
+    eps: f32,
+    beta1: f32,
+    beta2: f32,
+    lr: f32,
+    nEpochs: usize,
+    batchSize: usize,
+    printEvery: usize,
 };
 
-/// Set the loss function used
-pub const lossFunc: loss = loss.MSE;
+// Parse the JSON at comptime
+pub const params = blk: {
+    const raw_data = @embedFile(config.params_path);
+    
+    // Uses parseFromSliceLeaky because we are at comptime;
+    const parsed = std.json.parseFromSliceLeaky(
+        Config,
+        std.heap.page_allocator,
+        raw_data,
+        .{ .ignore_unknown_fields = true },
+    ) catch |err| {
+        @compileError("JSON Parse Error: " ++ @errorName(err));
+    };
 
-/// Set the seed used for the pseudo random number generators
-pub const seed: u64 = 12345;
+    break :blk parsed;
+};
 
-/// Set how all data will be splitted into
-pub const rTrain: f32 = 0.7;
-pub const rVal: f32 = 0.2;
-pub const rTest: f32 = 1.0 - rTrain - rVal;
+// Logic for derived parameters (like rTest) remains in Zig code
+pub const rTest: f32 = 1.0 - params.rTrain - params.rVal;
 
-/// Set the parameters used by the adam optimizator
-pub const eps: f32 = 1e-8;
-pub const beta1: f32 = 0.9;
-pub const beta2: f32 = 0.999;
-pub const lr: f32 = 0.01;
-
-/// Set the number of epochs used by the adam optim
-pub const nEpochs: usize = 500;
-
-/// Set the batch size
-pub const batchSize: usize = 50;
-
-/// Set the frequency of printing results
-pub const printEvery: usize = 50;

@@ -1,14 +1,15 @@
 //! This module defines the erros that might happen in the library
 
 /// Define the possible errors for the newtwork
-pub const NNError = error{
+pub const nnError = error{
     incompatibleSizes,
     allocationOfHiddens,
     allocationOfWeights,
     allocationOfBiases,
+    lossesAllocation,
     initNN,
     forwardPass,
-    BackProp,
+    backProp,
 };
 
 /// Possible errors for the normalization process

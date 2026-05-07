@@ -2,7 +2,7 @@
 
 // Import the modules used
 const std = @import("std");
-const params = @import("params");
+const params = @import("params").params;
 const errors = @import("errors");
 const err = errors.activationError;
 
@@ -52,12 +52,12 @@ pub fn activateElements(comptime T: type, input: []T, df: []T, act: params.activ
     const chunkSize: usize = (input.len + params.numThreads - 1) / params.numThreads;
 
     // Define the array of threads
-    const threads: [params.numThreads]std.Thread = undefined;
+    var threads: [params.numThreads]std.Thread = undefined;
 
     // Compute the chuncks for each thread
-    for (threads, 0..params.numThreads) |*thread, i| {
+    for (&threads, 0..params.numThreads) |*thread, i| {
         const start: usize = i * chunkSize;
-        const end: usize = std.min(start + chunkSize, input.len);
+        const end: usize = @min(start + chunkSize, input.len);
 
         // Check the activation function to be used
         switch (act) {
@@ -101,7 +101,7 @@ pub fn activateElements(comptime T: type, input: []T, df: []T, act: params.activ
     }
 
     // Await all threads to finish
-    for (threads) |*thread| {
+    for (&threads) |*thread| {
         thread.*.join();
     }
 }

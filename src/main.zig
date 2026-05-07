@@ -3,7 +3,7 @@ const nnzig = @import("nnzig");
 
 pub fn main() !void {
     // Define a allocator
-    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
+    var gpa = std.heap.DebugAllocator(.{}){};
     const allocator = gpa.allocator();
     defer {
         const deinit_status = gpa.deinit();

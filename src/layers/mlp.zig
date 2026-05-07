@@ -4,6 +4,8 @@
 const std = @import("std");
 const eigen = @import("eigen");
 const act = @import("act");
+const params = @import("params").params;
+const err = @import("errors").nnError;
 
 /// Define the structure for the MLP
 pub fn MLP(comptime T: type) type {
@@ -31,7 +33,7 @@ pub fn MLP(comptime T: type) type {
                 mlp.y = slice;
             } else |_| {
                 std.debug.print("Failure when trying to allocate memory for y!\n", .{});
-                return core.NNError.AllocationOfHiddens;
+                return err.allocationOfHiddens;
             }
 
             // Alloc space for the derivative of hidden values
@@ -39,7 +41,7 @@ pub fn MLP(comptime T: type) type {
                 mlp.dy = slice;
             } else |_| {
                 std.debug.print("Failure when trying to allocate memory for dy!\n", .{});
-                return core.NNError.AllocationOfHiddens;
+                return err.allocationOfHiddens;
             }
 
             // Compute the size of the largest V vector used by adam
@@ -55,7 +57,7 @@ pub fn MLP(comptime T: type) type {
                 mlp.V = slice;
             } else |_| {
                 std.debug.print("Failure when trying to allocate memory for V!\n", .{});
-                return core.NNError.AllocationOfHiddens;
+                return err.allocationOfHiddens;
             }
 
             return mlp;
@@ -72,7 +74,7 @@ pub fn MLP(comptime T: type) type {
         }
 
         // Compute the output of the NN to a single input
-        pub fn forward(self: *const MLP(T), input: []const T, nNeurons: []const usize, weights: []const T, biases: []const T, activations: []const act.Activation) []T {
+        pub fn forward(self: *const MLP(T), input: []const T, nNeurons: []const usize, weights: []const T, biases: []const T, activations: []const params.activation) ![]T {
             // Save the input in first hidden values
             for (input, 0..input.len) |*in, i| {
                 self.y[i] = in.*;
@@ -90,7 +92,7 @@ pub fn MLP(comptime T: type) type {
                 eigen.matrixVectorMulAdd(weights[nprod..(nprod + nin * nout)].ptr, self.y[nsum..(nsum + nin)].ptr, biases[nsum..(nsum + nout)].ptr, self.y[(nsum + nin)..(nsum + nin + nout)].ptr, nout, nin);
 
                 // Apply the activation function
-                act.activateElements(T, self.y[(nsum + nin)..(nsum + nin + nout)], self.dy[(nsum + nin)..(nsum + nin + nout)], activations[i]);
+                try act.activateElements(T, self.y[(nsum + nin)..(nsum + nin + nout)], self.dy[(nsum + nin)..(nsum + nin + nout)], activations[i]);
 
                 // Update the total sum and sum of products to keep track of the current position of the 1D slices
                 nsum += nin;

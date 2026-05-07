@@ -3,13 +3,12 @@
 
 // Import the moduels used
 const std = @import("std");
-const params = @import("params");
-const errors = @import("errors");
-const err = errors.normalizationError;
+const params = @import("params").params;
+const err = @import("errors").normalizationError;
 
-// Computes the slope and shift for the normalization using a Z-score standardizaiton
+// Computes the slope and shift for the normalization using a Z-score standardization
 // a = std and b = mean
-fn computeMeanStd(comptime T: type, norm: *Norm(T), inputs: [][]T, outputs: [][]T) void {
+fn computeMeanStd(comptime T: type, norm: *const Norm(T), inputs: [][]T, outputs: [][]T) void {
     // Get the number of data points
     const N: T = @as(T, @floatFromInt(inputs.len));
 
@@ -35,7 +34,7 @@ fn computeMeanStd(comptime T: type, norm: *Norm(T), inputs: [][]T, outputs: [][]
 }
 
 // Function used by each thread to normalize the slices
-fn normalizeChunk(comptime T: type, norm: *Norm(T), inputs: [][]T, outputs: [][]T) void {
+fn normalizeChunk(comptime T: type, norm: *const Norm(T), inputs: [][]T, outputs: [][]T) void {
     // Normalize the inputs and outputs
     for (inputs, outputs) |*ins, *outs| {
         for (ins.*, norm.aIn, norm.bIn) |*in, *a, *b| {
@@ -48,7 +47,7 @@ fn normalizeChunk(comptime T: type, norm: *Norm(T), inputs: [][]T, outputs: [][]
 }
 
 // Function used by each thread to denormalize the slices
-fn denormalizeChunk(comptime T: type, norm: *Norm(T), inputs: [][]T, outputs: [][]T) void {
+fn denormalizeChunk(comptime T: type, norm: *const Norm(T), inputs: [][]T, outputs: [][]T) void {
     // Denormalize the inputs and outputs
     for (inputs, outputs) |*ins, *outs| {
         for (ins.*, norm.aIn, norm.bIn) |*in, *a, *b| {
@@ -70,20 +69,18 @@ pub fn Norm(comptime T: type) type {
         bOut: []T = &.{},
 
         /// Initializes the structure computing the mean and std of the inputs and outputs
-        pub fn init(allocator: std.mem.Allocator, inputs: [][]T, outputs: [][]T) !Norm(T) {
-            // Check if the size of inputs and outputs are the same
-            if (inputs.len != outputs.len) {
-                std.debug.print("Inputs and outputs must have the same number of data vectors!\n", .{});
-                return err.incompatibleSizes;
-            }
-
+        pub fn init(allocator: std.mem.Allocator) !Norm(T) {
             // Create the structure to be outputed
             var norm = Norm(T){
                 .allocator = allocator,
             };
 
+            // Get the size of the inputs and outputs
+            const nInputs = params.nNeurons[0];
+            const nOutputs = params.nNeurons[params.nNeurons.len - 1];
+
             // Alloc the slices for the mean and std of inputs and outputs
-            if (norm.allocator.alloc(T, inputs[0].len)) |slice| {
+            if (norm.allocator.alloc(T, nInputs)) |slice| {
                 norm.aIn = slice;
             } else |_| {
                 std.debug.print("Problem in the allocation of the mean of the inputs!\n", .{});
@@ -91,7 +88,7 @@ pub fn Norm(comptime T: type) type {
             }
 
             // Allocate the slice for the std of the input
-            if (norm.allocator.alloc(T, inputs[0].len)) |slice| {
+            if (norm.allocator.alloc(T, nInputs)) |slice| {
                 norm.bIn = slice;
             } else |_| {
                 std.debug.print("Problem in the allocation of the std of the inputs!\n", .{});
@@ -105,7 +102,7 @@ pub fn Norm(comptime T: type) type {
             }
 
             // Allocate the slice for the mean of the outputs
-            if (norm.allocator.alloc(T, outputs[0].len)) |slice| {
+            if (norm.allocator.alloc(T, nOutputs)) |slice| {
                 norm.aOut = slice;
             } else |_| {
                 std.debug.print("Problem in the allocation of the mean of the outputs!\n", .{});
@@ -113,7 +110,7 @@ pub fn Norm(comptime T: type) type {
             }
 
             // Allocate the slice for the std of the outputs
-            if (norm.allocator.alloc(T, outputs[0].len)) |slice| {
+            if (norm.allocator.alloc(T, nOutputs)) |slice| {
                 norm.bOut = slice;
             } else |_| {
                 std.debug.print("Problem in the allocation of the std of the outputs!\n", .{});
@@ -126,28 +123,48 @@ pub fn Norm(comptime T: type) type {
                 b.* = 0.0;
             }
 
-            // Compute the slope and shift for the inputs and outputs
-            switch (params.normType) {
-                params.normType.meanStd => computeMeanStd(T, *norm, inputs, outputs),
-            }
-
             return norm;
         }
 
         /// Frees all memory allocated in the structure
-        pub fn deinit(self: *Norm(T)) void {
+        pub fn deinit(self: *const Norm(T)) void {
             self.allocator.free(self.aIn);
             self.allocator.free(self.bIn);
             self.allocator.free(self.aOut);
             self.allocator.free(self.bOut);
         }
 
-        /// Normalizes the inputs and outputs given
-        pub fn normalize(self: *Norm(T), inputs: [][]T, outputs: [][]T) !void {
+        /// Computes the normalization factors
+        pub fn computeNormalization(self: *const Norm(T), inputs: [][]T, outputs: [][]T) !void {
             // Check if the size of inputs and outputs are the same
             if (inputs.len != outputs.len) {
                 std.debug.print("Inputs and outputs must have the same number of data vectors!\n", .{});
-                return err.IncompatibleSizes;
+                return err.incompatibleSizes;
+            }
+
+            // Check if the normalizations were computed
+            if (self.aIn.len == 0) {
+                std.debug.print("The normalization structure was not initialized!\n", .{});
+                return err.notInitialized;
+            }
+
+            // Compute the slope and shift for the inputs and outputs
+            computeMeanStd(T, self, inputs, outputs);
+            // switch (params.normType) {
+            //     .meanStd => computeMeanStd(T, self, inputs, outputs),
+            //     else => {
+            //         std.debug.print("Normalization type not implemented!\n", .{});
+            //         return err.notImplemented;
+            //     },
+            // }
+        }
+
+        /// Normalizes the inputs and outputs given
+        pub fn normalize(self: *const Norm(T), inputs: [][]T, outputs: [][]T) !void {
+            // Check if the size of inputs and outputs are the same
+            if (inputs.len != outputs.len) {
+                std.debug.print("Inputs and outputs must have the same number of data vectors!\n", .{});
+                return err.incompatibleSizes;
             }
 
             // Check if the normalizations were computed
@@ -160,12 +177,12 @@ pub fn Norm(comptime T: type) type {
             const chunkSize: usize = (inputs.len + params.numThreads - 1) / params.numThreads;
 
             // Define the array of threads
-            const threads: [params.numThreads]std.Thread = undefined;
+            var threads: [params.numThreads]std.Thread = undefined;
 
             // Compute the chuncks for each thread
-            for (threads, 0..params.numThreads) |*thread, i| {
+            for (&threads, 0..params.numThreads) |*thread, i| {
                 const start: usize = i * chunkSize;
-                const end: usize = std.min(start + chunkSize, inputs.len);
+                const end: usize = @min(start + chunkSize, inputs.len);
 
                 // Normalize the inputs and outputs in the current chunk
                 if (std.Thread.spawn(.{}, normalizeChunk, .{ T, self, inputs[start..end], outputs[start..end] })) |t| {
@@ -177,13 +194,13 @@ pub fn Norm(comptime T: type) type {
             }
 
             // Await all threads to finish
-            for (threads) |*thread| {
+            for (&threads) |*thread| {
                 thread.*.join();
             }
         }
 
         /// Denormalize the inputs and outputs
-        pub fn denormalize(self: *Norm(T), inputs: [][]T, outputs: [][]T) !void {
+        pub fn denormalize(self: *const Norm(T), inputs: [][]T, outputs: [][]T) !void {
             // Check if the size of inputs and outputs are the same
             if (inputs.len != outputs.len) {
                 std.debug.print("Inputs and outputs must have the same number of data vectors!\n", .{});
@@ -191,7 +208,7 @@ pub fn Norm(comptime T: type) type {
             }
 
             // Check if the normalizations were computed
-            if (self.muIn.len == 0) {
+            if (self.bIn.len == 0) {
                 std.debug.print("The normalization structure was not initialized!\n", .{});
                 return err.notInitialized;
             }
@@ -200,12 +217,12 @@ pub fn Norm(comptime T: type) type {
             const chunkSize: usize = (inputs.len + params.numThreads - 1) / params.numThreads;
 
             // Define the array of threads
-            const threads: [params.numThreads]std.Thread = undefined;
+            var threads: [params.numThreads]std.Thread = undefined;
 
             // Compute the chuncks for each thread
-            for (threads, 0..params.numThreads) |*thread, i| {
+            for (&threads, 0..params.numThreads) |*thread, i| {
                 const start: usize = i * chunkSize;
-                const end: usize = std.min(start + chunkSize, inputs.len);
+                const end: usize = @min(start + chunkSize, inputs.len);
 
                 // Denormalize the inputs and outputs in the current chunk
                 if (std.Thread.spawn(.{}, denormalizeChunk, .{ T, self, inputs[start..end], outputs[start..end] })) |t| {
@@ -217,7 +234,7 @@ pub fn Norm(comptime T: type) type {
             }
 
             // Await all threads to finish
-            for (threads) |*thread| {
+            for (&threads) |*thread| {
                 thread.*.join();
             }
         }
