@@ -3,7 +3,7 @@
 
 // Import the moduels used
 const std = @import("std");
-const params = @import("params").params;
+const params = @import("params");
 const err = @import("errors").normalizationError;
 
 // Computes the slope and shift for the normalization using a Z-score standardization

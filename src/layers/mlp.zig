@@ -4,7 +4,7 @@
 const std = @import("std");
 const eigen = @import("eigen");
 const act = @import("act");
-const params = @import("params").params;
+const params = @import("params");
 const err = @import("errors").nnError;
 
 /// Define the structure for the MLP

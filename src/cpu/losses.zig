@@ -2,7 +2,7 @@
 
 // Imports the modules used
 const std = @import("std");
-const params = @import("params").params;
+const params = @import("params");
 const errors = @import("errors");
 const err = errors.lossError;
 

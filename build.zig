@@ -1,8 +1,5 @@
 const std = @import("std");
 
-// Path to the params.json file
-const params_path = "params.json";
-
 // Main function to build the zig project
 pub fn build(b: *std.Build) void {
     // Define the target
@@ -52,11 +49,6 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
     });
-
-    // Give the params.json file to the params module
-    const config_options = b.addOptions();
-    config_options.addOptionPath("params_path", b.path(params_path));
-    params.addOptions("config", config_options);
 
     // Create the module with the activation functions
     const activation = b.createModule(.{

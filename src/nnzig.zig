@@ -6,7 +6,7 @@ const act = @import("act");
 const loss = @import("loss");
 const eigen = @import("eigen");
 const mlp = @import("mlp");
-const params = @import("params").params;
+const params = @import("params");
 const norms = @import("norms");
 const err = @import("errors").nnError;
 
