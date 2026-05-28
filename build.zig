@@ -1,20 +1,14 @@
 const std = @import("std");
 
-// Main function to build the zig project
 pub fn build(b: *std.Build) void {
-    // Define the target
     const target = b.standardTargetOptions(.{});
-
-    // Define the optimization
     const optimize = b.standardOptimizeOption(.{});
 
-    // Add eigen as a dependency
     const eigen = b.dependency("eigen", .{
         .target = target,
         .optimize = optimize,
     });
 
-    // Create the wrapper module
     const eigen_wrapper = b.createModule(.{
         .root_source_file = b.path("src/eigen/wrappers.zig"),
         .target = target,
@@ -22,8 +16,6 @@ pub fn build(b: *std.Build) void {
         .link_libc = true,
         .link_libcpp = true,
     });
-
-    // Add C++ source files to the wrapper module
     eigen_wrapper.addCSourceFiles(.{
         .root = b.path("src/eigen"),
         .files = &.{
@@ -36,21 +28,18 @@ pub fn build(b: *std.Build) void {
     });
     eigen_wrapper.addIncludePath(eigen.path("./"));
 
-    // Create the module with the core structures
     const errors = b.createModule(.{
         .root_source_file = b.path("src/core/errors.zig"),
         .target = target,
         .optimize = optimize,
     });
 
-    // Define the file with the parameters
     const params = b.createModule(.{
         .root_source_file = b.path("src/core/params.zig"),
         .target = target,
         .optimize = optimize,
     });
 
-    // Create the module with the activation functions
     const activation = b.createModule(.{
         .root_source_file = b.path("src/cpu/activations.zig"),
         .target = target,
@@ -59,7 +48,6 @@ pub fn build(b: *std.Build) void {
     activation.addImport("params", params);
     activation.addImport("errors", errors);
 
-    // Create the module with the loss functions
     const loss = b.createModule(.{
         .root_source_file = b.path("src/cpu/losses.zig"),
         .target = target,
@@ -68,11 +56,9 @@ pub fn build(b: *std.Build) void {
     loss.addImport("params", params);
     loss.addImport("errors", errors);
 
-    // Add activation and loss types to the paraams modules.
     params.addImport("act", activation);
     params.addImport("loss", loss);
 
-    // Create the module with the normalizations
     const norms = b.createModule(.{
         .root_source_file = b.path("src/core/normalizations.zig"),
         .target = target,
@@ -81,7 +67,6 @@ pub fn build(b: *std.Build) void {
     norms.addImport("params", params);
     norms.addImport("errors", errors);
 
-    // Create the module to the MLP
     const MLP = b.createModule(.{
         .root_source_file = b.path("src/layers/mlp.zig"),
         .target = target,
@@ -92,49 +77,33 @@ pub fn build(b: *std.Build) void {
     MLP.addImport("errors", errors);
     MLP.addImport("params", params);
 
-    // Create the NNzig library
-    const nnzig = b.createModule(.{
+    const nnzig_mod = b.addModule("nnzig", .{
         .root_source_file = b.path("src/nnzig.zig"),
         .target = target,
         .optimize = optimize,
     });
-    nnzig.addImport("errors", errors);
-    nnzig.addImport("act", activation);
-    nnzig.addImport("loss", loss);
-    nnzig.addImport("eigen", eigen_wrapper);
-    nnzig.addImport("mlp", MLP);
-    nnzig.addImport("params", params);
-    nnzig.addImport("norms", norms);
+    nnzig_mod.addImport("errors", errors);
+    nnzig_mod.addImport("act", activation);
+    nnzig_mod.addImport("loss", loss);
+    nnzig_mod.addImport("eigen", eigen_wrapper);
+    nnzig_mod.addImport("mlp", MLP);
+    nnzig_mod.addImport("params", params);
+    nnzig_mod.addImport("norms", norms);
 
-    // Create the main module
-    const main_mod = b.createModule(.{
-        .root_source_file = b.path("src/main.zig"),
+    const test_mod = b.createModule(.{
+        .root_source_file = b.path("src/tests.zig"),
         .target = target,
         .optimize = optimize,
     });
-    main_mod.addImport("nnzig", nnzig);
+    test_mod.addImport("nnzig", nnzig_mod);
+    test_mod.addImport("params", params);
 
-    // Declare the main executable
-    const main_exe = b.addExecutable(.{
-        .name = "main",
-        .root_module = main_mod,
+    const tests = b.addTest(.{
+        .root_module = test_mod,
     });
 
-    // Install the zig executable
-    b.installArtifact(main_exe);
+    const run_tests = b.addRunArtifact(tests);
 
-    // Create the run step
-    const run_cmd = b.addRunArtifact(main_exe);
-
-    // Make the run step depends on the installation
-    run_cmd.step.dependOn(b.getInstallStep());
-
-    // Pass the arguments to the zig exe
-    if (b.args) |args| {
-        run_cmd.addArgs(args);
-    }
-
-    // Create the run option
-    const run_step = b.step("run", "Run the app");
-    run_step.dependOn(&run_cmd.step);
+    const test_step = b.step("test", "Run tests");
+    test_step.dependOn(&run_tests.step);
 }

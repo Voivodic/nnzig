@@ -51,10 +51,10 @@ pub const beta2: f32 = 0.999;
 pub const lr: f32 = 0.01;
 
 /// Set the number of epochs used by the adam optim
-pub const nEpochs: usize = 500;
+pub const nEpochs: usize = 100;
 
 /// Set the batch size
-pub const batchSize: usize = 50;
+pub const batchSize: usize = 20;
 
 /// Set the frequency of printing results
-pub const printEvery: usize = 50;
+pub const printEvery: usize = 0;

@@ -348,7 +348,7 @@ pub fn NN(comptime T: type) type {
                 }
 
                 // Print the current state
-                if (epoch % params.printEvery == 0) {
+                if (params.printEvery > 0 and epoch % params.printEvery == 0) {
                     std.debug.print("Loss[{}] = ({}, {})\n", .{ epoch, self.lossesTraining[epoch], self.lossesValidation[epoch] });
                 }
             }
