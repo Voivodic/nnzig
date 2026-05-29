@@ -34,11 +34,24 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
 
+    const params_file = b.addModule("paramsFile", .{
+            .root_source_file = b.path("params.zon"),
+            .target = target,
+            .optimize = optimize,
+    });
+
     const params = b.createModule(.{
         .root_source_file = b.path("src/core/params.zig"),
         .target = target,
         .optimize = optimize,
     });
+    params.addImport("paramsFile", params_file);
+
+    const test_params = b.addTest(.{
+        .name = "params",
+        .root_module = params,
+    });
+    const run_test_params = b.addRunArtifact(test_params);
 
     const activation = b.createModule(.{
         .root_source_file = b.path("src/cpu/activations.zig"),
@@ -99,6 +112,7 @@ pub fn build(b: *std.Build) void {
     test_mod.addImport("params", params);
 
     const tests = b.addTest(.{
+        .name = "main",
         .root_module = test_mod,
     });
 
@@ -106,4 +120,5 @@ pub fn build(b: *std.Build) void {
 
     const test_step = b.step("test", "Run tests");
     test_step.dependOn(&run_tests.step);
+    test_step.dependOn(&run_test_params.step);
 }
