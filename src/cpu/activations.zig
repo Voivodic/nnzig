@@ -62,7 +62,7 @@ pub fn activateElements(comptime T: type, input: []T, df: []T, act: params.activ
         // Check the activation function to be used
         switch (act) {
             // Trivial
-            params.activation.none => {
+            .none => {
                 if (std.Thread.spawn(.{}, none, .{ T, df[start..end] })) |t| {
                     thread.* = t;
                 } else |_| {
@@ -71,7 +71,7 @@ pub fn activateElements(comptime T: type, input: []T, df: []T, act: params.activ
                 }
             },
             // ReLU
-            params.activation.relu => {
+            .relu => {
                 if (std.Thread.spawn(.{}, relu, .{ T, input[start..end], df[start..end] })) |t| {
                     thread.* = t;
                 } else |_| {
@@ -80,7 +80,7 @@ pub fn activateElements(comptime T: type, input: []T, df: []T, act: params.activ
                 }
             },
             // Tanh
-            params.activation.tanh => {
+            .tanh => {
                 if (std.Thread.spawn(.{}, tanh, .{ T, input[start..end], df[start..end] })) |t| {
                     thread.* = t;
                 } else |_| {
@@ -89,7 +89,7 @@ pub fn activateElements(comptime T: type, input: []T, df: []T, act: params.activ
                 }
             },
             // Sigmoid
-            params.activation.sigmoid => {
+            .sigmoid => {
                 if (std.Thread.spawn(.{}, sigmoid, .{ T, input[start..end], df[start..end] })) |t| {
                     thread.* = t;
                 } else |_| {
