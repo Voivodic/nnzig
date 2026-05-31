@@ -19,7 +19,9 @@ pub fn build(b: *std.Build) void {
     eigen_wrapper.addCSourceFiles(.{
         .root = b.path("src/eigen"),
         .files = &.{
-            "eigen.cpp",
+            "linalg_f32.cpp",
+            "linalg_f64.cpp",
+            "linalg_f16.cpp",
         },
         .flags = &.{
             "-O3",
