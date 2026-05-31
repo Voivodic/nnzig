@@ -89,7 +89,7 @@ pub fn MLP(comptime T: type) type {
                 const nout = nNeurons[i + 1];
 
                 // Compute the matrix vector multiplication then add the result to a third vector
-                eigen.matrixVectorMulAdd(weights[nprod..(nprod + nin * nout)].ptr, self.y[nsum..(nsum + nin)].ptr, biases[nsum..(nsum + nout)].ptr, self.y[(nsum + nin)..(nsum + nin + nout)].ptr, nout, nin);
+                eigen.matrixVectorMulAdd(T, weights[nprod..(nprod + nin * nout)], self.y[nsum..(nsum + nin)], biases[nsum..(nsum + nout)], self.y[(nsum + nin)..(nsum + nin + nout)]);
 
                 // Apply the activation function
                 try act.activateElements(T, self.y[(nsum + nin)..(nsum + nin + nout)], self.dy[(nsum + nin)..(nsum + nin + nout)], activations[i]);
@@ -115,24 +115,24 @@ pub fn MLP(comptime T: type) type {
             var nyEnd: usize = self.y.len;
 
             // Compute the initial value for the vector V
-            eigen.vectorVInit(dL.ptr, self.V.ptr, dL.len);
+            eigen.vectorInit(T, dL, self.V);
 
             // Iterate from the last to the first layer
             while (layer > 0) : (layer -= 1) {
                 // Multiply the propagated vector V by the derivative of the activation function
-                eigen.vectorMul(self.V[0..(nNeurons[layer])].ptr, self.dy[nyIni..nyEnd].ptr, nNeurons[layer]);
+                eigen.vectorMul(T, self.V[0..(nNeurons[layer])], self.dy[nyIni..nyEnd]);
 
                 // Update the gradient for the weights
-                eigen.updateGradWeights(self.V[0..nNeurons[layer]].ptr, self.y[(nyIni - nNeurons[layer - 1])..nyIni].ptr, gradW[nwIni..nwEnd].ptr, nNeurons[layer], nNeurons[layer - 1]);
+                eigen.updateGradWeights(T, self.V[0..nNeurons[layer]], self.y[(nyIni - nNeurons[layer - 1])..nyIni], gradW[nwIni..nwEnd]);
 
                 // Update the gradient for the biases
-                eigen.updateGradBiases(self.V[0..nNeurons[layer]].ptr, gradB[nbIni..nbEnd].ptr, nNeurons[layer]);
+                eigen.updateGradBiases(T, self.V[0..nNeurons[layer]], gradB[nbIni..nbEnd]);
 
                 // Do not run this part in the last iteration
                 if (layer > 1) {
 
                     // Update the M matrix using the current weight matrix
-                    eigen.vectorMatrixMul(self.V[0..(nNeurons[layer])].ptr, weights[nwIni..nwEnd].ptr, nNeurons[layer], nNeurons[layer - 1]);
+                    eigen.vectorMatrixMul(T, self.V[0..(nNeurons[layer])], weights[nwIni..nwEnd]);
 
                     // Update the counters
                     nyEnd = nyIni;

@@ -85,8 +85,8 @@ pub fn NN(comptime T: type) type {
             }
 
             // Set mW and vW to zero
-            eigen.setZero(nn.mW.ptr, nn.mW.len);
-            eigen.setZero(nn.vW.ptr, nn.vW.len);
+            eigen.setZero(T, nn.mW);
+            eigen.setZero(T, nn.vW);
 
             // Alloc memory for the biases
             if (allocator.alloc(T, nBiases)) |slice| {
@@ -121,8 +121,8 @@ pub fn NN(comptime T: type) type {
             }
 
             // Set mb and vb to zero
-            eigen.setZero(nn.mB.ptr, nn.mB.len);
-            eigen.setZero(nn.vB.ptr, nn.vB.len);
+            eigen.setZero(T, nn.mB);
+            eigen.setZero(T, nn.vB);
 
             // Set the parameters to normal random numbers
             for (nn.weights) |*weight| {
@@ -174,8 +174,8 @@ pub fn NN(comptime T: type) type {
 
         // Put the gradients equal to zero
         pub fn zeroGrad(self: *const NN(T)) void {
-            eigen.setZero(self.gradW.ptr, self.gradW.len);
-            eigen.setZero(self.gradB.ptr, self.gradB.len);
+            eigen.setZero(T, self.gradW);
+            eigen.setZero(T, self.gradB);
         }
 
         // Compute a forward pass in the NN
