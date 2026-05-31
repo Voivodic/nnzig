@@ -30,6 +30,12 @@ pub fn build(b: *std.Build) void {
     });
     eigen_wrapper.addIncludePath(eigen.path("./"));
 
+    const test_eigen = b.addTest(.{
+        .name = "eigen",
+        .root_module = eigen_wrapper,
+    });
+    const run_test_eigen = b.addRunArtifact(test_eigen);
+
     const errors = b.createModule(.{
         .root_source_file = b.path("src/core/errors.zig"),
         .target = target,
@@ -117,10 +123,10 @@ pub fn build(b: *std.Build) void {
         .name = "main",
         .root_module = test_mod,
     });
-
     const run_tests = b.addRunArtifact(tests);
 
     const test_step = b.step("test", "Run tests");
     test_step.dependOn(&run_tests.step);
     test_step.dependOn(&run_test_params.step);
+    test_step.dependOn(&run_test_eigen.step);
 }
