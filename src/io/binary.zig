@@ -8,6 +8,7 @@ const params = @import("params");
 const errors = @import("errors");
 const err = errors.ioError;
 const testing = std.testing;
+const fType = params.floatType;
 
 // Header for the neural network binary files
 const NNHeader = struct {
@@ -24,7 +25,7 @@ const DataHeader = struct {
 };
 
 /// Save the weights of the neural network to a binary file
-pub fn saveWeights(comptime T: type, fileName: []const u8, nn: *const nnzig.NN(T)) !void {
+pub fn saveWeights(fileName: []const u8, nn: *const nnzig.NN) !void {
     // Open the file in fileName
     const cwd = std.Io.Dir.cwd();
     const file = try cwd.createFile(nn.ioContext, fileName, .{});
@@ -43,7 +44,7 @@ pub fn saveWeights(comptime T: type, fileName: []const u8, nn: *const nnzig.NN(T
 }
 
 /// Load the weights of the neural network from a binary file
-pub fn loadWeights(comptime T: type, fileName: []const u8, nn: *nnzig.NN(T)) !void {
+pub fn loadWeights(fileName: []const u8, nn: *nnzig.NN) !void {
     // Open the file in fileName
     const cwd = std.Io.Dir.cwd();
     const file = try cwd.openFile(nn.ioContext, fileName, .{});
@@ -94,9 +95,9 @@ test "[io] save/load-Weights" {
     const io = std.testing.io;
 
     // Create the neural network
-    var nnIn = try nnzig.NN(params.floatType).init(allocator, io);
+    var nnIn = try nnzig.NN.init(allocator, io);
     defer nnIn.deinit();
-    var nnOut = try nnzig.NN(params.floatType).init(allocator, io);
+    var nnOut = try nnzig.NN.init(allocator, io);
     defer nnOut.deinit();
 
     // Change some weights
@@ -104,10 +105,10 @@ test "[io] save/load-Weights" {
     nnIn.biases[0] = 1.0;
 
     // Save the weights to a file
-    try saveWeights(params.floatType, path, &nnIn);
+    try saveWeights(path, &nnIn);
 
     // Load the weights from the same file
-    try loadWeights(params.floatType, path, &nnOut);
+    try loadWeights(path, &nnOut);
 
     // Check the weights
     try testing.expectEqual(nnIn.weights[0], nnOut.weights[0]);
@@ -119,7 +120,7 @@ test "[io] save/load-Weights" {
 }
 
 /// Save the data points to a binary file
-pub fn saveData(comptime T: type, io: std.Io, fileName: []const u8, data: []const T, dimData: u64) !void {
+pub fn saveData(io: std.Io, fileName: []const u8, data: []const fType, dimData: u64) !void {
     // Open the file in fileName
     const cwd = std.Io.Dir.cwd();
     const file = try cwd.createFile(io, fileName, .{});
@@ -127,7 +128,7 @@ pub fn saveData(comptime T: type, io: std.Io, fileName: []const u8, data: []cons
 
     // Create the header with standard values
     const header = DataHeader{
-        .precision = @sizeOf(T),
+        .precision = @sizeOf(fType),
         .nData = @as(u64, data.len) / dimData,
         .dimData = dimData,
     };
@@ -140,7 +141,7 @@ pub fn saveData(comptime T: type, io: std.Io, fileName: []const u8, data: []cons
 }
 
 /// Load the data points from a binary file
-pub fn loadData(comptime T: type, io: std.Io, fileName: []const u8, data: []T) !u64 {
+pub fn loadData(io: std.Io, fileName: []const u8, data: []fType) !u64 {
     // Open the file in fileName
     const cwd = std.Io.Dir.cwd();
     const file = try cwd.openFile(io, fileName, .{});
@@ -192,23 +193,23 @@ test "[io] save/load-Data" {
     // Create some data points
     const nData: usize = 10;
     const nDim: usize = 10;
-    var dataIn: []f32 = undefined;
-    var dataOut: []f32 = undefined;
-    dataIn = try allocator.alloc(f32, nData * nDim);
-    dataOut = try allocator.alloc(f32, nData * nDim);
+    var dataIn: []fType = undefined;
+    var dataOut: []fType = undefined;
+    dataIn = try allocator.alloc(fType, nData * nDim);
+    dataOut = try allocator.alloc(fType, nData * nDim);
     defer {
         allocator.free(dataIn);
         allocator.free(dataOut);
     }
     for (dataIn) |*dIn| {
-        dIn.* = std.Random.floatNorm(rand, f32);
+        dIn.* = std.Random.floatNorm(rand, fType);
     }
 
     // Save the data points to a file
-    try saveData(params.floatType, io, path, dataIn, nDim);
+    try saveData(io, path, dataIn, nDim);
 
     // Load the weights from the same file
-    _ = try loadData(params.floatType, io, path, dataOut);
+    _ = try loadData(io, path, dataOut);
 
     // Check the data
     for (dataIn, dataOut) |*dIn, *dOut| {

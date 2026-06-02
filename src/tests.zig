@@ -13,7 +13,7 @@ test "NN init and deinit" {
 
     const ioContext = std.testing.io;
 
-    var nn: nnzig.NN(f32) = try nnzig.NN(f32).init(allocator, ioContext);
+    var nn: nnzig.NN = try nnzig.NN.init(allocator, ioContext);
     defer nn.deinit();
 }
 
@@ -27,7 +27,7 @@ test "NN compute normalization and normalize" {
 
     const ioContext = std.testing.io;
 
-    var nn: nnzig.NN(f32) = try nnzig.NN(f32).init(allocator, ioContext);
+    var nn: nnzig.NN = try nnzig.NN.init(allocator, ioContext);
     defer nn.deinit();
 
     var xoshiro256 = std.Random.Xoshiro256.init(12345);
@@ -74,7 +74,7 @@ test "NN init correct field sizes" {
 
     const ioContext = std.testing.io;
 
-    var nn: nnzig.NN(f32) = try nnzig.NN(f32).init(allocator, ioContext);
+    var nn: nnzig.NN = try nnzig.NN.init(allocator, ioContext);
     defer nn.deinit();
 
     var nWeights: usize = 0;
@@ -104,7 +104,7 @@ test "NN init adam arrays zeroed" {
 
     const ioContext = std.testing.io;
 
-    var nn: nnzig.NN(f32) = try nnzig.NN(f32).init(allocator, ioContext);
+    var nn: nnzig.NN = try nnzig.NN.init(allocator, ioContext);
     defer nn.deinit();
 
     for (nn.mW) |val| try testing.expectEqual(@as(f32, 0.0), val);
@@ -123,7 +123,7 @@ test "NN forward pass output size" {
 
     const ioContext = std.testing.io;
 
-    var nn: nnzig.NN(f32) = try nnzig.NN(f32).init(allocator, ioContext);
+    var nn: nnzig.NN = try nnzig.NN.init(allocator, ioContext);
     defer nn.deinit();
 
     const input = [_]f32{ 1.0, 2.0 };
@@ -143,7 +143,7 @@ test "NN zeroGrad zeros all gradients" {
 
     const ioContext = std.testing.io;
 
-    var nn: nnzig.NN(f32) = try nnzig.NN(f32).init(allocator, ioContext);
+    var nn: nnzig.NN = try nnzig.NN.init(allocator, ioContext);
     defer nn.deinit();
 
     @memset(nn.gradW, 3.14);
@@ -165,7 +165,7 @@ test "NN normalization factors positive std" {
 
     const ioContext = std.testing.io;
 
-    var nn: nnzig.NN(f32) = try nnzig.NN(f32).init(allocator, ioContext);
+    var nn: nnzig.NN = try nnzig.NN.init(allocator, ioContext);
     defer nn.deinit();
 
     var xoshiro256 = std.Random.Xoshiro256.init(12345);
@@ -219,7 +219,7 @@ test "NN training" {
 
     const ioContext = std.testing.io;
 
-    var nn: nnzig.NN(f32) = try nnzig.NN(f32).init(allocator, ioContext);
+    var nn: nnzig.NN = try nnzig.NN.init(allocator, ioContext);
     defer nn.deinit();
 
     var xoshiro256 = std.Random.Xoshiro256.init(12345);

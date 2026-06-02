@@ -5,16 +5,17 @@ const std = @import("std");
 const params = @import("params");
 const errors = @import("errors");
 const err = errors.activationError;
+const fType = params.floatType;
 
 // The trivial activation function
-fn none(comptime T: type, df: []T) void {
+fn none(df: []fType) void {
     for (df) |*d| {
         d.* = 1.0;
     }
 }
 
 // The relu activation funciton
-fn relu(comptime T: type, slice: []T, df: []T) void {
+fn relu(slice: []fType, df: []fType) void {
     for (slice, df) |*elem, *d| {
         if (elem.* < 0.0) {
             elem.* = 0.0;
@@ -26,7 +27,7 @@ fn relu(comptime T: type, slice: []T, df: []T) void {
 }
 
 // The tanh activation function
-fn tanh(comptime T: type, slice: []T, df: []T) void {
+fn tanh(slice: []fType, df: []fType) void {
     for (slice, df) |*elem, *d| {
         const exp = @exp(elem.*);
         const invexp = 1.0 / exp;
@@ -37,7 +38,7 @@ fn tanh(comptime T: type, slice: []T, df: []T) void {
 }
 
 // The sigmoid activation function
-fn sigmoid(comptime T: type, slice: []T, df: []T) void {
+fn sigmoid(slice: []fType, df: []fType) void {
     for (slice, df) |*elem, *d| {
         const sigma = 1.0 / (1.0 + @exp(-elem.*));
 
@@ -47,7 +48,7 @@ fn sigmoid(comptime T: type, slice: []T, df: []T) void {
 }
 
 /// Apply the activation function to each element of the slice and compute its gradient
-pub fn activateElements(comptime T: type, input: []T, df: []T, act: params.activation) !void {
+pub fn activateElements(input: []fType, df: []fType, act: params.activation) !void {
     // Compute the chunck size
     const chunkSize: usize = (input.len + params.numThreads - 1) / params.numThreads;
 
@@ -63,7 +64,7 @@ pub fn activateElements(comptime T: type, input: []T, df: []T, act: params.activ
         switch (act) {
             // Trivial
             params.activation.none => {
-                if (std.Thread.spawn(.{}, none, .{ T, df[start..end] })) |t| {
+                if (std.Thread.spawn(.{}, none, .{df[start..end] })) |t| {
                     thread.* = t;
                 } else |_| {
                     std.debug.print("Error in spawning thread {}!\n", .{i});
@@ -72,7 +73,7 @@ pub fn activateElements(comptime T: type, input: []T, df: []T, act: params.activ
             },
             // ReLU
             params.activation.relu => {
-                if (std.Thread.spawn(.{}, relu, .{ T, input[start..end], df[start..end] })) |t| {
+                if (std.Thread.spawn(.{}, relu, .{input[start..end], df[start..end] })) |t| {
                     thread.* = t;
                 } else |_| {
                     std.debug.print("Error in spawning thread {}!\n", .{i});
@@ -81,7 +82,7 @@ pub fn activateElements(comptime T: type, input: []T, df: []T, act: params.activ
             },
             // Tanh
             params.activation.tanh => {
-                if (std.Thread.spawn(.{}, tanh, .{ T, input[start..end], df[start..end] })) |t| {
+                if (std.Thread.spawn(.{}, tanh, .{input[start..end], df[start..end] })) |t| {
                     thread.* = t;
                 } else |_| {
                     std.debug.print("Error in spawning thread {}!\n", .{i});
@@ -90,7 +91,7 @@ pub fn activateElements(comptime T: type, input: []T, df: []T, act: params.activ
             },
             // Sigmoid
             params.activation.sigmoid => {
-                if (std.Thread.spawn(.{}, sigmoid, .{ T, input[start..end], df[start..end] })) |t| {
+                if (std.Thread.spawn(.{}, sigmoid, .{input[start..end], df[start..end] })) |t| {
                     thread.* = t;
                 } else |_| {
                     std.debug.print("Error in spawning thread {}!\n", .{i});
