@@ -24,34 +24,34 @@ const DataHeader = struct {
 };
 
 /// Save the weights of the neural network to a binary file
-pub fn saveWeights(comptime T: type, io: std.Io, fileName: []const u8, nn: *const nnzig.NN(T)) !void {
+pub fn saveWeights(comptime T: type, fileName: []const u8, nn: *const nnzig.NN(T)) !void {
     // Open the file in fileName
     const cwd = std.Io.Dir.cwd();
-    const file = try cwd.createFile(io, fileName, .{});
-    defer file.close(io);
+    const file = try cwd.createFile(nn.ioContext, fileName, .{});
+    defer file.close(nn.ioContext);
 
     // Create the header with standard values
     const header = NNHeader{};
 
     // Write the header to the file
-    try file.writeStreamingAll(io, std.mem.asBytes(&header));
+    try file.writeStreamingAll(nn.ioContext, std.mem.asBytes(&header));
 
     // Write the weights and biases to the file
-    try file.writeStreamingAll(io, std.mem.sliceAsBytes(nn.weights));
-    try file.writeStreamingAll(io, std.mem.sliceAsBytes(nn.biases));
+    try file.writeStreamingAll(nn.ioContext, std.mem.sliceAsBytes(nn.weights));
+    try file.writeStreamingAll(nn.ioContext, std.mem.sliceAsBytes(nn.biases));
 
 }
 
 /// Load the weights of the neural network from a binary file
-pub fn loadWeights(comptime T: type, io: std.Io, fileName: []const u8, nn: *nnzig.NN(T)) !void {
+pub fn loadWeights(comptime T: type, fileName: []const u8, nn: *nnzig.NN(T)) !void {
     // Open the file in fileName
     const cwd = std.Io.Dir.cwd();
-    const file = try cwd.openFile(io, fileName, .{});
-    defer file.close(io);
+    const file = try cwd.openFile(nn.ioContext, fileName, .{});
+    defer file.close(nn.ioContext);
 
     // Create the buffer to read the header
     var read_buffer: [4096]u8 = undefined;
-    var file_reader = file.reader(io, &read_buffer);
+    var file_reader = file.reader(nn.ioContext, &read_buffer);
     var reader = &file_reader.interface;
 
     // Read the header from the file
@@ -104,10 +104,10 @@ test "[io] save/load-Weights" {
     nnIn.biases[0] = 1.0;
 
     // Save the weights to a file
-    try saveWeights(params.floatType, io, path, &nnIn);
+    try saveWeights(params.floatType, path, &nnIn);
 
     // Load the weights from the same file
-    try loadWeights(params.floatType, io, path, &nnOut);
+    try loadWeights(params.floatType, path, &nnOut);
 
     // Check the weights
     try testing.expectEqual(nnIn.weights[0], nnOut.weights[0]);

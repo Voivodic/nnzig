@@ -360,12 +360,12 @@ pub fn NN(comptime T: type) type {
 
         /// Save the weights of the neural network to a file
         pub fn saveWeights(self: *const NN(T), fileName: []const u8) !void {
-            try io.saveWeights(T, self.ioContext, fileName, self);
+            try io.saveWeights(T, fileName, self);
         }
 
         /// Load the weights of the neural network from a file
         pub fn loadWeights(self: *NN(T), fileName: []const u8) !void {
-            try io.loadWeights(T, self.ioContext, fileName, self);
+            try io.loadWeights(T, fileName, self);
         }
 
         // Test the saving and loading of the weights
