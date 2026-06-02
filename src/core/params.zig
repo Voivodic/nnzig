@@ -34,6 +34,7 @@ pub const norm = enum(u8) {
 // --- Define the base parameters ---
 
 const baseParams = struct {
+    precision: usize = 32,
     numThreads: usize = 1,
     lossFunc: []const u8 = "MSE",
     normalization: []const u8 = "meanStd",
@@ -50,6 +51,16 @@ const baseParams = struct {
 };
 
 // --- Conversion functions ---
+ 
+/// Converts a compile-time int to its matching type
+fn convertIntToType(comptime pre: usize) type {
+    switch (pre) {
+        16 => return f16,
+        32 => return f32,
+        64 => return f64,
+        else => @compileError("Invalid precision!"),
+    }
+}
 
 /// Converts a compile-time string to its matching Enum attribute
 fn convertStringToEnum(comptime enum_type: type, comptime str: []const u8) enum_type {
@@ -201,6 +212,9 @@ pub const numThreads: usize = blk: {
     }
     break :blk config.numThreads;
 };
+
+/// Set the precision of the floats used
+pub const floatType: type = convertIntToType(config.precision);
 
 /// Set the seed used for the pseudo random number generators
 pub const seed: u64 = config.seed;

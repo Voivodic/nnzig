@@ -1,4 +1,7 @@
 .{
+    // Precision of the floats used
+    .precision = 32,
+
     // Number of threads to used
     .numThreads = 1,
 
