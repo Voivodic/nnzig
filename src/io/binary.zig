@@ -94,9 +94,9 @@ test "[io] save/load-Weights" {
     const io = std.testing.io;
 
     // Create the neural network
-    var nnIn = try nnzig.NN(params.floatType).init(allocator);
+    var nnIn = try nnzig.NN(params.floatType).init(allocator, io);
     defer nnIn.deinit();
-    var nnOut = try nnzig.NN(params.floatType).init(allocator);
+    var nnOut = try nnzig.NN(params.floatType).init(allocator, io);
     defer nnOut.deinit();
 
     // Change some weights

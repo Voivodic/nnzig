@@ -7,13 +7,16 @@ const loss = @import("loss");
 const eigen = @import("eigen");
 const mlp = @import("mlp");
 const params = @import("params");
+const io = @import("io");
 const norms = @import("norms");
 const err = @import("errors").nnError;
+const testing = std.testing;
 
 /// Create the main structure for the NN
 pub fn NN(comptime T: type) type {
     return struct {
         allocator: std.mem.Allocator,
+        ioContext: std.Io,
         nn: mlp.MLP(T),
         norm: norms.Norm(T),
         rand: std.Random,
@@ -29,13 +32,14 @@ pub fn NN(comptime T: type) type {
         lossesValidation: []T = &.{},
 
         // Initialize the structure
-        pub fn init(allocator: std.mem.Allocator) !NN(T) {
+        pub fn init(allocator: std.mem.Allocator, ioContext: std.Io) !NN(T) {
             // Initialize the random generator
             var xoshiro256 = std.Random.Xoshiro256.init(params.seed);
 
             // Create the NN
             var nn = NN(T){
                 .allocator = allocator,
+                .ioContext = ioContext,
                 .nn = try mlp.MLP(T).init(
                     allocator,
                     &params.nNeurons,
@@ -352,6 +356,60 @@ pub fn NN(comptime T: type) type {
                     std.debug.print("Loss[{}] = ({}, {})\n", .{ epoch, self.lossesTraining[epoch], self.lossesValidation[epoch] });
                 }
             }
+        }
+
+        /// Save the weights of the neural network to a file
+        pub fn saveWeights(self: *const NN(T), fileName: []const u8) !void {
+            try io.saveWeights(T, self.ioContext, fileName, self);
+        }
+
+        /// Load the weights of the neural network from a file
+        pub fn loadWeights(self: *NN(T), fileName: []const u8) !void {
+            try io.loadWeights(T, self.ioContext, fileName, self);
+        }
+
+        // Test the saving and loading of the weights
+        test "[nnzig] save/load-Weights" {
+            // Create the allocator
+            var gpa = std.heap.DebugAllocator(.{}){};
+            const allocator = gpa.allocator();
+            defer {
+                const deinit_status = gpa.deinit();
+                if (deinit_status == .leak) std.log.err("Leak!\n", .{});
+            }
+
+            // Create the IO context
+            const path = "test.bin";
+            const ioContext = std.testing.io;
+
+            // Create the neural network
+            var nnIn = try NN(params.floatType).init(allocator, ioContext);
+            defer nnIn.deinit();
+            var nnOut = try NN(params.floatType).init(allocator, ioContext);
+            defer nnOut.deinit();
+
+            // Change some weights
+            nnIn.weights[0] = 2.0;
+            nnIn.biases[0] = 1.0;
+
+            // Save the weights to a file
+            try nnIn.saveWeights(path);
+
+            // Load the weights from the same file
+            try nnOut.loadWeights(path);
+
+            // Check the weights
+            try testing.expectEqual(nnIn.weights[0], nnOut.weights[0]);
+            try testing.expectEqual(nnIn.biases[0], nnOut.biases[0]);
+            try testing.expect(false);
+
+            // Delete the test file
+            const cwd = std.Io.Dir.cwd();
+            try cwd.deleteFile(ioContext, path);
+        }
+
+        test "1" {
+            try testing.expect(false);
         }
     };
 }

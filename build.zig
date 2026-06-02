@@ -122,16 +122,16 @@ pub fn build(b: *std.Build) void {
 
     // --- Layers modules ---
 
-    // Add the MLP module
-    const MLP = b.createModule(.{
+    // Add the mlp module
+    const mlp = b.createModule(.{
         .root_source_file = b.path("src/layers/mlp.zig"),
         .target = target,
         .optimize = optimize,
     });
-    MLP.addImport("eigen", eigen_wrapper);
-    MLP.addImport("act", activation);
-    MLP.addImport("errors", errors);
-    MLP.addImport("params", params);
+    mlp.addImport("eigen", eigen_wrapper);
+    mlp.addImport("act", activation);
+    mlp.addImport("errors", errors);
+    mlp.addImport("params", params);
 
     // --- Main NN module ---
 
@@ -145,9 +145,16 @@ pub fn build(b: *std.Build) void {
     nnzig_mod.addImport("act", activation);
     nnzig_mod.addImport("loss", loss);
     nnzig_mod.addImport("eigen", eigen_wrapper);
-    nnzig_mod.addImport("mlp", MLP);
+    nnzig_mod.addImport("mlp", mlp);
     nnzig_mod.addImport("params", params);
     nnzig_mod.addImport("norms", norms);
+    nnzig_mod.addImport("io", io);
+
+    const test_nnzig = b.addTest(.{
+        .name = "nnzig",
+        .root_module = nnzig_mod,
+    });
+    const run_test_nnzig = b.addRunArtifact(test_nnzig);
 
     // Import nnzig to modules that need it
     io.addImport("nnzig", nnzig_mod);
@@ -176,4 +183,5 @@ pub fn build(b: *std.Build) void {
     test_step.dependOn(&run_test_params.step);
     test_step.dependOn(&run_test_eigen.step);
     test_step.dependOn(&run_test_io.step);
+    test_step.dependOn(&run_test_nnzig.step);
 }
