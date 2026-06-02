@@ -30,3 +30,11 @@ pub const activationError = error{
 pub const lossError = error{
     threadRun,
 };
+
+/// Possible errors for the IO module
+pub const ioError = error{
+    precisionMismatch,
+    invalidNNeurons,
+    invalidNLayers,
+    invalidNData,
+};

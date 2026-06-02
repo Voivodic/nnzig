@@ -5,6 +5,8 @@ pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
 
+    // --- Eigen wrapper ---
+
     // Add the Eigen dependency from build.zig.zon
     const eigen = b.dependency("eigen", .{
         .target = target,
@@ -40,6 +42,8 @@ pub fn build(b: *std.Build) void {
     });
     const run_test_eigen = b.addRunArtifact(test_eigen);
 
+    // --- Core modules ---
+
     // Add the errors module
     const errors = b.createModule(.{
         .root_source_file = b.path("src/core/errors.zig"),
@@ -69,6 +73,26 @@ pub fn build(b: *std.Build) void {
     });
     const run_test_params = b.addRunArtifact(test_params);
 
+    // --- IO modules ---
+
+    // Add the io module
+    const io = b.createModule(.{
+        .root_source_file = b.path("src/io/binary.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    io.addImport("params", params);
+    io.addImport("errors", errors);
+
+    // Add the tests for the io module
+    const test_io = b.addTest(.{
+        .name = "io",
+        .root_module = io,
+    });
+    const run_test_io = b.addRunArtifact(test_io);
+
+    // --- OPS modules ---
+
     // Add the activation module
     const activation = b.createModule(.{
         .root_source_file = b.path("src/cpu/activations.zig"),
@@ -96,6 +120,8 @@ pub fn build(b: *std.Build) void {
     norms.addImport("params", params);
     norms.addImport("errors", errors);
 
+    // --- Layers modules ---
+
     // Add the MLP module
     const MLP = b.createModule(.{
         .root_source_file = b.path("src/layers/mlp.zig"),
@@ -106,6 +132,8 @@ pub fn build(b: *std.Build) void {
     MLP.addImport("act", activation);
     MLP.addImport("errors", errors);
     MLP.addImport("params", params);
+
+    // --- Main NN module ---
 
     // Add the nnzig module
     const nnzig_mod = b.addModule("nnzig", .{
@@ -120,6 +148,11 @@ pub fn build(b: *std.Build) void {
     nnzig_mod.addImport("mlp", MLP);
     nnzig_mod.addImport("params", params);
     nnzig_mod.addImport("norms", norms);
+
+    // Import nnzig to modules that need it
+    io.addImport("nnzig", nnzig_mod);
+
+    // --- Test modules ---
 
     // Add the test module
     const test_mod = b.createModule(.{
@@ -142,4 +175,5 @@ pub fn build(b: *std.Build) void {
     test_step.dependOn(&run_tests.step);
     test_step.dependOn(&run_test_params.step);
     test_step.dependOn(&run_test_eigen.step);
+    test_step.dependOn(&run_test_io.step);
 }
