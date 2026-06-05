@@ -44,7 +44,7 @@ pub fn saveWeights(fileName: []const u8, nn: *const nnzig.NN) !void {
 }
 
 /// Load the weights of the neural network from a binary file
-pub fn loadWeights(fileName: []const u8, nn: *nnzig.NN) !void {
+pub fn loadWeights(fileName: []const u8, nn: *const nnzig.NN) !void {
     // Open the file in fileName
     const cwd = std.Io.Dir.cwd();
     const file = try cwd.openFile(nn.ioContext, fileName, .{});
@@ -95,9 +95,9 @@ test "[io] save/load-Weights" {
     const io = std.testing.io;
 
     // Create the neural network
-    var nnIn = try nnzig.NN.init(allocator, io);
+    const nnIn = try nnzig.NN.init(allocator, io);
     defer nnIn.deinit();
-    var nnOut = try nnzig.NN.init(allocator, io);
+    const nnOut = try nnzig.NN.init(allocator, io);
     defer nnOut.deinit();
 
     // Change some weights
@@ -125,6 +125,12 @@ pub fn saveData(io: std.Io, fileName: []const u8, data: []const fType, dimData: 
     const cwd = std.Io.Dir.cwd();
     const file = try cwd.createFile(io, fileName, .{});
     defer file.close(io);
+
+    // Check the size of the data
+    if (data.len % dimData != 0) {
+        std.log.err("The size of the data ({}) is not a multiple of dimData ({})!\n", .{data.len, dimData});
+        return err.invalidNData;
+    }
 
     // Create the header with standard values
     const header = DataHeader{
