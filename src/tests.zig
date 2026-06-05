@@ -11,7 +11,9 @@ test "NN init and deinit" {
         if (deinit_status == .leak) std.debug.print("Leak!\n", .{});
     }
 
-    var nn: nnzig.NN(f32) = try nnzig.NN(f32).init(allocator);
+    const ioContext = std.testing.io;
+
+    var nn: nnzig.NN = try nnzig.NN.init(allocator, ioContext);
     defer nn.deinit();
 }
 
@@ -23,7 +25,9 @@ test "NN compute normalization and normalize" {
         if (deinit_status == .leak) std.debug.print("Leak!\n", .{});
     }
 
-    var nn: nnzig.NN(f32) = try nnzig.NN(f32).init(allocator);
+    const ioContext = std.testing.io;
+
+    var nn: nnzig.NN = try nnzig.NN.init(allocator, ioContext);
     defer nn.deinit();
 
     var xoshiro256 = std.Random.Xoshiro256.init(12345);
@@ -68,7 +72,9 @@ test "NN init correct field sizes" {
         if (deinit_status == .leak) std.debug.print("Leak!\n", .{});
     }
 
-    var nn: nnzig.NN(f32) = try nnzig.NN(f32).init(allocator);
+    const ioContext = std.testing.io;
+
+    var nn: nnzig.NN = try nnzig.NN.init(allocator, ioContext);
     defer nn.deinit();
 
     var nWeights: usize = 0;
@@ -96,7 +102,9 @@ test "NN init adam arrays zeroed" {
         if (deinit_status == .leak) std.debug.print("Leak!\n", .{});
     }
 
-    var nn: nnzig.NN(f32) = try nnzig.NN(f32).init(allocator);
+    const ioContext = std.testing.io;
+
+    var nn: nnzig.NN = try nnzig.NN.init(allocator, ioContext);
     defer nn.deinit();
 
     for (nn.mW) |val| try testing.expectEqual(@as(f32, 0.0), val);
@@ -113,7 +121,9 @@ test "NN forward pass output size" {
         if (deinit_status == .leak) std.debug.print("Leak!\n", .{});
     }
 
-    var nn: nnzig.NN(f32) = try nnzig.NN(f32).init(allocator);
+    const ioContext = std.testing.io;
+
+    var nn: nnzig.NN = try nnzig.NN.init(allocator, ioContext);
     defer nn.deinit();
 
     const input = [_]f32{ 1.0, 2.0 };
@@ -131,7 +141,9 @@ test "NN zeroGrad zeros all gradients" {
         if (deinit_status == .leak) std.debug.print("Leak!\n", .{});
     }
 
-    var nn: nnzig.NN(f32) = try nnzig.NN(f32).init(allocator);
+    const ioContext = std.testing.io;
+
+    var nn: nnzig.NN = try nnzig.NN.init(allocator, ioContext);
     defer nn.deinit();
 
     @memset(nn.gradW, 3.14);
@@ -151,7 +163,9 @@ test "NN normalization factors positive std" {
         if (deinit_status == .leak) std.debug.print("Leak!\n", .{});
     }
 
-    var nn: nnzig.NN(f32) = try nnzig.NN(f32).init(allocator);
+    const ioContext = std.testing.io;
+
+    var nn: nnzig.NN = try nnzig.NN.init(allocator, ioContext);
     defer nn.deinit();
 
     var xoshiro256 = std.Random.Xoshiro256.init(12345);
@@ -203,7 +217,9 @@ test "NN training" {
         if (deinit_status == .leak) std.debug.print("Leak!\n", .{});
     }
 
-    var nn: nnzig.NN(f32) = try nnzig.NN(f32).init(allocator);
+    const ioContext = std.testing.io;
+
+    var nn: nnzig.NN = try nnzig.NN.init(allocator, ioContext);
     defer nn.deinit();
 
     var xoshiro256 = std.Random.Xoshiro256.init(12345);

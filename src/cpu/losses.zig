@@ -5,10 +5,11 @@ const std = @import("std");
 const params = @import("params");
 const errors = @import("errors");
 const err = errors.lossError;
+const fType = params.floatType;
 
 // Mean square error loss and its derivatives
-fn MSE(comptime T: type, pred: []const T, out: []const T, dL: []T, value: *T) void {
-    var loss: T = 0.0;
+fn MSE(pred: []const fType, out: []const fType, dL: []fType, value: *fType) void {
+    var loss: fType = 0.0;
 
     // Compute the loss and its derivative
     for (pred, out, dL) |*p, *o, *dl| {
@@ -16,17 +17,17 @@ fn MSE(comptime T: type, pred: []const T, out: []const T, dL: []T, value: *T) vo
         loss += 0.5 * (dl.*) * (dl.*);
     }
 
-    value.* = loss / @as(T, @floatFromInt(out.len));
+    value.* = loss / @as(fType, @floatFromInt(out.len));
 }
 
 /// Function that computes the loss and its derivatives for a given choice of loss function
-pub fn computeLoss(comptime T: type, pred: []const T, out: []const T, dL: []T, lossFunc: params.loss) !T {
+pub fn computeLoss(pred: []const fType, out: []const fType, dL: []fType, lossFunc: params.loss) !fType {
     // Compute the chunck size
     const chunkSize: usize = (pred.len + params.numThreads - 1) / params.numThreads;
 
     // Define the array of threads
     var threads: [params.numThreads]std.Thread = undefined;
-    var lossThread: [params.numThreads]T = undefined;
+    var lossThread: [params.numThreads]fType = undefined;
     for (&lossThread) |*lt| {
         lt.* = 0.0;
     }
@@ -39,7 +40,7 @@ pub fn computeLoss(comptime T: type, pred: []const T, out: []const T, dL: []T, l
         // Check which loss function to use
         switch (lossFunc) {
             params.loss.MSE => {
-                if (std.Thread.spawn(.{}, MSE, .{ T, pred[start..end], out[start..end], dL[start..end], lt })) |t| {
+                if (std.Thread.spawn(.{}, MSE, .{ pred[start..end], out[start..end], dL[start..end], lt })) |t| {
                     thread.* = t;
                 } else |_| {
                     std.debug.print("Error in spawning thread {}!\n", .{i});
@@ -55,7 +56,7 @@ pub fn computeLoss(comptime T: type, pred: []const T, out: []const T, dL: []T, l
     }
 
     // Compute the total final loss
-    var totalLoss: T = 0.0;
+    var totalLoss: fType = 0.0;
     for (&lossThread) |*lt| {
         totalLoss += lt.*;
     }
