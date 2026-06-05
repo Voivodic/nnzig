@@ -136,6 +136,25 @@ pub const NN = struct {
             bias.* = std.Random.floatNorm(nn.rand, fType);
         }
 
+        // Create the slice for the losses of the training
+        if (allocator.alloc(fType, params.nEpochs)) |slice| {
+            nn.lossesTraining = slice;
+        } else |_| {
+            std.debug.print("Error while allocating the slice for the losses of the training!\n", .{});
+            return err.lossesAllocation;
+        }
+
+        // Create the slice for the losses of the validation
+        if (allocator.alloc(fType, params.nEpochs)) |slice| {
+            nn.lossesValidation = slice;
+        } else |_| {
+            std.debug.print("Error while allocating the slice for the losses of the validation!\n", .{});
+            return err.lossesAllocation;
+        }
+
+        // Set the losses to zero
+        nn.zeroLosses();
+
         return nn;
     }
 
@@ -176,10 +195,16 @@ pub const NN = struct {
         try self.norm.normalize(inputs, outputs);
     }
 
-    // Put the gradients equal to zero
+    // Set the gradients to zero
     pub fn zeroGrad(self: *const NN) void {
         eigen.setZero(fType, self.gradW);
         eigen.setZero(fType, self.gradB);
+    }
+
+    // Set the losses to zero
+    pub fn zeroLosses(self: *const NN) void {
+        eigen.setZero(fType, self.lossesTraining);
+        eigen.setZero(fType, self.lossesValidation);
     }
 
     // Compute a forward pass in the NN
@@ -250,7 +275,7 @@ pub const NN = struct {
     }
 
     // Update the V and M used by adam
-    fn updateMV(self: *NN) void {
+    fn updateMV(self: *const NN) void {
         // Update the weights
         for (self.gradW, self.mW, self.vW) |*dw, *mw, *vw| {
             mw.* = params.beta1 * mw.* + (1.0 - params.beta1) * dw.*;
@@ -265,7 +290,7 @@ pub const NN = struct {
     }
 
     // Update the weights and biases
-    fn updateWeights(self: *NN, t: usize) void {
+    fn updateWeights(self: *const NN, t: usize) void {
         // Transform t to float
         const tFloat: fType = @as(fType, @floatFromInt(t));
 
@@ -285,23 +310,7 @@ pub const NN = struct {
     }
 
     // Function used to train the NN
-    pub fn train(self: *NN, inputs: [][]fType, outputs: [][]fType) !void {
-        // Create the slice for the losses of the training
-        if (self.allocator.alloc(fType, params.nEpochs)) |slice| {
-            self.lossesTraining = slice;
-        } else |_| {
-            std.debug.print("Error while allocating the slice for the losses of the training!\n", .{});
-            return err.lossesAllocation;
-        }
-
-        // Create the slice for the losses of the validation
-        if (self.allocator.alloc(fType, params.nEpochs)) |slice| {
-            self.lossesValidation = slice;
-        } else |_| {
-            std.debug.print("Error while allocating the slice for the losses of the validation!\n", .{});
-            return err.lossesAllocation;
-        }
-
+    pub fn train(self: *const NN, inputs: [][]fType, outputs: [][]fType) !void {
         // Alloc the dL array used in the computation of the loss of the validation
         var dL: []fType = &.{};
         if (self.allocator.alloc(fType, outputs[0].len)) |slice| {
@@ -364,7 +373,7 @@ pub const NN = struct {
     }
 
     /// Load the weights of the neural network from a file
-    pub fn loadWeights(self: *NN, fileName: []const u8) !void {
+    pub fn loadWeights(self: *const NN, fileName: []const u8) !void {
         try io.loadWeights(fileName, self);
     }
 
@@ -383,9 +392,9 @@ pub const NN = struct {
         const ioContext = std.testing.io;
 
         // Create the neural network
-        var nnIn = try NN.init(allocator, ioContext);
+        const nnIn = try NN.init(allocator, ioContext);
         defer nnIn.deinit();
-        var nnOut = try NN.init(allocator, ioContext);
+        const nnOut = try NN.init(allocator, ioContext);
         defer nnOut.deinit();
 
         // Change some weights
@@ -401,6 +410,60 @@ pub const NN = struct {
         // Check the weights
         try testing.expectEqual(nnIn.weights[0], nnOut.weights[0]);
         try testing.expectEqual(nnIn.biases[0], nnOut.biases[0]);
+
+        // Delete the test file
+        const cwd = std.Io.Dir.cwd();
+        try cwd.deleteFile(ioContext, path);
+    }
+
+    /// Save the losses to a file
+    pub fn saveLosses(self: *const NN, fileName: []const u8) !void {
+        // Create a slice with both losses
+        var losses: [2 * params.nEpochs]fType = undefined;
+
+        // Save the losses of the training and validation
+        for (0..params.nEpochs) |i| {
+            losses[i] = self.lossesTraining[i];
+            losses[params.nEpochs + i] = self.lossesValidation[i];
+        }
+
+        // Save the losses to a file
+        try io.saveData(self.ioContext, fileName, &losses, params.nEpochs);
+    }
+
+    // Test the saving of the losses
+    test "[nnzig] saveLosses" {
+        // Create the allocator
+        var gpa = std.heap.DebugAllocator(.{}){};
+        const allocator = gpa.allocator();
+        defer {
+            const deinit_status = gpa.deinit();
+            if (deinit_status == .leak) std.log.err("Leak!\n", .{});
+        }
+
+        // Create the IO context
+        const path = "test.bin";
+        const ioContext = std.testing.io;
+
+        // Create the neural network
+        const nn = try NN.init(allocator, ioContext);
+        defer nn.deinit();
+
+        // Set some values in the losses
+        nn.lossesTraining[0] = 1.0;
+        nn.lossesValidation[0] = 2.0;
+
+        // Save the losses to a file
+        try nn.saveLosses(path);
+
+        // Load the losses from the same file
+        var losses: [2 * params.nEpochs]fType = undefined;
+        const dataDim = try io.loadData(ioContext, path, &losses);
+
+        // Check the losses
+        try testing.expectEqual(params.nEpochs, dataDim);
+        try testing.expectEqual(nn.lossesTraining[0], losses[0]);
+        try testing.expectEqual(nn.lossesValidation[0], losses[params.nEpochs]);
 
         // Delete the test file
         const cwd = std.Io.Dir.cwd();
