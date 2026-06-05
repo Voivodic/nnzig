@@ -1,0 +1,30 @@
+name: Test
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Zig
+        uses: goto-busstop/setup-zig@v2
+        with:
+          # You can specify a fixed version like "0.13.0" or use "master"
+          zig-version: 0.16.0 
+
+      - name: Run tests
+        run: zig build test --summary all
