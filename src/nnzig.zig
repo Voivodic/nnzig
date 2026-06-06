@@ -221,24 +221,6 @@ pub const NN = struct {
 
     // Compute the backpropagation given some data
     fn backProp(self: *const NN, inputs: [][]fType, outputs: [][]fType) !fType {
-        // Check the dimensions of the inputs
-        if (inputs[0].len != params.nNeurons[0]) {
-            std.debug.print("Incompatible dimension of inputs and number of neurons in layer 0!\n", .{});
-            return err.incompatibleSizes;
-        }
-
-        // Check the dimensions of the outputs
-        if (outputs[0].len != params.nNeurons[params.nNeurons.len - 1]) {
-            std.debug.print("Incompatible dimension of outputs and number of neurons in layer -1!\n", .{});
-            return err.incompatibleSizes;
-        }
-
-        // Check the number of inputs and outputs
-        if (inputs.len != outputs.len) {
-            std.debug.print("Incompatible number of inputs and outputs!\n", .{});
-            return err.incompatibleSizes;
-        }
-
         // Get the data size
         const nData: fType = @as(fType, @floatFromInt(inputs.len));
 
@@ -311,6 +293,24 @@ pub const NN = struct {
 
     // Function used to train the NN
     pub fn train(self: *const NN, inputs: [][]fType, outputs: [][]fType) !void {
+        // Check the dimensions of the inputs
+        if (inputs[0].len != params.nNeurons[0]) {
+            std.debug.print("Incompatible dimension of inputs and number of neurons in layer 0!\n", .{});
+            return err.incompatibleSizes;
+        }
+
+        // Check the dimensions of the outputs
+        if (outputs[0].len != params.nNeurons[params.nNeurons.len - 1]) {
+            std.debug.print("Incompatible dimension of outputs and number of neurons in layer -1!\n", .{});
+            return err.incompatibleSizes;
+        }
+
+        // Check the number of inputs and outputs
+        if (inputs.len != outputs.len) {
+            std.debug.print("Incompatible number of inputs and outputs!\n", .{});
+            return err.incompatibleSizes;
+        }
+ 
         // Alloc the dL array used in the computation of the loss of the validation
         var dL: []fType = &.{};
         if (self.allocator.alloc(fType, outputs[0].len)) |slice| {
