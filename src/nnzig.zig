@@ -185,6 +185,44 @@ pub const NN = struct {
         }
     }
 
+    test "[nnzig] init and deinit" {
+        var gpa = std.heap.DebugAllocator(.{}){};
+        const allocator = gpa.allocator();
+        defer {
+            const deinit_status = gpa.deinit();
+            if (deinit_status == .leak) std.log.err("Leak!\n", .{});
+        }
+
+        const ioContext = std.testing.io;
+
+        var nn = try NN.init(allocator, ioContext);
+        defer nn.deinit();
+
+        var nWeights: usize = 0;
+        var nBiases: usize = 0;
+        for (1..params.nNeurons.len) |i| {
+            nWeights += params.nNeurons[i] * params.nNeurons[i - 1];
+            nBiases += params.nNeurons[i];
+        }
+
+        try testing.expectEqual(nWeights, nn.weights.len);
+        try testing.expectEqual(nWeights, nn.gradW.len);
+        try testing.expectEqual(nWeights, nn.mW.len);
+        try testing.expectEqual(nWeights, nn.vW.len);
+        try testing.expectEqual(nBiases, nn.biases.len);
+        try testing.expectEqual(nBiases, nn.gradB.len);
+        try testing.expectEqual(nBiases, nn.mB.len);
+        try testing.expectEqual(nBiases, nn.vB.len);
+
+        for (nn.mW) |val| try testing.expectEqual(@as(fType, 0.0), val);
+        for (nn.vW) |val| try testing.expectEqual(@as(fType, 0.0), val);
+        for (nn.mB) |val| try testing.expectEqual(@as(fType, 0.0), val);
+        for (nn.vB) |val| try testing.expectEqual(@as(fType, 0.0), val);
+
+        try testing.expectEqual(@as(usize, params.nEpochs), nn.lossesTraining.len);
+        try testing.expectEqual(@as(usize, params.nEpochs), nn.lossesValidation.len);
+    }
+
     // Compute the normalization for the data
     pub fn computeNormalization(self: *const NN, inputs: []const fType, outputs: []const fType) !void {
         try self.norm.computeNormalization(inputs, outputs);
@@ -336,10 +374,52 @@ pub const NN = struct {
         eigen.setZero(fType, self.gradB);
     }
 
+    test "[nnzig] zeroGrad" {
+        var gpa = std.heap.DebugAllocator(.{}){};
+        const allocator = gpa.allocator();
+        defer {
+            const deinit_status = gpa.deinit();
+            if (deinit_status == .leak) std.log.err("Leak!\n", .{});
+        }
+
+        const ioContext = std.testing.io;
+        var nn = try NN.init(allocator, ioContext);
+        defer nn.deinit();
+
+        @memset(nn.gradW, 3.14);
+        @memset(nn.gradB, 2.71);
+
+        nn.zeroGrad();
+
+        for (nn.gradW) |val| try testing.expectEqual(@as(fType, 0.0), val);
+        for (nn.gradB) |val| try testing.expectEqual(@as(fType, 0.0), val);
+    }
+
     // Set the losses to zero
     pub fn zeroLosses(self: *const NN) void {
         eigen.setZero(fType, self.lossesTraining);
         eigen.setZero(fType, self.lossesValidation);
+    }
+
+    test "[nnzig] zeroLosses" {
+        var gpa = std.heap.DebugAllocator(.{}){};
+        const allocator = gpa.allocator();
+        defer {
+            const deinit_status = gpa.deinit();
+            if (deinit_status == .leak) std.log.err("Leak!\n", .{});
+        }
+
+        const ioContext = std.testing.io;
+        var nn = try NN.init(allocator, ioContext);
+        defer nn.deinit();
+
+        @memset(nn.lossesTraining, 5.0);
+        @memset(nn.lossesValidation, 7.0);
+
+        nn.zeroLosses();
+
+        for (nn.lossesTraining) |val| try testing.expectEqual(@as(fType, 0.0), val);
+        for (nn.lossesValidation) |val| try testing.expectEqual(@as(fType, 0.0), val);
     }
 
     // Compute a forward pass in the NN
@@ -354,6 +434,27 @@ pub const NN = struct {
 
         // Pass the input trough the NN
         return self.nn.forward(input, &params.nNeurons, self.weights, self.biases, &params.activations);
+    }
+
+    test "[nnzig] forward" {
+        var gpa = std.heap.DebugAllocator(.{}){};
+        const allocator = gpa.allocator();
+        defer {
+            const deinit_status = gpa.deinit();
+            if (deinit_status == .leak) std.log.err("Leak!\n", .{});
+        }
+
+        const ioContext = std.testing.io;
+        var nn = try NN.init(allocator, ioContext);
+        defer nn.deinit();
+
+        const nOut: usize = params.nNeurons[params.nNeurons.len - 1];
+
+        var input = [_]fType{ 1.0, 2.0 };
+        const output = try nn.forward(&input);
+
+        try testing.expectEqual(nOut, output.len);
+        for (output) |val| try testing.expect(std.math.isFinite(val));
     }
 
     // Compute the backpropagation given some data
@@ -515,6 +616,49 @@ pub const NN = struct {
                 std.debug.print("Loss[{}] = ({}, {})\n", .{ epoch, self.lossesTraining[epoch], self.lossesValidation[epoch] });
             }
         }
+    }
+
+    test "[nnzig] train" {
+        var gpa = std.heap.DebugAllocator(.{}){};
+        const allocator = gpa.allocator();
+        defer {
+            const deinit_status = gpa.deinit();
+            if (deinit_status == .leak) std.log.err("Leak!\n", .{});
+        }
+
+        const ioContext = std.testing.io;
+        var nn = try NN.init(allocator, ioContext);
+        defer nn.deinit();
+
+        var xoshiro256 = std.Random.Xoshiro256.init(12345);
+        const rand = std.Random.Xoshiro256.random(&xoshiro256);
+
+        const nData: usize = 100;
+        const nIn: usize = params.nNeurons[0];
+        const nOut: usize = params.nNeurons[params.nNeurons.len - 1];
+
+        var inputs = try allocator.alloc(fType, nData * nIn);
+        var outputs = try allocator.alloc(fType, nData * nOut);
+        defer {
+            allocator.free(inputs);
+            allocator.free(outputs);
+        }
+
+        for (0..nData) |i| {
+            for (0..nIn) |j| {
+                inputs[i * nIn + j] = std.Random.floatNorm(rand, fType);
+            }
+            outputs[i * nOut] = 2.0 + 1.2 * inputs[i * nIn] - std.math.pow(fType, inputs[i * nIn + 1], 2) + @exp(-3.0 * inputs[i * nIn] - 2.0 * inputs[i * nIn + 1]);
+            outputs[i * nOut + 1] = 1.4 + 3.0 * inputs[i * nIn] - std.math.pow(fType, inputs[i * nIn + 1], 2) + @exp(-2.0 * inputs[i * nIn] - 3.0 * inputs[i * nIn + 1]);
+        }
+
+        try nn.computeNormalization(inputs, outputs);
+        try nn.normalize(inputs, outputs);
+        try nn.train(inputs, outputs);
+
+        try testing.expectEqual(@as(usize, params.nEpochs), nn.lossesTraining.len);
+        try testing.expectEqual(@as(usize, params.nEpochs), nn.lossesValidation.len);
+        try testing.expect(nn.lossesValidation[0] > nn.lossesValidation[params.nEpochs - 1]);
     }
 
     /// Save the weights of the neural network to a file
