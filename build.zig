@@ -120,6 +120,13 @@ pub fn build(b: *std.Build) void {
     norms.addImport("params", params);
     norms.addImport("errors", errors);
 
+    // Add the tests for the norms module
+    const test_norms = b.addTest(.{
+        .name = "norms",
+        .root_module = norms,
+    });
+    const run_test_norms = b.addRunArtifact(test_norms);
+
     // --- Layers modules ---
 
     // Add the mlp module
@@ -183,5 +190,6 @@ pub fn build(b: *std.Build) void {
     test_step.dependOn(&run_test_params.step);
     test_step.dependOn(&run_test_eigen.step);
     test_step.dependOn(&run_test_io.step);
+    test_step.dependOn(&run_test_norms.step);
     test_step.dependOn(&run_test_nnzig.step);
 }

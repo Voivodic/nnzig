@@ -133,6 +133,31 @@ pub const Norm = struct {
         return norm;
     }
 
+    test "[norms] Norm init and deinit" {
+        var gpa = std.heap.DebugAllocator(.{}){};
+        const allocator = gpa.allocator();
+        defer {
+            const deinit_status = gpa.deinit();
+            if (deinit_status == .leak) std.log.err("Leak!\n", .{});
+        }
+
+        var norm = try Norm.init(allocator);
+        defer norm.deinit();
+
+        const nIn: usize = params.nNeurons[0];
+        const nOut: usize = params.nNeurons[params.nNeurons.len - 1];
+
+        try std.testing.expectEqual(@as(usize, nIn), norm.aIn.len);
+        try std.testing.expectEqual(@as(usize, nIn), norm.bIn.len);
+        try std.testing.expectEqual(@as(usize, nOut), norm.aOut.len);
+        try std.testing.expectEqual(@as(usize, nOut), norm.bOut.len);
+
+        for (norm.aIn) |val| try std.testing.expectEqual(@as(fType, 0.0), val);
+        for (norm.bIn) |val| try std.testing.expectEqual(@as(fType, 0.0), val);
+        for (norm.aOut) |val| try std.testing.expectEqual(@as(fType, 0.0), val);
+        for (norm.bOut) |val| try std.testing.expectEqual(@as(fType, 0.0), val);
+    }
+
     /// Frees all memory allocated in the structure
     pub fn deinit(self: *const Norm) void {
         self.allocator.free(self.aIn);
@@ -163,6 +188,26 @@ pub const Norm = struct {
 
         // Compute the slope and shift for the inputs and outputs
         computeMeanStd(self, inputs, outputs, nData);
+    }
+
+    test "[norms] computeNormalization" {
+        var gpa = std.heap.DebugAllocator(.{}){};
+        const allocator = gpa.allocator();
+        defer {
+            const deinit_status = gpa.deinit();
+            if (deinit_status == .leak) std.log.err("Leak!\n", .{});
+        }
+
+        var norm = try Norm.init(allocator);
+        defer norm.deinit();
+
+        var inputs = [_]fType{ 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0 };
+        var outputs = [_]fType{ 2.0, 4.0, 6.0, 8.0, 10.0, 12.0, 14.0, 16.0, 18.0, 20.0 };
+
+        try norm.computeNormalization(&inputs, &outputs);
+
+        for (norm.aIn) |val| try std.testing.expect(val > 0);
+        for (norm.aOut) |val| try std.testing.expect(val > 0);
     }
 
     /// Normalizes the inputs and outputs given
@@ -211,6 +256,45 @@ pub const Norm = struct {
         }
     }
 
+    test "[norms] normalize" {
+        var gpa = std.heap.DebugAllocator(.{}){};
+        const allocator = gpa.allocator();
+        defer {
+            const deinit_status = gpa.deinit();
+            if (deinit_status == .leak) std.log.err("Leak!\n", .{});
+        }
+
+        var norm = try Norm.init(allocator);
+        defer norm.deinit();
+
+        const nIn: usize = params.nNeurons[0];
+        const nOut: usize = params.nNeurons[params.nNeurons.len - 1];
+        const nData: usize = 5;
+
+        var inputs = [_]fType{ 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0 };
+        var outputs = [_]fType{ 2.0, 4.0, 6.0, 8.0, 10.0, 12.0, 14.0, 16.0, 18.0, 20.0 };
+
+        try norm.computeNormalization(&inputs, &outputs);
+        try norm.normalize(&inputs, &outputs);
+
+        var sumIn: fType = 0;
+        var sumOut: fType = 0;
+        for (0..nData) |i| {
+            for (0..nIn) |j| {
+                sumIn += inputs[i * nIn + j];
+            }
+            for (0..nOut) |j| {
+                sumOut += outputs[i * nOut + j];
+            }
+        }
+        const meanIn = sumIn / @as(fType, @floatFromInt(nData * nIn));
+        const meanOut = sumOut / @as(fType, @floatFromInt(nData * nOut));
+
+        const tol: fType = 1e-4;
+        try std.testing.expectApproxEqAbs(@as(fType, 0.0), meanIn, tol);
+        try std.testing.expectApproxEqAbs(@as(fType, 0.0), meanOut, tol);
+    }
+
     /// Denormalize the inputs and outputs
     pub fn denormalize(self: *const Norm, inputs: []fType, outputs: []fType) !void {
         const nIn = params.nNeurons[0];
@@ -219,7 +303,7 @@ pub const Norm = struct {
         // Check if the size of inputs and outputs are compatible
         if (inputs.len / nIn != outputs.len / nOut) {
             std.debug.print("Inputs and outputs must have the same number of data vectors!\n", .{});
-            return err.IncompatibleSizes;
+            return err.incompatibleSizes;
         }
 
         // Check if the normalizations were computed
@@ -254,6 +338,76 @@ pub const Norm = struct {
         // Await all threads to finish
         for (&threads) |*thread| {
             thread.*.join();
+        }
+    }
+
+    test "[norms] denormalize" {
+        var gpa = std.heap.DebugAllocator(.{}){};
+        const allocator = gpa.allocator();
+        defer {
+            const deinit_status = gpa.deinit();
+            if (deinit_status == .leak) std.log.err("Leak!\n", .{});
+        }
+
+        var norm = try Norm.init(allocator);
+        defer norm.deinit();
+
+        var inputs = [_]fType{ 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0 };
+        var outputs = [_]fType{ 2.0, 4.0, 6.0, 8.0, 10.0, 12.0, 14.0, 16.0, 18.0, 20.0 };
+
+        const origIn = inputs;
+        const origOut = outputs;
+
+        try norm.computeNormalization(&inputs, &outputs);
+        try norm.normalize(&inputs, &outputs);
+        try norm.denormalize(&inputs, &outputs);
+
+        const tol: fType = 1e-4;
+        for (&inputs, &origIn) |*val, *orig| {
+            try std.testing.expectApproxEqAbs(orig.*, val.*, tol);
+        }
+        for (&outputs, &origOut) |*val, *orig| {
+            try std.testing.expectApproxEqAbs(orig.*, val.*, tol);
+        }
+    }
+
+    test "[norms] normalize-denormalize round-trip with random data" {
+        var gpa = std.heap.DebugAllocator(.{}){};
+        const allocator = gpa.allocator();
+        defer {
+            const deinit_status = gpa.deinit();
+            if (deinit_status == .leak) std.log.err("Leak!\n", .{});
+        }
+
+        var norm = try Norm.init(allocator);
+        defer norm.deinit();
+
+        const nIn: usize = params.nNeurons[0];
+        const nOut: usize = params.nNeurons[params.nNeurons.len - 1];
+        const nData: usize = 20;
+
+        var xoshiro256 = std.Random.Xoshiro256.init(42);
+        const rand = std.Random.Xoshiro256.random(&xoshiro256);
+
+        var inputs: [nData * nIn]fType = undefined;
+        var outputs: [nData * nOut]fType = undefined;
+
+        for (&inputs) |*val| val.* = std.Random.float(rand, fType) * 10.0;
+        for (&outputs) |*val| val.* = std.Random.float(rand, fType) * 10.0;
+
+        const origIn = inputs;
+        const origOut = outputs;
+
+        try norm.computeNormalization(&inputs, &outputs);
+        try norm.normalize(&inputs, &outputs);
+        try norm.denormalize(&inputs, &outputs);
+
+        const tol: fType = 1e-4;
+        for (&inputs, &origIn) |*val, *orig| {
+            try std.testing.expectApproxEqAbs(orig.*, val.*, tol);
+        }
+        for (&outputs, &origOut) |*val, *orig| {
+            try std.testing.expectApproxEqAbs(orig.*, val.*, tol);
         }
     }
 };

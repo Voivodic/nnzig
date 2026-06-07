@@ -190,9 +190,144 @@ pub const NN = struct {
         try self.norm.computeNormalization(inputs, outputs);
     }
 
+    test "[nnzig] computeNormalization" {
+        var gpa = std.heap.DebugAllocator(.{}){};
+        const allocator = gpa.allocator();
+        defer {
+            const deinit_status = gpa.deinit();
+            if (deinit_status == .leak) std.log.err("Leak!\n", .{});
+        }
+
+        const ioContext = std.testing.io;
+        const nn = try NN.init(allocator, ioContext);
+        defer nn.deinit();
+
+        const nIn: usize = params.nNeurons[0];
+        const nOut: usize = params.nNeurons[params.nNeurons.len - 1];
+        const nData: usize = 10;
+
+        var inputs = try allocator.alloc(fType, nData * nIn);
+        var outputs = try allocator.alloc(fType, nData * nOut);
+        defer {
+            allocator.free(inputs);
+            allocator.free(outputs);
+        }
+
+        for (0..nData) |i| {
+            inputs[i * nIn] = @floatFromInt(i + 1);
+            inputs[i * nIn + 1] = @floatFromInt(2 * (i + 1));
+            outputs[i * nOut] = @floatFromInt(3 * (i + 1));
+            outputs[i * nOut + 1] = @floatFromInt(4 * (i + 1));
+        }
+
+        try nn.computeNormalization(inputs, outputs);
+
+        try testing.expectEqual(@as(usize, nIn), nn.norm.aIn.len);
+        try testing.expectEqual(@as(usize, nIn), nn.norm.bIn.len);
+        try testing.expectEqual(@as(usize, nOut), nn.norm.aOut.len);
+        try testing.expectEqual(@as(usize, nOut), nn.norm.bOut.len);
+
+        for (nn.norm.aIn) |val| try testing.expect(val > 0);
+        for (nn.norm.aOut) |val| try testing.expect(val > 0);
+    }
+
     // Normalize the data
     pub fn normalize(self: *const NN, inputs: []fType, outputs: []fType) !void {
         try self.norm.normalize(inputs, outputs);
+    }
+
+    test "[nnzig] normalize" {
+        var gpa = std.heap.DebugAllocator(.{}){};
+        const allocator = gpa.allocator();
+        defer {
+            const deinit_status = gpa.deinit();
+            if (deinit_status == .leak) std.log.err("Leak!\n", .{});
+        }
+
+        const ioContext = std.testing.io;
+        const nn = try NN.init(allocator, ioContext);
+        defer nn.deinit();
+
+        const nIn: usize = params.nNeurons[0];
+        const nOut: usize = params.nNeurons[params.nNeurons.len - 1];
+        const nData: usize = 10;
+
+        var inputs = try allocator.alloc(fType, nData * nIn);
+        var outputs = try allocator.alloc(fType, nData * nOut);
+        defer {
+            allocator.free(inputs);
+            allocator.free(outputs);
+        }
+
+        for (0..nData) |i| {
+            inputs[i * nIn] = @floatFromInt(i + 1);
+            inputs[i * nIn + 1] = @floatFromInt(2 * (i + 1));
+            outputs[i * nOut] = @floatFromInt(3 * (i + 1));
+            outputs[i * nOut + 1] = @floatFromInt(4 * (i + 1));
+        }
+
+        try nn.computeNormalization(inputs, outputs);
+        try nn.normalize(inputs, outputs);
+
+        var sumIn: fType = 0;
+        for (0..nData) |i| {
+            for (0..nIn) |j| {
+                sumIn += inputs[i * nIn + j];
+            }
+        }
+        const meanIn = sumIn / @as(fType, @floatFromInt(nData * nIn));
+        try testing.expect(@abs(meanIn) < 0.5);
+    }
+
+    // Denormalize the data
+    pub fn denormalize(self: *const NN, inputs: []fType, outputs: []fType) !void {
+        try self.norm.denormalize(inputs, outputs);
+    }
+
+    test "[nnzig] denormalize" {
+        var gpa = std.heap.DebugAllocator(.{}){};
+        const allocator = gpa.allocator();
+        defer {
+            const deinit_status = gpa.deinit();
+            if (deinit_status == .leak) std.log.err("Leak!\n", .{});
+        }
+
+        const ioContext = std.testing.io;
+        const nn = try NN.init(allocator, ioContext);
+        defer nn.deinit();
+
+        const nIn: usize = params.nNeurons[0];
+        const nOut: usize = params.nNeurons[params.nNeurons.len - 1];
+        const nData: usize = 10;
+
+        var inputs = try allocator.alloc(fType, nData * nIn);
+        var outputs = try allocator.alloc(fType, nData * nOut);
+        defer {
+            allocator.free(inputs);
+            allocator.free(outputs);
+        }
+
+        for (0..nData) |i| {
+            inputs[i * nIn] = @floatFromInt(i + 1);
+            inputs[i * nIn + 1] = @floatFromInt(2 * (i + 1));
+            outputs[i * nOut] = @floatFromInt(3 * (i + 1));
+            outputs[i * nOut + 1] = @floatFromInt(4 * (i + 1));
+        }
+
+        try nn.computeNormalization(inputs, outputs);
+        try nn.normalize(inputs, outputs);
+        try nn.denormalize(inputs, outputs);
+
+        const origIn = [_]fType{ 1, 2, 2, 4, 3, 6, 4, 8, 5, 10, 6, 12, 7, 14, 8, 16, 9, 18, 10, 20 };
+        const origOut = [_]fType{ 3, 4, 6, 8, 9, 12, 12, 16, 15, 20, 18, 24, 21, 28, 24, 32, 27, 36, 30, 40 };
+
+        const tol: fType = 1e-4;
+        for (0..nData * nIn) |i| {
+            try testing.expectApproxEqAbs(origIn[i], inputs[i], tol);
+        }
+        for (0..nData * nOut) |i| {
+            try testing.expectApproxEqAbs(origOut[i], outputs[i], tol);
+        }
     }
 
     // Set the gradients to zero
@@ -490,4 +625,3 @@ pub const NN = struct {
 comptime {
     std.testing.refAllDecls(@This());
 }
-
