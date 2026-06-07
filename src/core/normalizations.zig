@@ -411,3 +411,8 @@ pub const Norm = struct {
         }
     }
 };
+
+// Run the tests for the norm structure
+comptime {
+    std.testing.refAllDecls(@This());
+}
