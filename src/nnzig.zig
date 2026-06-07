@@ -186,12 +186,12 @@ pub const NN = struct {
     }
 
     // Compute the normalization for the data
-    pub fn computeNormalization(self: *const NN, inputs: [][]fType, outputs: [][]fType) !void {
+    pub fn computeNormalization(self: *const NN, inputs: []const fType, outputs: []const fType) !void {
         try self.norm.computeNormalization(inputs, outputs);
     }
 
     // Normalize the data
-    pub fn normalize(self: *const NN, inputs: [][]fType, outputs: [][]fType) !void {
+    pub fn normalize(self: *const NN, inputs: []fType, outputs: []fType) !void {
         try self.norm.normalize(inputs, outputs);
     }
 
@@ -209,9 +209,11 @@ pub const NN = struct {
 
     // Compute a forward pass in the NN
     pub fn forward(self: *const NN, input: []const fType) ![]fType {
+        const nIn: usize = params.nNeurons[0];
+
         // Check the size of the input
-        if (input.len != params.nNeurons[0]) {
-            std.debug.print("The input has a size different of nNeurons[0]!\n", .{});
+        if (input.len % nIn != 0) {
+            std.debug.print("The input has a size non multiple of nNeurons[0]!\n", .{});
             return err.incompatibleSizes;
         }
 
@@ -220,16 +222,19 @@ pub const NN = struct {
     }
 
     // Compute the backpropagation given some data
-    fn backProp(self: *const NN, inputs: [][]fType, outputs: [][]fType) !fType {
+    fn backProp(self: *const NN, inputs: []const fType, outputs: []const fType) !fType {
         // Get the data size
-        const nData: fType = @as(fType, @floatFromInt(inputs.len));
+        const nIn: usize = params.nNeurons[0];
+        const nOut: usize = params.nNeurons[params.nNeurons.len - 1];
+        const nDataF: fType = @as(fType, @floatFromInt(inputs.len / nIn));
+        const nData: usize = @as(usize, @intFromFloat(nDataF));
 
         // Set the gradients to zero
         self.zeroGrad();
 
         // Slice to keep the derivatives of the loss
         var dL: []fType = undefined;
-        if (self.allocator.alloc(fType, outputs[0].len)) |slice| {
+        if (self.allocator.alloc(fType, nOut)) |slice| {
             dL = slice;
         } else |_| {
             std.debug.print("Problem to allocate the array for the derivatives of the loss!\n", .{});
@@ -241,12 +246,12 @@ pub const NN = struct {
         var lossTotal: fType = 0.0;
 
         // Run over all inputs and outputs
-        for (inputs, outputs) |*in, *out| {
+        for (0..nData) |i| {
             // Compute the forward pass
-            const pred: []fType = try self.nn.forward(in.*, &params.nNeurons, self.weights, self.biases, &params.activations);
+            const pred: []fType = try self.nn.forward(inputs[i * nIn .. (i + 1) * nIn], &params.nNeurons, self.weights, self.biases, &params.activations);
 
             // Compute the loss and its derivative
-            lossTotal += try loss.computeLoss(pred, out.*, dL, params.lossFunc) / nData;
+            lossTotal += try loss.computeLoss(pred, outputs[i * nOut .. (i + 1) * nOut], dL, params.lossFunc) / nDataF;
 
             // Compute the gradient
             self.nn.backward(dL, &params.nNeurons, self.weights, self.biases, self.gradW, self.gradB);
@@ -292,38 +297,48 @@ pub const NN = struct {
     }
 
     // Function used to train the NN
-    pub fn train(self: *const NN, inputs: [][]fType, outputs: [][]fType) !void {
+    pub fn train(self: *const NN, inputs: []const fType, outputs: []const fType) !void {
+        const nIn: usize = params.nNeurons[0];
+        const nOut: usize = params.nNeurons[params.nNeurons.len - 1];
+
         // Check the dimensions of the inputs
-        if (inputs[0].len != params.nNeurons[0]) {
+        if (inputs.len % nIn != 0) {
             std.debug.print("Incompatible dimension of inputs and number of neurons in layer 0!\n", .{});
             return err.incompatibleSizes;
         }
 
         // Check the dimensions of the outputs
-        if (outputs[0].len != params.nNeurons[params.nNeurons.len - 1]) {
+        if (outputs.len % nOut != 0) {
             std.debug.print("Incompatible dimension of outputs and number of neurons in layer -1!\n", .{});
             return err.incompatibleSizes;
         }
 
         // Check the number of inputs and outputs
-        if (inputs.len != outputs.len) {
+        if (inputs.len / nIn != outputs.len / nOut) {
             std.debug.print("Incompatible number of inputs and outputs!\n", .{});
             return err.incompatibleSizes;
         }
+
+        // Zero the losses
+        self.zeroLosses();
  
         // Alloc the dL array used in the computation of the loss of the validation
         var dL: []fType = &.{};
-        if (self.allocator.alloc(fType, outputs[0].len)) |slice| {
+        if (self.allocator.alloc(fType, nOut)) |slice| {
             dL = slice;
         } else |_| {
             std.debug.print("Error while allocating the slice for dL!", .{});
             return err.backProp;
         }
         defer self.allocator.free(dL);
-
+        
+        // Compute the dimension of the data
+        const nData: usize = inputs.len / nIn;
+        
         // Compute the size of training and validation
-        const nTrain: usize = @as(usize, @intFromFloat(@as(fType, @floatFromInt(inputs.len)) * params.rTrain));
-        const nValF: fType = @as(fType, @floatFromInt(inputs.len)) * params.rVal;
+        const nTrain: usize = @as(usize, @intFromFloat(@as(fType, @floatFromInt(nData)) * params.rTrain));
+        const nValF: fType = @as(fType, @floatFromInt(nData)) * params.rVal;
+        const nVal: usize = @as(usize, @intFromFloat(nValF));
 
         // Compute the number of batches
         const nBatches: usize = nTrain / params.batchSize;
@@ -336,7 +351,7 @@ pub const NN = struct {
             // Run over the batches
             for (0..nBatches) |batch| {
                 // Compute the gradients
-                if (self.backProp(inputs[batch * params.batchSize .. (batch + 1) * params.batchSize], outputs[batch * params.batchSize .. (batch + 1) * params.batchSize])) |lossE| {
+                if (self.backProp(inputs[batch * params.batchSize * nIn .. (batch + 1) * params.batchSize * nIn], outputs[batch * params.batchSize * nOut .. (batch + 1) * params.batchSize * nOut])) |lossE| {
                     lossEpoch += lossE / nBatchesF;
                 } else |_| {
                     std.debug.print("Problem when trying to backprop in epoch {} and batch {}!\n", .{ epoch, batch });
@@ -355,9 +370,9 @@ pub const NN = struct {
 
             // Save the loss of the validation of this epoch
             self.lossesValidation[epoch] = 0.0;
-            for (inputs[nTrain..], outputs[nTrain..]) |*in, *out| {
-                const pred: []fType = try self.nn.forward(in.*, &params.nNeurons, self.weights, self.biases, &params.activations);
-                self.lossesValidation[epoch] += try loss.computeLoss(pred, out.*, dL, params.lossFunc) / nValF;
+            for (0..nVal) |i| {
+                const pred: []fType = try self.nn.forward(inputs[(nTrain + i) * nIn .. (nTrain + i + 1) * nIn], &params.nNeurons, self.weights, self.biases, &params.activations);
+                self.lossesValidation[epoch] += try loss.computeLoss(pred, outputs[(nTrain + i) * nOut .. (nTrain + i + 1) * nOut], dL, params.lossFunc) / nValF;
             }
 
             // Print the current state

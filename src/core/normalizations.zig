@@ -9,53 +9,60 @@ const fType = params.floatType;
 
 // Computes the slope and shift for the normalization using a Z-score standardization
 // a = std and b = mean
-fn computeMeanStd(norm: *const Norm, inputs: [][]fType, outputs: [][]fType) void {
-    // Get the number of data points
-    const N: fType = @as(fType, @floatFromInt(inputs.len));
+fn computeMeanStd(norm: *const Norm, inputs: []const fType, outputs: []const fType, nData: usize) void {
+    const N: fType = @as(fType, @floatFromInt(nData));
+    const nIn = params.nNeurons[0];
+    const nOut = params.nNeurons[params.nNeurons.len - 1];
 
     // Compute means
-    for (inputs, outputs) |*ins, *outs| {
-        for (ins.*, norm.bIn) |*in, *mu| {
-            mu.* += in.* / N;
+    for (0..nData) |i| {
+        for (0..nIn) |j| {
+            norm.bIn[j] += inputs[i * nIn + j] / N;
         }
-        for (outs.*, norm.bOut) |*out, *mu| {
-            mu.* += out.* / N;
+        for (0..nOut) |j| {
+            norm.bOut[j] += outputs[i * nOut + j] / N;
         }
     }
 
     // Compute the stds
-    for (inputs, outputs) |*ins, *outs| {
-        for (ins.*, norm.bIn, norm.aIn) |*in, *mu, *st| {
-            st.* += (in.* - mu.*) * (in.* - mu.*) / N;
+    for (0..nData) |i| {
+        for (0..nIn) |j| {
+            norm.aIn[j] += (inputs[i * nIn + j] - norm.bIn[j]) * (inputs[i * nIn + j] - norm.bIn[j]) / N;
         }
-        for (outs.*, norm.bOut, norm.aOut) |*out, *mu, *st| {
-            st.* += (out.* - mu.*) * (out.* - mu.*) / N;
+        for (0..nOut) |j| {
+            norm.aOut[j] += (outputs[i * nOut + j] - norm.bOut[j]) * (outputs[i * nOut + j] - norm.bOut[j]) / N;
         }
     }
 }
 
 // Function used by each thread to normalize the slices
-fn normalizeChunk(norm: *const Norm, inputs: [][]fType, outputs: [][]fType) void {
+fn normalizeChunk(norm: *const Norm, inputs: []fType, outputs: []fType, startData: usize, endData: usize) void {
+    const nIn = params.nNeurons[0];
+    const nOut = params.nNeurons[params.nNeurons.len - 1];
+
     // Normalize the inputs and outputs
-    for (inputs, outputs) |*ins, *outs| {
-        for (ins.*, norm.aIn, norm.bIn) |*in, *a, *b| {
-            in.* = (in.* - b.*) / a.*;
+    for (startData..endData) |i| {
+        for (0..nIn) |j| {
+            inputs[i * nIn + j] = (inputs[i * nIn + j] - norm.bIn[j]) / norm.aIn[j];
         }
-        for (outs.*, norm.aOut, norm.bOut) |*out, *a, *b| {
-            out.* = (out.* - b.*) / a.*;
+        for (0..nOut) |j| {
+            outputs[i * nOut + j] = (outputs[i * nOut + j] - norm.bOut[j]) / norm.aOut[j];
         }
     }
 }
 
 // Function used by each thread to denormalize the slices
-fn denormalizeChunk(norm: *const Norm, inputs: [][]fType, outputs: [][]fType) void {
+fn denormalizeChunk(norm: *const Norm, inputs: []fType, outputs: []fType, startData: usize, endData: usize) void {
+    const nIn = params.nNeurons[0];
+    const nOut = params.nNeurons[params.nNeurons.len - 1];
+
     // Denormalize the inputs and outputs
-    for (inputs, outputs) |*ins, *outs| {
-        for (ins.*, norm.aIn, norm.bIn) |*in, *a, *b| {
-            in.* = (in.*) * (a.*) + b.*;
+    for (startData..endData) |i| {
+        for (0..nIn) |j| {
+            inputs[i * nIn + j] = (inputs[i * nIn + j]) * (norm.aIn[j]) + norm.bIn[j];
         }
-        for (outs.*, norm.aOut, norm.bOut) |*out, *a, *b| {
-            out.* = (out.*) * a.* + b.*;
+        for (0..nOut) |j| {
+            outputs[i * nOut + j] = (outputs[i * nOut + j]) * norm.aOut[j] + norm.bOut[j];
         }
     }
 }
@@ -135,9 +142,12 @@ pub const Norm = struct {
     }
 
     /// Computes the normalization factors
-    pub fn computeNormalization(self: *const Norm, inputs: [][]fType, outputs: [][]fType) !void {
-        // Check if the size of inputs and outputs are the same
-        if (inputs.len != outputs.len) {
+    pub fn computeNormalization(self: *const Norm, inputs: []const fType, outputs: []const fType) !void {
+        const nIn = params.nNeurons[0];
+        const nOut = params.nNeurons[params.nNeurons.len - 1];
+
+        // Check if the size of inputs and outputs are compatible
+        if (inputs.len / nIn != outputs.len / nOut) {
             std.debug.print("Inputs and outputs must have the same number of data vectors!\n", .{});
             return err.incompatibleSizes;
         }
@@ -148,21 +158,20 @@ pub const Norm = struct {
             return err.notInitialized;
         }
 
+        // Compute the number of data points
+        const nData: usize = inputs.len / nIn;
+
         // Compute the slope and shift for the inputs and outputs
-        computeMeanStd(self, inputs, outputs);
-        // switch (params.normType) {
-        //     .meanStd => computeMeanStd(T, self, inputs, outputs),
-        //     else => {
-        //         std.debug.print("Normalization type not implemented!\n", .{});
-        //         return err.notImplemented;
-        //     },
-        // }
+        computeMeanStd(self, inputs, outputs, nData);
     }
 
     /// Normalizes the inputs and outputs given
-    pub fn normalize(self: *const Norm, inputs: [][]fType, outputs: [][]fType) !void {
-        // Check if the size of inputs and outputs are the same
-        if (inputs.len != outputs.len) {
+    pub fn normalize(self: *const Norm, inputs: []fType, outputs: []fType) !void {
+        const nIn = params.nNeurons[0];
+        const nOut = params.nNeurons[params.nNeurons.len - 1];
+
+        // Check if the size of inputs and outputs are compatible
+        if (inputs.len / nIn != outputs.len / nOut) {
             std.debug.print("Inputs and outputs must have the same number of data vectors!\n", .{});
             return err.incompatibleSizes;
         }
@@ -173,8 +182,11 @@ pub const Norm = struct {
             return err.notInitialized;
         }
 
+        // Compute the number of data points
+        const nData: usize = inputs.len / nIn;
+
         // Compute the chunck size
-        const chunkSize: usize = (inputs.len + params.numThreads - 1) / params.numThreads;
+        const chunkSize: usize = (nData + params.numThreads - 1) / params.numThreads;
 
         // Define the array of threads
         var threads: [params.numThreads]std.Thread = undefined;
@@ -182,10 +194,10 @@ pub const Norm = struct {
         // Compute the chuncks for each thread
         for (&threads, 0..params.numThreads) |*thread, i| {
             const start: usize = i * chunkSize;
-            const end: usize = @min(start + chunkSize, inputs.len);
+            const end: usize = @min(start + chunkSize, nData);
 
             // Normalize the inputs and outputs in the current chunk
-            if (std.Thread.spawn(.{}, normalizeChunk, .{ self, inputs[start..end], outputs[start..end] })) |t| {
+            if (std.Thread.spawn(.{}, normalizeChunk, .{ self, inputs, outputs, start, end })) |t| {
                 thread.* = t;
             } else |_| {
                 std.debug.print("Error in spawning thread {}!\n", .{i});
@@ -200,9 +212,12 @@ pub const Norm = struct {
     }
 
     /// Denormalize the inputs and outputs
-    pub fn denormalize(self: *const Norm, inputs: [][]fType, outputs: [][]fType) !void {
-        // Check if the size of inputs and outputs are the same
-        if (inputs.len != outputs.len) {
+    pub fn denormalize(self: *const Norm, inputs: []fType, outputs: []fType) !void {
+        const nIn = params.nNeurons[0];
+        const nOut = params.nNeurons[params.nNeurons.len - 1];
+
+        // Check if the size of inputs and outputs are compatible
+        if (inputs.len / nIn != outputs.len / nOut) {
             std.debug.print("Inputs and outputs must have the same number of data vectors!\n", .{});
             return err.IncompatibleSizes;
         }
@@ -213,8 +228,11 @@ pub const Norm = struct {
             return err.notInitialized;
         }
 
+        // Compute the number of data points
+        const nData: usize = inputs.len / nIn;
+
         // Compute the chunck size
-        const chunkSize: usize = (inputs.len + params.numThreads - 1) / params.numThreads;
+        const chunkSize: usize = (nData + params.numThreads - 1) / params.numThreads;
 
         // Define the array of threads
         var threads: [params.numThreads]std.Thread = undefined;
@@ -222,10 +240,10 @@ pub const Norm = struct {
         // Compute the chuncks for each thread
         for (&threads, 0..params.numThreads) |*thread, i| {
             const start: usize = i * chunkSize;
-            const end: usize = @min(start + chunkSize, inputs.len);
+            const end: usize = @min(start + chunkSize, nData);
 
             // Denormalize the inputs and outputs in the current chunk
-            if (std.Thread.spawn(.{}, denormalizeChunk, .{ self, inputs[start..end], outputs[start..end] })) |t| {
+            if (std.Thread.spawn(.{}, denormalizeChunk, .{ self, inputs, outputs, start, end })) |t| {
                 thread.* = t;
             } else |_| {
                 std.debug.print("Error in spawning thread {}!\n", .{i});

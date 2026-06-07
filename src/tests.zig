@@ -36,28 +36,19 @@ test "NN compute normalization and normalize" {
     const Ndata: usize = 100;
     const Nin: usize = 2;
     const Nout: usize = 2;
-    var input: [][]f32 = &.{};
-    var output: [][]f32 = &.{};
-
-    input = try allocator.alloc([]f32, Ndata);
-    output = try allocator.alloc([]f32, Ndata);
-    for (input, output) |*in, *out| {
-        in.* = try allocator.alloc(f32, Nin);
-        out.* = try allocator.alloc(f32, Nout);
-
-        for (in.*) |*i| {
-            i.* = std.Random.floatNorm(rand, f32);
-        }
-        out.*[0] = 2.0 + 1.2 * in.*[0] - std.math.pow(f32, in.*[1], 2) + @exp(-3.0 * in.*[0] - 2.0 * in.*[1]);
-        out.*[1] = 1.4 + 3.0 * in.*[0] - std.math.pow(f32, in.*[1], 2) + @exp(-2.0 * in.*[0] - 3.0 * in.*[1]);
-    }
+    var input = try allocator.alloc(f32, Ndata * Nin);
+    var output = try allocator.alloc(f32, Ndata * Nout);
     defer {
-        for (input, output) |*in, *out| {
-            allocator.free(in.*);
-            allocator.free(out.*);
-        }
         allocator.free(input);
         allocator.free(output);
+    }
+
+    for (0..Ndata) |i| {
+        for (0..Nin) |j| {
+            input[i * Nin + j] = std.Random.floatNorm(rand, f32);
+        }
+        output[i * Nout] = 2.0 + 1.2 * input[i * Nin] - std.math.pow(f32, input[i * Nin + 1], 2) + @exp(-3.0 * input[i * Nin] - 2.0 * input[i * Nin + 1]);
+        output[i * Nout + 1] = 1.4 + 3.0 * input[i * Nin] - std.math.pow(f32, input[i * Nin + 1], 2) + @exp(-2.0 * input[i * Nin] - 3.0 * input[i * Nin + 1]);
     }
 
     try nn.computeNormalization(input, output);
@@ -174,28 +165,19 @@ test "NN normalization factors positive std" {
     const Ndata: usize = 100;
     const Nin: usize = 2;
     const Nout: usize = 2;
-    var input: [][]f32 = &.{};
-    var output: [][]f32 = &.{};
-
-    input = try allocator.alloc([]f32, Ndata);
-    output = try allocator.alloc([]f32, Ndata);
-    for (input, output) |*in, *out| {
-        in.* = try allocator.alloc(f32, Nin);
-        out.* = try allocator.alloc(f32, Nout);
-
-        for (in.*) |*i| {
-            i.* = std.Random.floatNorm(rand, f32);
-        }
-        out.*[0] = 2.0 + 1.2 * in.*[0] - std.math.pow(f32, in.*[1], 2) + @exp(-3.0 * in.*[0] - 2.0 * in.*[1]);
-        out.*[1] = 1.4 + 3.0 * in.*[0] - std.math.pow(f32, in.*[1], 2) + @exp(-2.0 * in.*[0] - 3.0 * in.*[1]);
-    }
+    var input = try allocator.alloc(f32, Ndata * Nin);
+    var output = try allocator.alloc(f32, Ndata * Nout);
     defer {
-        for (input, output) |*in, *out| {
-            allocator.free(in.*);
-            allocator.free(out.*);
-        }
         allocator.free(input);
         allocator.free(output);
+    }
+
+    for (0..Ndata) |i| {
+        for (0..Nin) |j| {
+            input[i * Nin + j] = std.Random.floatNorm(rand, f32);
+        }
+        output[i * Nout] = 2.0 + 1.2 * input[i * Nin] - std.math.pow(f32, input[i * Nin + 1], 2) + @exp(-3.0 * input[i * Nin] - 2.0 * input[i * Nin + 1]);
+        output[i * Nout + 1] = 1.4 + 3.0 * input[i * Nin] - std.math.pow(f32, input[i * Nin + 1], 2) + @exp(-2.0 * input[i * Nin] - 3.0 * input[i * Nin + 1]);
     }
 
     try nn.computeNormalization(input, output);
@@ -228,28 +210,19 @@ test "NN training" {
     const Ndata: usize = 100;
     const Nin: usize = 2;
     const Nout: usize = 2;
-    var input: [][]f32 = &.{};
-    var output: [][]f32 = &.{};
-
-    input = try allocator.alloc([]f32, Ndata);
-    output = try allocator.alloc([]f32, Ndata);
-    for (input, output) |*in, *out| {
-        in.* = try allocator.alloc(f32, Nin);
-        out.* = try allocator.alloc(f32, Nout);
-
-        for (in.*) |*i| {
-            i.* = std.Random.floatNorm(rand, f32);
-        }
-        out.*[0] = 2.0 + 1.2 * in.*[0] - std.math.pow(f32, in.*[1], 2) + @exp(-3.0 * in.*[0] - 2.0 * in.*[1]);
-        out.*[1] = 1.4 + 3.0 * in.*[0] - std.math.pow(f32, in.*[1], 2) + @exp(-2.0 * in.*[0] - 3.0 * in.*[1]);
-    }
+    var input = try allocator.alloc(f32, Ndata * Nin);
+    var output = try allocator.alloc(f32, Ndata * Nout);
     defer {
-        for (input, output) |*in, *out| {
-            allocator.free(in.*);
-            allocator.free(out.*);
-        }
         allocator.free(input);
         allocator.free(output);
+    }
+
+    for (0..Ndata) |i| {
+        for (0..Nin) |j| {
+            input[i * Nin + j] = std.Random.floatNorm(rand, f32);
+        }
+        output[i * Nout] = 2.0 + 1.2 * input[i * Nin] - std.math.pow(f32, input[i * Nin + 1], 2) + @exp(-3.0 * input[i * Nin] - 2.0 * input[i * Nin + 1]);
+        output[i * Nout + 1] = 1.4 + 3.0 * input[i * Nin] - std.math.pow(f32, input[i * Nin + 1], 2) + @exp(-2.0 * input[i * Nin] - 3.0 * input[i * Nin + 1]);
     }
 
     try nn.computeNormalization(input, output);
