@@ -216,4 +216,13 @@ pub fn build(b: *std.Build) void {
     test_step.dependOn(&run_test_loss.step);
     test_step.dependOn(&run_test_mlp.step);
     test_step.dependOn(&run_test_nnzig.step);
+
+    // --- Documentation step ---
+
+    const docs_step = b.step("docs", "Generate documentation");
+    docs_step.dependOn(&b.addInstallDirectory(.{
+        .source_dir = test_nnzig.getEmittedDocs(),
+        .install_dir = .prefix,
+        .install_subdir = "docs",
+    }).step);
 }
