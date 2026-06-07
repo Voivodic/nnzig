@@ -144,4 +144,133 @@ pub const MLP = struct {
             }
         }
     }
+
+    test "[mlp] init and deinit" {
+        var gpa = std.heap.DebugAllocator(.{}){};
+        const allocator = gpa.allocator();
+        defer {
+            const deinit_status = gpa.deinit();
+            if (deinit_status == .leak) std.log.err("Leak!\n", .{});
+        }
+
+        var mlp_inst = try MLP.init(allocator, &params.nNeurons);
+        defer mlp_inst.deinit();
+
+        var nHidden: usize = 0;
+        for (params.nNeurons) |n| nHidden += n;
+
+        try std.testing.expectEqual(nHidden, mlp_inst.y.len);
+        try std.testing.expectEqual(nHidden, mlp_inst.dy.len);
+
+        var vSize: usize = 0;
+        for (1..params.nNeurons.len) |i| {
+            if (params.nNeurons[i] > vSize) {
+                vSize = params.nNeurons[i];
+            }
+        }
+        try std.testing.expectEqual(vSize, mlp_inst.V.len);
+    }
+
+    test "[mlp] forward output size" {
+        var gpa = std.heap.DebugAllocator(.{}){};
+        const allocator = gpa.allocator();
+        defer {
+            const deinit_status = gpa.deinit();
+            if (deinit_status == .leak) std.log.err("Leak!\n", .{});
+        }
+
+        var mlp_inst = try MLP.init(allocator, &params.nNeurons);
+        defer mlp_inst.deinit();
+
+        const nIn = params.nNeurons[0];
+        const nOut = params.nNeurons[params.nNeurons.len - 1];
+
+        comptime var nWeights: usize = 0;
+        comptime var nBiases: usize = 0;
+        inline for (1..params.nNeurons.len) |i| {
+            nWeights += params.nNeurons[i] * params.nNeurons[i - 1];
+            nBiases += params.nNeurons[i];
+        }
+
+        var weights: [nWeights]fType = undefined;
+        var biases: [nBiases]fType = undefined;
+        for (&weights) |*w| w.* = 0.01;
+        for (&biases) |*b| b.* = 0.0;
+
+        var input: [nIn]fType = undefined;
+        for (&input) |*val| val.* = 1.0;
+
+        const output = try mlp_inst.forward(&input, &params.nNeurons, &weights, &biases, &params.activations);
+
+        try std.testing.expectEqual(nOut, output.len);
+        for (output) |val| try std.testing.expect(std.math.isFinite(val));
+    }
+
+    test "[mlp] backward produces non-zero gradients" {
+        var gpa = std.heap.DebugAllocator(.{}){};
+        const allocator = gpa.allocator();
+        defer {
+            const deinit_status = gpa.deinit();
+            if (deinit_status == .leak) std.log.err("Leak!\n", .{});
+        }
+
+        var mlp_inst = try MLP.init(allocator, &params.nNeurons);
+        defer mlp_inst.deinit();
+
+        const nIn = params.nNeurons[0];
+        const nOut = params.nNeurons[params.nNeurons.len - 1];
+
+        comptime var nWeights: usize = 0;
+        comptime var nBiases: usize = 0;
+        inline for (1..params.nNeurons.len) |i| {
+            nWeights += params.nNeurons[i] * params.nNeurons[i - 1];
+            nBiases += params.nNeurons[i];
+        }
+
+        var weights: [nWeights]fType = undefined;
+        var biases: [nBiases]fType = undefined;
+        var gradW: [nWeights]fType = undefined;
+        var gradB: [nBiases]fType = undefined;
+
+        var xoshiro256 = std.Random.Xoshiro256.init(42);
+        const rand = std.Random.Xoshiro256.random(&xoshiro256);
+        for (&weights) |*w| w.* = std.Random.floatNorm(rand, fType);
+        for (&biases) |*b| b.* = 0.0;
+        for (&gradW) |*g| g.* = 0.0;
+        for (&gradB) |*g| g.* = 0.0;
+
+        var input: [nIn]fType = undefined;
+        for (&input) |*val| val.* = 1.0;
+
+        _ = try mlp_inst.forward(&input, &params.nNeurons, &weights, &biases, &params.activations);
+
+        var dL: [nOut]fType = undefined;
+        for (&dL) |*d| d.* = 1.0;
+
+        mlp_inst.backward(&dL, &params.nNeurons, &weights, &biases, &gradW, &gradB);
+
+        var hasNonZeroGradW = false;
+        for (gradW) |val| {
+            if (val != 0.0) {
+                hasNonZeroGradW = true;
+                break;
+            }
+        }
+        try std.testing.expect(hasNonZeroGradW);
+
+        var hasNonZeroGradB = false;
+        for (gradB) |val| {
+            if (val != 0.0) {
+                hasNonZeroGradB = true;
+                break;
+            }
+        }
+        try std.testing.expect(hasNonZeroGradB);
+    }
 };
+
+// Run the tests for the NN structure
+comptime {
+    std.testing.refAllDecls(@This());
+}
+

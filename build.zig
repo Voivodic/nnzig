@@ -102,6 +102,13 @@ pub fn build(b: *std.Build) void {
     activation.addImport("params", params);
     activation.addImport("errors", errors);
 
+    // Add the tests for the activation module
+    const test_activation = b.addTest(.{
+        .name = "activation",
+        .root_module = activation,
+    });
+    const run_test_activation = b.addRunArtifact(test_activation);
+
     // Add the loss module
     const loss = b.createModule(.{
         .root_source_file = b.path("src/cpu/losses.zig"),
@@ -110,6 +117,13 @@ pub fn build(b: *std.Build) void {
     });
     loss.addImport("params", params);
     loss.addImport("errors", errors);
+
+    // Add the tests for the loss module
+    const test_loss = b.addTest(.{
+        .name = "loss",
+        .root_module = loss,
+    });
+    const run_test_loss = b.addRunArtifact(test_loss);
 
     // Add the norms module
     const norms = b.createModule(.{
@@ -139,6 +153,13 @@ pub fn build(b: *std.Build) void {
     mlp.addImport("act", activation);
     mlp.addImport("errors", errors);
     mlp.addImport("params", params);
+
+    // Add the tests for the mlp module
+    const test_mlp = b.addTest(.{
+        .name = "mlp",
+        .root_module = mlp,
+    });
+    const run_test_mlp = b.addRunArtifact(test_mlp);
 
     // --- Main NN module ---
 
@@ -191,5 +212,8 @@ pub fn build(b: *std.Build) void {
     test_step.dependOn(&run_test_eigen.step);
     test_step.dependOn(&run_test_io.step);
     test_step.dependOn(&run_test_norms.step);
+    test_step.dependOn(&run_test_activation.step);
+    test_step.dependOn(&run_test_loss.step);
+    test_step.dependOn(&run_test_mlp.step);
     test_step.dependOn(&run_test_nnzig.step);
 }
