@@ -1,6 +1,8 @@
-//! This module defines the erros that might happen in the library
+//! This module defines the error sets used throughout the nnzig library,
+//! including errors for neural network operations, normalization, activations,
+//! loss computation, and file I/O.
 
-/// Define the possible errors for the newtwork
+/// Error set for neural network operations
 pub const nnError = error{
     incompatibleSizes,
     allocationOfHiddens,
@@ -12,7 +14,7 @@ pub const nnError = error{
     backProp,
 };
 
-/// Possible errors for the normalization process
+/// Error set for data normalization operations
 pub const normalizationError = error{
     incompatibleSizes,
     aAllocation,
@@ -21,17 +23,17 @@ pub const normalizationError = error{
     threadRun,
 };
 
-/// Possible erros for the computation of activation functions
+/// Error set for activation function computation
 pub const activationError = error{
     threadRun,
 };
 
-/// Possible erros for the computation of the loss function
+/// Error set for loss function computation
 pub const lossError = error{
     threadRun,
 };
 
-/// Possible errors for the IO module
+/// Error set for binary file I/O operations
 pub const ioError = error{
     precisionMismatch,
     invalidNNeurons,

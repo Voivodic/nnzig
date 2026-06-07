@@ -7,14 +7,14 @@ const errors = @import("errors");
 const err = errors.activationError;
 const fType = params.floatType;
 
-// The trivial activation function
+/// Identity activation: sets all derivatives to 1 (no transformation applied)
 fn none(df: []fType) void {
     for (df) |*d| {
         d.* = 1.0;
     }
 }
 
-// The relu activation funciton
+/// ReLU activation: applies max(0, x) element-wise and computes its derivative
 fn relu(slice: []fType, df: []fType) void {
     for (slice, df) |*elem, *d| {
         if (elem.* < 0.0) {
@@ -26,7 +26,7 @@ fn relu(slice: []fType, df: []fType) void {
     }
 }
 
-// The tanh activation function
+/// Hyperbolic tangent activation applied element-wise with its derivative
 fn tanh(slice: []fType, df: []fType) void {
     for (slice, df) |*elem, *d| {
         const exp = @exp(elem.*);
@@ -37,7 +37,7 @@ fn tanh(slice: []fType, df: []fType) void {
     }
 }
 
-// The sigmoid activation function
+/// Sigmoid activation: applies 1/(1+e^(-x)) element-wise with its derivative
 fn sigmoid(slice: []fType, df: []fType) void {
     for (slice, df) |*elem, *d| {
         const sigma = 1.0 / (1.0 + @exp(-elem.*));

@@ -1,4 +1,6 @@
-//! This module defines a simple multi layer perceptron (MPL)
+//! Multi-layer perceptron (MLP) implementation with forward and backward passes.
+//! Uses Eigen-accelerated linear algebra for matrix-vector operations and
+//! supports configurable activation functions per layer.
 
 // Import the used modules
 const std = @import("std");
@@ -15,7 +17,7 @@ pub const MLP = struct {
     dy: []fType = &.{},
     V: []fType = &.{},
 
-    // Initialize the mlp
+    /// Initializes the MLP, allocating memory for hidden layer activations, their derivatives, and a scratch vector
     pub fn init(allocator: std.mem.Allocator, nNeurons: []const usize) !MLP {
         // Create the mlp
         var mlp = MLP{
@@ -63,7 +65,7 @@ pub const MLP = struct {
         return mlp;
     }
 
-    // Free the memory allocated
+    /// Frees all memory allocated by `init`
     pub fn deinit(self: *const MLP) void {
         // Free V
         self.allocator.free(self.V);
@@ -73,7 +75,7 @@ pub const MLP = struct {
         self.allocator.free(self.dy);
     }
 
-    // Compute the output of the NN to a single input
+    /// Performs a forward pass through all layers, returning the output slice
     pub fn forward(self: *const MLP, input: []const fType, nNeurons: []const usize, weights: []const fType, biases: []const fType, activations: []const params.activation) ![]fType {
         // Save the input in first hidden values
         for (input, 0..input.len) |*in, i| {
@@ -103,7 +105,7 @@ pub const MLP = struct {
         return self.y[nsum..];
     }
 
-    // Compute the NN backward and update the parameters
+    /// Performs backpropagation from the loss gradient, computing weight and bias gradients for all layers
     pub fn backward(self: *const MLP, dL: []const fType, nNeurons: []const usize, weights: []const fType, biases: []const fType, gradW: []fType, gradB: []fType) void {
         // Counters used to iterate over the weights and biases
         var layer: usize = nNeurons.len - 1;

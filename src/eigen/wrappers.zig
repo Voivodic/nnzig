@@ -1,4 +1,6 @@
-//! Wrappers for the Eigen library. It provides a safe interface for calling Eigen functions from Zig.
+//! Zig wrappers around Eigen C++ linear algebra routines. Provides type-safe,
+//! generic functions for matrix-vector operations used in neural network
+//! forward and backward passes. Supports f16, f32, and f64 precision.
 const testing = @import("std").testing;
 
 /// Multiply a matrix and a vector then add another vector (M * a + b)
@@ -6,6 +8,7 @@ pub extern "c" fn eigenf16_matrixVectorMulAdd(a: [*]const f16, b: [*]const f16, 
 pub extern "c" fn eigenf32_matrixVectorMulAdd(a: [*]const f32, b: [*]const f32, c: [*]const f32, d: [*]f32, a_rows: usize, a_cols: usize) void;
 pub extern "c" fn eigenf64_matrixVectorMulAdd(a: [*]const f64, b: [*]const f64, c: [*]const f64, d: [*]f64, a_rows: usize, a_cols: usize) void;
 
+/// Computes `result = matrix * vector_mult + vector_add` using Eigen
 pub fn matrixVectorMulAdd(comptime T: type, matrix: []const T, vector_mult: []const T, vector_add: []const T, vector_result: []T) void {
     switch (T) {
         f16 => eigenf16_matrixVectorMulAdd(matrix.ptr, vector_mult.ptr, vector_add.ptr, vector_result.ptr, vector_add.len, vector_mult.len),
@@ -35,6 +38,7 @@ pub extern "c" fn eigenf16_vectorMatrixMul(A: [*]f16, B: [*]const f16, b_rows: u
 pub extern "c" fn eigenf32_vectorMatrixMul(A: [*]f32, B: [*]const f32, b_rows: usize, b_cols: usize) void;
 pub extern "c" fn eigenf64_vectorMatrixMul(A: [*]f64, B: [*]const f64, b_rows: usize, b_cols: usize) void;
 
+/// Computes `vector_mult *= matrix` (in-place vector-matrix multiplication) using Eigen
 pub fn vectorMatrixMul(comptime T: type, vector_mult: []T, matrix: []const T) void {
     switch (T) {
         f16 => eigenf16_vectorMatrixMul(vector_mult.ptr, matrix.ptr, vector_mult.len, matrix.len / vector_mult.len),
@@ -62,6 +66,7 @@ pub extern "c" fn eigenf16_vectorMul(A: [*]const f16, B: [*]f16, size: usize) vo
 pub extern "c" fn eigenf32_vectorMul(A: [*]const f32, B: [*]f32, size: usize) void;
 pub extern "c" fn eigenf64_vectorMul(A: [*]const f64, B: [*]f64, size: usize) void;
 
+/// Computes `vector_b *= vector_a` element-wise using Eigen
 pub fn vectorMul(comptime T: type, vector_a: []const T, vector_b: []T) void {
     switch (T) {
         f16 => eigenf16_vectorMul(vector_a.ptr, vector_b.ptr, vector_b.len),
@@ -89,6 +94,7 @@ pub extern "c" fn eigenf16_setZero(A: [*]f16, size: usize) void;
 pub extern "c" fn eigenf32_setZero(A: [*]f32, size: usize) void;
 pub extern "c" fn eigenf64_setZero(A: [*]f64, size: usize) void;
 
+/// Sets all elements of the vector to zero using Eigen
 pub fn setZero(comptime T: type, vector: []T) void {
     switch (T) {
         f16 => eigenf16_setZero(vector.ptr, vector.len),
@@ -116,6 +122,7 @@ pub extern "c" fn eigenf16_vectorInit(A: [*]const f16, B: [*]f16, size: usize) v
 pub extern "c" fn eigenf32_vectorInit(A: [*]const f32, B: [*]f32, size: usize) void;
 pub extern "c" fn eigenf64_vectorInit(A: [*]const f64, B: [*]f64, size: usize) void;
 
+/// Copies all elements from `vector_a` into `vector_b` using Eigen
 pub fn vectorInit(comptime T: type, vector_a: []const T, vector_b: []T) void {
     switch (T) {
         f16 => eigenf16_vectorInit(vector_a.ptr, vector_b.ptr, vector_b.len),
@@ -139,7 +146,7 @@ test "[eigen] vectorInit" {
     }
 }
 
-// Update mt and vt for the weights
+/// Accumulates the outer product of `v` and `y` into the weight gradient
 pub extern "c" fn eigenf16_updateGradWeights(V: [*]const f16, Y: [*]const f16, grad: [*]f16, v_size: usize, y_size: usize) void;
 pub extern "c" fn eigenf32_updateGradWeights(V: [*]const f32, Y: [*]const f32, grad: [*]f32, v_size: usize, y_size: usize) void;
 pub extern "c" fn eigenf64_updateGradWeights(V: [*]const f64, Y: [*]const f64, grad: [*]f64, v_size: usize, y_size: usize) void;
@@ -174,6 +181,7 @@ pub extern "c" fn eigenf16_updateGradBiases(V: [*]const f16, grad: [*]f16, v_siz
 pub extern "c" fn eigenf32_updateGradBiases(V: [*]const f32, grad: [*]f32, v_size: usize) void;
 pub extern "c" fn eigenf64_updateGradBiases(V: [*]const f64, grad: [*]f64, v_size: usize) void;
 
+/// Adds `v` element-wise into the bias gradient
 pub fn updateGradBiases(comptime T: type, v: []const T, grad: []T) void {
     switch (T) {
         f16 => eigenf16_updateGradBiases(v.ptr, grad.ptr, v.len),

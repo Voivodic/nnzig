@@ -1,4 +1,6 @@
-//! This module sets all the parameters of the neural network at comptime
+//! This module parses compile-time parameters from a ZON configuration file
+//! and exposes them as typed constants. It handles validation, type conversion,
+//! and provides sensible defaults for optional fields.
 const std = @import("std");
 const paramsFile = @import("paramsFile");
 
@@ -73,7 +75,7 @@ fn convertStringToEnum(comptime enum_type: type, comptime str: []const u8) enum_
     return maybe_enum.?;
 }
 
-// Test the convertion to loss enum
+// Test the conversion to loss enum
 test "[params] stringToEnum" {
     const fieldNameLoss = comptime std.meta.fieldNames(loss)[0];
     const result = convertStringToEnum(loss, fieldNameLoss);
@@ -95,7 +97,7 @@ fn convertTupleToArray(comptime ElemType: type, comptime tuple: anytype) [tuple.
     return arr;
 }
 
-// Test the convertion to array
+// Test the conversion to array
 test "[params] tupleToArray" {
     const tuple = .{ 1, 2, 3, 4 };
     const result = convertTupleToArray(usize, tuple);

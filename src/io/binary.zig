@@ -1,5 +1,6 @@
-//! Implementation of functions to read and write the weights of the
-//! neural network to and from a safetensors files.
+//! Binary file I/O for neural network weights and generic data arrays.
+//! Uses a simple header-based format to store precision, layer dimensions,
+//! and raw weight/bias data for persistence across sessions.
 
 // Import the modules
 const std = @import("std");
@@ -10,14 +11,14 @@ const err = errors.ioError;
 const testing = std.testing;
 const fType = params.floatType;
 
-// Header for the neural network binary files
+/// Header structure for neural network binary files, storing precision and layer topology
 const NNHeader = struct {
     precision: u64 = @sizeOf(params.floatType),
     nLayers: u64 = @as(u64, params.nNeurons.len),
     nNeurons: [params.nNeurons.len]u64 = @as([params.nNeurons.len]u64, params.nNeurons),
 };
 
-// Header for the data binary files
+/// Header structure for generic data binary files, storing precision, count, and dimension
 const DataHeader = struct {
     precision: u64 = @sizeOf(params.floatType),
     nData: u64 = 0,

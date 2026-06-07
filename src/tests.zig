@@ -1,3 +1,6 @@
+//! Integration tests for the nnzig library, exercising the full neural network
+//! lifecycle: initialization, normalization, training, and weight persistence.
+
 const std = @import("std");
 const nnzig = @import("nnzig");
 const params = @import("params");

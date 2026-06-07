@@ -1,4 +1,6 @@
-//! Main module that defines the main structure used by the library
+//! Main module of the nnzig library. Provides the `NN` structure which serves as the
+//! primary interface for creating, training, saving, and loading neural networks.
+//! Training uses mini-batch gradient descent with the Adam optimizer.
 
 // Import the modules used
 const std = @import("std");
@@ -31,7 +33,7 @@ pub const NN = struct {
     lossesTraining: []fType = &.{},
     lossesValidation: []fType = &.{},
 
-    // Initialize the structure
+    /// Initializes the neural network, allocating memory for weights, biases, gradients, and Adam optimizer moments
     pub fn init(allocator: std.mem.Allocator, ioContext: std.Io) !NN {
         // Initialize the random generator
         var xoshiro256 = std.Random.Xoshiro256.init(params.seed);
@@ -158,7 +160,7 @@ pub const NN = struct {
         return nn;
     }
 
-    // Deinitialize the NN
+    /// Frees all memory allocated by `init`, including weights, biases, gradients, Adam moments, normalization data, and loss arrays
     pub fn deinit(self: *const NN) void {
         // Deinit the NN
         self.nn.deinit();
@@ -223,7 +225,7 @@ pub const NN = struct {
         try testing.expectEqual(@as(usize, params.nEpochs), nn.lossesValidation.len);
     }
 
-    // Compute the normalization for the data
+    /// Computes Z-score normalization factors (mean and standard deviation) for the given inputs and outputs
     pub fn computeNormalization(self: *const NN, inputs: []const fType, outputs: []const fType) !void {
         try self.norm.computeNormalization(inputs, outputs);
     }
@@ -269,7 +271,7 @@ pub const NN = struct {
         for (nn.norm.aOut) |val| try testing.expect(val > 0);
     }
 
-    // Normalize the data
+    /// Normalizes the given inputs and outputs in-place using the previously computed normalization factors
     pub fn normalize(self: *const NN, inputs: []fType, outputs: []fType) !void {
         try self.norm.normalize(inputs, outputs);
     }
@@ -317,7 +319,7 @@ pub const NN = struct {
         try testing.expect(@abs(meanIn) < 0.5);
     }
 
-    // Denormalize the data
+    /// Reverses the normalization, restoring data to its original scale
     pub fn denormalize(self: *const NN, inputs: []fType, outputs: []fType) !void {
         try self.norm.denormalize(inputs, outputs);
     }
@@ -368,7 +370,7 @@ pub const NN = struct {
         }
     }
 
-    // Set the gradients to zero
+    /// Resets all weight and bias gradients to zero
     pub fn zeroGrad(self: *const NN) void {
         eigen.setZero(fType, self.gradW);
         eigen.setZero(fType, self.gradB);
@@ -395,7 +397,7 @@ pub const NN = struct {
         for (nn.gradB) |val| try testing.expectEqual(@as(fType, 0.0), val);
     }
 
-    // Set the losses to zero
+    /// Resets all training and validation loss arrays to zero
     pub fn zeroLosses(self: *const NN) void {
         eigen.setZero(fType, self.lossesTraining);
         eigen.setZero(fType, self.lossesValidation);
@@ -422,7 +424,7 @@ pub const NN = struct {
         for (nn.lossesValidation) |val| try testing.expectEqual(@as(fType, 0.0), val);
     }
 
-    // Compute a forward pass in the NN
+    /// Runs a forward pass through the network for the given input and returns the output slice
     pub fn forward(self: *const NN, input: []const fType) ![]fType {
         const nIn: usize = params.nNeurons[0];
 
@@ -457,7 +459,7 @@ pub const NN = struct {
         for (output) |val| try testing.expect(std.math.isFinite(val));
     }
 
-    // Compute the backpropagation given some data
+    /// Performs backpropagation over the given data and returns the average loss
     fn backProp(self: *const NN, inputs: []const fType, outputs: []const fType) !fType {
         // Get the data size
         const nIn: usize = params.nNeurons[0];
@@ -465,7 +467,6 @@ pub const NN = struct {
         const nDataF: fType = @as(fType, @floatFromInt(inputs.len / nIn));
         const nData: usize = @as(usize, @intFromFloat(nDataF));
 
-        // Set the gradients to zero
         self.zeroGrad();
 
         // Slice to keep the derivatives of the loss
@@ -497,7 +498,7 @@ pub const NN = struct {
         return lossTotal;
     }
 
-    // Update the V and M used by adam
+    /// Updates the first and second moment estimates (m and v) for the Adam optimizer
     fn updateMV(self: *const NN) void {
         // Update the weights
         for (self.gradW, self.mW, self.vW) |*dw, *mw, *vw| {
@@ -512,7 +513,7 @@ pub const NN = struct {
         }
     }
 
-    // Update the weights and biases
+    /// Applies the bias-corrected Adam update rule to adjust weights and biases
     fn updateWeights(self: *const NN, t: usize) void {
         // Transform t to float
         const tFloat: fType = @as(fType, @floatFromInt(t));
@@ -532,7 +533,7 @@ pub const NN = struct {
         }
     }
 
-    // Function used to train the NN
+    /// Trains the neural network using mini-batch gradient descent with the Adam optimizer. Splits data into training and validation sets, and records loss per epoch.
     pub fn train(self: *const NN, inputs: []const fType, outputs: []const fType) !void {
         const nIn: usize = params.nNeurons[0];
         const nOut: usize = params.nNeurons[params.nNeurons.len - 1];
@@ -597,7 +598,6 @@ pub const NN = struct {
                 // Compute mt and vt used by adam optimizer
                 self.updateMV();
 
-                // Update the weights and biases
                 self.updateWeights(epoch + 1);
             }
 

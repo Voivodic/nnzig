@@ -7,7 +7,7 @@ const errors = @import("errors");
 const err = errors.lossError;
 const fType = params.floatType;
 
-// Mean square error loss and its derivatives
+/// Computes the mean squared error loss and its derivatives: L = 0.5 * mean((pred - out)^2)
 fn MSE(pred: []const fType, out: []const fType, dL: []fType, value: *fType) void {
     var loss: fType = 0.0;
 

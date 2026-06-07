@@ -1,14 +1,13 @@
 //! This module is used to normalize and denormalize the data
 //! The data is normalized by x' = (x - b)/a => x = x'*a + b
 
-// Import the moduels used
+// Import the modules used
 const std = @import("std");
 const params = @import("params");
 const err = @import("errors").normalizationError;
 const fType = params.floatType;
 
-// Computes the slope and shift for the normalization using a Z-score standardization
-// a = std and b = mean
+/// Computes Z-score normalization factors: `a` is the standard deviation and `b` is the mean
 fn computeMeanStd(norm: *const Norm, inputs: []const fType, outputs: []const fType, nData: usize) void {
     const N: fType = @as(fType, @floatFromInt(nData));
     const nIn = params.nNeurons[0];
@@ -35,7 +34,7 @@ fn computeMeanStd(norm: *const Norm, inputs: []const fType, outputs: []const fTy
     }
 }
 
-// Function used by each thread to normalize the slices
+/// Normalizes a chunk of data in-place using the stored factors: x' = (x - b) / a
 fn normalizeChunk(norm: *const Norm, inputs: []fType, outputs: []fType, startData: usize, endData: usize) void {
     const nIn = params.nNeurons[0];
     const nOut = params.nNeurons[params.nNeurons.len - 1];
@@ -51,7 +50,7 @@ fn normalizeChunk(norm: *const Norm, inputs: []fType, outputs: []fType, startDat
     }
 }
 
-// Function used by each thread to denormalize the slices
+/// Denormalizes a chunk of data in-place using the stored factors: x = x' * a + b
 fn denormalizeChunk(norm: *const Norm, inputs: []fType, outputs: []fType, startData: usize, endData: usize) void {
     const nIn = params.nNeurons[0];
     const nOut = params.nNeurons[params.nNeurons.len - 1];
