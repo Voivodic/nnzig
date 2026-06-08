@@ -13,8 +13,9 @@ fn MSE(pred: []const fType, out: []const fType, dL: []fType, value: *fType) void
 
     // Compute the loss and its derivative
     for (pred, out, dL) |*p, *o, *dl| {
-        dl.* = (p.* - o.*) / @as(fType, @floatFromInt(out.len));
+        dl.* = (p.* - o.*);
         loss += 0.5 * (dl.*) * (dl.*);
+        dl.* = dl.* / @as(fType, @floatFromInt(out.len));
     }
 
     value.* = loss / @as(fType, @floatFromInt(out.len));
@@ -100,5 +101,5 @@ test "[loss] computeLoss MSE known error" {
     const expectedLoss: fType = 0.5 * 4.0;
 
     try testing.expectApproxEqAbs(expectedLoss, lossVal, 1e-4);
-    for (dL) |val| try testing.expectApproxEqAbs(@as(fType, 2.0), val, 1e-4);
+    for (dL) |val| try testing.expectApproxEqAbs(@as(fType, 1.0), val, 1e-4);
 }
