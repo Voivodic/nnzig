@@ -191,7 +191,7 @@ pub fn build(b: *std.Build) void {
 
     // Add the test module
     const test_mod = b.createModule(.{
-        .root_source_file = b.path("src/tests.zig"),
+        .root_source_file = b.path("tests/tests.zig"),
         .target = target,
         .optimize = optimize,
     });
