@@ -24,11 +24,6 @@ if __name__ == "__main__":
     x_data = x_data.astype(np.float32)
     y_data = y_data.astype(np.float32)
 
-    # Print the dataset 
-    for i in range(N):
-        print(f"dIn: {x_data[i, 0]}, dOut: {y_data[i, 0]}")
-        print(f"dIn: {x_data[i, 1]}, dOut: {y_data[i, 1]}")
-
     # Define the filename
     filename = "dataset_benchmark.bin"
 
