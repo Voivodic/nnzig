@@ -161,7 +161,7 @@ pub const activations = blk: {
                 }
 
                 for (actsTmp.len..acts.len) |i| {
-                    acts[i] = activation.reluinline ;
+                    acts[i] = activation.relu ;
                 }
 
                 acts[acts.len - 1] = actsTmp[actsTmp.len - 1];
