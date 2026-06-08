@@ -86,12 +86,13 @@ pub const MLP = struct {
         // Run over all layers and compute the partial retult
         var nprod: usize = 0;
         var nsum: usize = 0;
+        var nBias: usize = 0;
         for (0..(nNeurons.len - 1)) |i| {
             const nin = nNeurons[i];
             const nout = nNeurons[i + 1];
 
             // Compute the matrix vector multiplication then add the result to a third vector
-            eigen.matrixVectorMulAdd(fType, weights[nprod..(nprod + nin * nout)], self.y[nsum..(nsum + nin)], biases[nsum..(nsum + nout)], self.y[(nsum + nin)..(nsum + nin + nout)]);
+            eigen.matrixVectorMulAdd(fType, weights[nprod..(nprod + nin * nout)], self.y[nsum..(nsum + nin)], biases[nBias..(nBias + nout)], self.y[(nsum + nin)..(nsum + nin + nout)]);
 
             // Apply the activation function
             try act.activateElements(self.y[(nsum + nin)..(nsum + nin + nout)], self.dy[(nsum + nin)..(nsum + nin + nout)], activations[i]);
@@ -99,6 +100,7 @@ pub const MLP = struct {
             // Update the total sum and sum of products to keep track of the current position of the 1D slices
             nsum += nin;
             nprod += nin * nout;
+            nBias += nout;
         }
 
         // Return the last slice of hidden values (the output)
