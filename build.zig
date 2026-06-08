@@ -231,6 +231,7 @@ pub fn build(b: *std.Build) void {
 
     // --- Benchmark step ---
 
+    // Create the benchmark module
     const benchmark = b.createModule(.{
         .root_source_file = b.path("benchmarks/run_nnzig.zig"),
         .target = target,
@@ -240,14 +241,17 @@ pub fn build(b: *std.Build) void {
     benchmark.addImport("params", params);
     benchmark.addImport("io", io);
 
+    // Create the benchmark executable
     const exe_benchmark = b.addExecutable(.{
         .name = "benchmark",
         .root_module = benchmark,
     });
     b.installArtifact(exe_benchmark);
 
+    // Create the benchmark run artifact
     const run_benchmark = b.addRunArtifact(exe_benchmark);
 
+    // Create the benchmark step
     const benchmark_step = b.step("benchmark", "Run benchmarks");
     benchmark_step.dependOn(&run_benchmark.step);
 }
