@@ -1,0 +1,37 @@
+.{
+    // Precision of the floats used
+    .precision = 32,
+
+    // Number of threads to used
+    .numThreads = 1,
+
+    // Number of neurons in each layer (input, hidden1, hidden2, ..., output)
+    .nNeurons = .{ 2, 16, 16, 2 },
+
+    // Activation functions for each layer (hidden1, hidden2, ..., output)
+    .activations = .{ "relu", "relu", "none" },
+
+    // Loss function
+    .lossFunc = "MSE",
+
+    // Normalization method
+    .normalization = "meanStd",
+
+    // Random seed
+    .seed = 12345,
+
+    // Training/validation split ratio (rTest = 1 - rTrain - rVal)
+    .rTrain = 0.7,
+    .rVal = 0.2,
+
+    // Training parameters
+    .eps = 1e-8,
+    .beta1 = 0.9,
+    .beta2 = 0.999,
+    .lr = 0.01,
+
+    // Training loop parameters
+    .nEpochs = 500,
+    .batchSize = 50,
+    .printEvery = 0,
+}
