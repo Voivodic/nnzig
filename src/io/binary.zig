@@ -22,7 +22,8 @@ const NNHeader = struct {
 const DataHeader = struct {
     precision: u64 = @sizeOf(params.floatType),
     nData: u64 = 0,
-    dimData: u64 = 0,
+    dimIn: u64 = 0,
+    dimOut: u64 = 0,
 };
 
 /// Save the weights of the neural network to a binary file
@@ -121,34 +122,48 @@ test "[io] save/load-Weights" {
 }
 
 /// Save the data points to a binary file
-pub fn saveData(io: std.Io, fileName: []const u8, data: []const fType, dimData: u64) !void {
+pub fn saveData(io: std.Io, fileName: []const u8, dataIn: []const fType, dataOut: []const fType, dimIn: u64, dimOut: u64) !void {
     // Open the file in fileName
     const cwd = std.Io.Dir.cwd();
     const file = try cwd.createFile(io, fileName, .{});
     defer file.close(io);
 
     // Check the size of the data
-    if (data.len % dimData != 0) {
-        std.log.err("The size of the data ({}) is not a multiple of dimData ({})!\n", .{data.len, dimData});
+    if (dataIn.len % dimIn != 0) {
+        std.log.err("The size of the data ({}) is not a multiple of dimData ({})!\n", .{dataIn.len, dimIn});
+        return err.invalidNData;
+    }
+
+    // Check the size of the data
+    if (dataOut.len % dimOut != 0) {
+        std.log.err("The size of the data ({}) is not a multiple of dimData ({})!\n", .{dataOut.len, dimOut});
+        return err.invalidNData;
+    }
+
+    // Check the sizes of the data
+    if (dataIn.len / dimIn != dataOut.len / dimOut) {
+        std.log.err("The size of the dataIn ({}) is not equal to the size of the dataOut ({})!\n", .{dataIn.len / dimIn, dataOut.len / dimOut});
         return err.invalidNData;
     }
 
     // Create the header with standard values
     const header = DataHeader{
         .precision = @sizeOf(fType),
-        .nData = @as(u64, data.len) / dimData,
-        .dimData = dimData,
+        .nData = @as(u64, dataIn.len) / dimIn,
+        .dimIn = dimIn,
+        .dimOut = dimOut,
     };
 
     // Write the header to the file
     try file.writeStreamingAll(io, std.mem.asBytes(&header));
 
     // Write the data to the file
-    try file.writeStreamingAll(io, std.mem.sliceAsBytes(data));
+    try file.writeStreamingAll(io, std.mem.sliceAsBytes(dataIn));
+    try file.writeStreamingAll(io, std.mem.sliceAsBytes(dataOut));
 }
 
 /// Load the data points from a binary file
-pub fn loadData(io: std.Io, fileName: []const u8, data: []fType) !u64 {
+pub fn loadData(io: std.Io, fileName: []const u8, dataIn: []fType, dataOut: []fType) !void {
     // Open the file in fileName
     const cwd = std.Io.Dir.cwd();
     const file = try cwd.openFile(io, fileName, .{});
@@ -164,31 +179,26 @@ pub fn loadData(io: std.Io, fileName: []const u8, data: []fType) !u64 {
     try reader.readSliceAll(std.mem.asBytes(&header));
 
     // Check the header values
-    if (header.precision != @sizeOf(@TypeOf(data[0]))) {
-        std.log.err("Precision mismatch! Expected {} bits, got {} bits!", .{ @sizeOf(@TypeOf(data[0])), header.precision });
+    if (header.precision != @sizeOf(@TypeOf(dataIn[0])) or header.precision != @sizeOf(@TypeOf(dataOut[0]))) {
+        std.log.err("Precision mismatch! Expected {} bits, got {} bits!", .{ @sizeOf(@TypeOf(dataIn[0])), header.precision });
         return err.precisionMismatch;
     }
-    if (header.nData * header.dimData != data.len) {
-        std.log.err("Number of data points * dimension mismatch! Expected {}, got {}!", .{ header.nData * header.dimData, data.len });
+    if (header.nData * header.dimIn != dataIn.len) {
+        std.log.err("Number of data points * dimension mismatch! Expected {}, got {}!", .{ header.nData * header.dimIn, dataIn.len });
+        return err.invalidNData;
+    }
+    if (header.nData * header.dimOut != dataOut.len) {
+        std.log.err("Number of data points * dimension mismatch! Expected {}, got {}!", .{ header.nData * header.dimOut, dataOut.len });
         return err.invalidNData;
     }
 
     // Read the data from the file
-    try reader.readSliceAll(std.mem.sliceAsBytes(data));
-
-    return header.dimData;
+    try reader.readSliceAll(std.mem.sliceAsBytes(dataIn));
+    try reader.readSliceAll(std.mem.sliceAsBytes(dataOut));
 }
 
 // Test the saving and loading of the data 
 test "[io] save/load-Data" {
-    // Create the allocator
-    var gpa = std.heap.DebugAllocator(.{}){};
-    const allocator = gpa.allocator();
-    defer {
-        const deinit_status = gpa.deinit();
-        if (deinit_status == .leak) std.log.err("Leak!\n", .{});
-    }
-
     // Create the IO context
     const path = "test.bin";
     const io = std.testing.io;
@@ -200,27 +210,25 @@ test "[io] save/load-Data" {
     // Create some data points
     const nData: usize = 10;
     const nDim: usize = 10;
-    var dataIn: []fType = undefined;
-    var dataOut: []fType = undefined;
-    dataIn = try allocator.alloc(fType, nData * nDim);
-    dataOut = try allocator.alloc(fType, nData * nDim);
-    defer {
-        allocator.free(dataIn);
-        allocator.free(dataOut);
-    }
-    for (dataIn) |*dIn| {
-        dIn.* = std.Random.floatNorm(rand, fType);
+    var dataIn: [nData * nDim]fType = undefined;
+    var dataOut: [nData * nDim]fType = undefined;
+    var dataIn2: [nData * nDim]fType = undefined;
+    var dataOut2: [nData * nDim]fType = undefined;
+    for (0..nDim * nData) |i| {
+        dataIn[i] = std.Random.floatNorm(rand, fType);
+        dataOut[i] = std.Random.floatNorm(rand, fType);
     }
 
     // Save the data points to a file
-    try saveData(io, path, dataIn, nDim);
+    try saveData(io, path, &dataIn, &dataOut, nDim, nDim);
 
     // Load the weights from the same file
-    _ = try loadData(io, path, dataOut);
+    _ = try loadData(io, path, &dataIn2, &dataOut2);
 
     // Check the data
-    for (dataIn, dataOut) |*dIn, *dOut| {
-        try testing.expectEqual(dIn.*, dOut.*);
+    for (0..nDim) |i| {
+        try testing.expectEqual(dataIn[i], dataIn2[i]);
+        try testing.expectEqual(dataOut[i], dataOut2[i]);
     }
 
     // Delete the test file

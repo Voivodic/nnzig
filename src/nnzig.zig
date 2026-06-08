@@ -712,17 +712,8 @@ pub const NN = struct {
 
     /// Save the losses to a file
     pub fn saveLosses(self: *const NN, fileName: []const u8) !void {
-        // Create a slice with both losses
-        var losses: [2 * params.nEpochs]fType = undefined;
-
-        // Save the losses of the training and validation
-        for (0..params.nEpochs) |i| {
-            losses[i] = self.lossesTraining[i];
-            losses[params.nEpochs + i] = self.lossesValidation[i];
-        }
-
         // Save the losses to a file
-        try io.saveData(self.ioContext, fileName, &losses, params.nEpochs);
+        try io.saveData(self.ioContext, fileName, self.lossesTraining, self.lossesValidation, 1, 1);
     }
 
     // Test the saving of the losses
@@ -751,13 +742,13 @@ pub const NN = struct {
         try nn.saveLosses(path);
 
         // Load the losses from the same file
-        var losses: [2 * params.nEpochs]fType = undefined;
-        const dataDim = try io.loadData(ioContext, path, &losses);
+        var lossT: [params.nEpochs]fType = undefined;
+        var lossV: [params.nEpochs]fType = undefined;
+        try io.loadData(ioContext, path, &lossT, &lossV);
 
         // Check the losses
-        try testing.expectEqual(params.nEpochs, dataDim);
-        try testing.expectEqual(nn.lossesTraining[0], losses[0]);
-        try testing.expectEqual(nn.lossesValidation[0], losses[params.nEpochs]);
+        try testing.expectEqual(nn.lossesTraining[0], lossT[0]);
+        try testing.expectEqual(nn.lossesValidation[0], lossV[0]);
 
         // Delete the test file
         const cwd = std.Io.Dir.cwd();
