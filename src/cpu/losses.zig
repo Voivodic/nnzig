@@ -13,7 +13,7 @@ fn MSE(pred: []const fType, out: []const fType, dL: []fType, value: *fType) void
 
     // Compute the loss and its derivative
     for (pred, out, dL) |*p, *o, *dl| {
-        dl.* = p.* - o.*;
+        dl.* = (p.* - o.*) / @as(fType, @floatFromInt(out.len));
         loss += 0.5 * (dl.*) * (dl.*);
     }
 
