@@ -1,8 +1,8 @@
 {
-    description = "A very basic flake";
+    description = "Flake for the python benchmark";
 
     inputs = {
-        nixpkgs.url = github:NixOS/nixpkgs/nixos-24.11;
+        nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     };
 
     outputs = { self, nixpkgs, ... } @ inputs: 
@@ -15,8 +15,9 @@
         # Instructions for the creation of the shell
         devShells.${system}.default = pkgs.mkShell{
             buildInputs = [
-                pkgs.python312
-                pkgs.python312Packages.torch
+                pkgs.python314
+                pkgs.python314Packages.numpy
+                pkgs.python314Packages.torch
             ];
 
             shellHook = ''
