@@ -33,7 +33,7 @@ fn tanh(slice: []fType, df: []fType) void {
         const invexp = 1.0 / exp;
 
         elem.* = (exp * exp - 1.0) / (exp * exp + 1.0);
-        d.* = 4.0 / (exp + invexp) * (exp + invexp);
+        d.* = 4.0 / ((exp + invexp) * (exp + invexp));
     }
 }
 
