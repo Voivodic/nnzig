@@ -494,6 +494,14 @@ pub const NN = struct {
             self.nn.backward(dL, &params.nNeurons, self.weights, self.biases, self.gradW, self.gradB);
         }
 
+        // Normalize the gradients
+        for (self.gradW) |*dw| {
+            dw.* /= nDataF;
+        }
+        for (self.gradB) |*db| {
+            db.* /= nDataF;
+        }
+
         // Return the total loss computed
         return lossTotal;
     }
@@ -558,7 +566,7 @@ pub const NN = struct {
 
         // Zero the losses
         self.zeroLosses();
- 
+
         // Alloc the dL array used in the computation of the loss of the validation
         var dL: []fType = &.{};
         if (self.allocator.alloc(fType, nOut)) |slice| {
@@ -568,10 +576,10 @@ pub const NN = struct {
             return err.backProp;
         }
         defer self.allocator.free(dL);
-        
+
         // Compute the dimension of the data
         const nData: usize = inputs.len / nIn;
-        
+
         // Compute the size of training and validation
         const nTrain: usize = @as(usize, @intFromFloat(@as(fType, @floatFromInt(nData)) * params.rTrain));
         const nValF: fType = @as(fType, @floatFromInt(nData)) * params.rVal;
@@ -592,6 +600,20 @@ pub const NN = struct {
                     lossEpoch += lossE / nBatchesF;
                 } else |_| {
                     std.debug.print("Problem when trying to backprop in epoch {} and batch {}!\n", .{ epoch, batch });
+                    return err.backProp;
+                }
+
+                // Compute mt and vt used by adam optimizer
+                self.updateMV();
+
+                self.updateWeights(epoch + 1);
+            }
+            if (nTrain % params.batchSize != 0) {
+                // Compute the gradients
+                if (self.backProp(inputs[nBatches * params.batchSize * nIn ..], outputs[nBatches * params.batchSize * nOut ..])) |lossE| {
+                    lossEpoch += lossE / nBatchesF;
+                } else |_| {
+                    std.debug.print("Problem when trying to backprop in epoch {} and batch {}!\n", .{ epoch, nBatches });
                     return err.backProp;
                 }
 
