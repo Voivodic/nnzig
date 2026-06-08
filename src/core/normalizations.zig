@@ -8,10 +8,11 @@ const err = @import("errors").normalizationError;
 const fType = params.floatType;
 
 /// Computes Z-score normalization factors: `a` is the standard deviation and `b` is the mean
-fn computeMeanStd(norm: *const Norm, inputs: []const fType, outputs: []const fType, nData: usize) void {
-    const N: fType = @as(fType, @floatFromInt(nData));
+fn computeMeanStd(norm: *const Norm, inputs: []const fType, outputs: []const fType) void {
     const nIn = params.nNeurons[0];
     const nOut = params.nNeurons[params.nNeurons.len - 1];
+    const nData: usize = inputs.len / nIn;
+    const N: fType = @as(fType, @floatFromInt(nData));
 
     // Compute means
     for (0..nData) |i| {
@@ -32,6 +33,8 @@ fn computeMeanStd(norm: *const Norm, inputs: []const fType, outputs: []const fTy
             norm.aOut[j] += (outputs[i * nOut + j] - norm.bOut[j]) * (outputs[i * nOut + j] - norm.bOut[j]) / N;
         }
     }
+    for (norm.aIn) |*a| a.* = std.math.sqrt(a.*);
+    for (norm.aOut) |*a| a.* = std.math.sqrt(a.*);
 }
 
 /// Normalizes a chunk of data in-place using the stored factors: x' = (x - b) / a
@@ -182,11 +185,8 @@ pub const Norm = struct {
             return err.notInitialized;
         }
 
-        // Compute the number of data points
-        const nData: usize = inputs.len / nIn;
-
         // Compute the slope and shift for the inputs and outputs
-        computeMeanStd(self, inputs, outputs, nData);
+        computeMeanStd(self, inputs, outputs);
     }
 
     test "[norms] computeNormalization" {
