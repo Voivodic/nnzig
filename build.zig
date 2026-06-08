@@ -5,6 +5,9 @@ pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
 
+    // Accept a string path from the CLI. If not provided, default to "params.zon"
+    const params_fileName = b.option([]const u8, "params-path", "Path to the parameter ZON file") orelse "params.zon";
+
     // --- Eigen wrapper ---
 
     // Add the Eigen dependency from build.zig.zon
@@ -53,9 +56,9 @@ pub fn build(b: *std.Build) void {
 
     // Create a module with the params from params.zon
     const params_file = b.addModule("paramsFile", .{
-            .root_source_file = b.path("params.zon"),
-            .target = target,
-            .optimize = optimize,
+        .root_source_file = b.path(params_fileName),
+        .target = target,
+        .optimize = optimize,
     });
 
     // Add the params module
@@ -225,4 +228,26 @@ pub fn build(b: *std.Build) void {
         .install_dir = .prefix,
         .install_subdir = "docs",
     }).step);
+
+    // --- Benchmark step ---
+
+    const benchmark = b.createModule(.{
+        .root_source_file = b.path("benchmarks/run_nnzig.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    benchmark.addImport("nnzig", nnzig_mod);
+    benchmark.addImport("params", params);
+    benchmark.addImport("io", io);
+
+    const exe_benchmark = b.addExecutable(.{
+        .name = "benchmark",
+        .root_module = benchmark,
+    });
+    b.installArtifact(exe_benchmark);
+
+    const run_benchmark = b.addRunArtifact(exe_benchmark);
+
+    const benchmark_step = b.step("benchmark", "Run benchmarks");
+    benchmark_step.dependOn(&run_benchmark.step);
 }
