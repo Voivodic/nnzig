@@ -67,7 +67,7 @@ pub fn activateElements(input: []fType, df: []fType, act: params.activation) !vo
                 if (std.Thread.spawn(.{}, none, .{df[start..end] })) |t| {
                     thread.* = t;
                 } else |_| {
-                    std.debug.print("Error in spawning thread {}!\n", .{i});
+                    std.log.err("Error in spawning thread {}!\n", .{i});
                     return err.threadRun;
                 }
             },
@@ -76,7 +76,7 @@ pub fn activateElements(input: []fType, df: []fType, act: params.activation) !vo
                 if (std.Thread.spawn(.{}, relu, .{input[start..end], df[start..end] })) |t| {
                     thread.* = t;
                 } else |_| {
-                    std.debug.print("Error in spawning thread {}!\n", .{i});
+                    std.log.err("Error in spawning thread {}!\n", .{i});
                     return err.threadRun;
                 }
             },
@@ -85,7 +85,7 @@ pub fn activateElements(input: []fType, df: []fType, act: params.activation) !vo
                 if (std.Thread.spawn(.{}, tanh, .{input[start..end], df[start..end] })) |t| {
                     thread.* = t;
                 } else |_| {
-                    std.debug.print("Error in spawning thread {}!\n", .{i});
+                    std.log.err("Error in spawning thread {}!\n", .{i});
                     return err.threadRun;
                 }
             },
@@ -94,7 +94,7 @@ pub fn activateElements(input: []fType, df: []fType, act: params.activation) !vo
                 if (std.Thread.spawn(.{}, sigmoid, .{input[start..end], df[start..end] })) |t| {
                     thread.* = t;
                 } else |_| {
-                    std.debug.print("Error in spawning thread {}!\n", .{i});
+                    std.log.err("Error in spawning thread {}!\n", .{i});
                     return err.threadRun;
                 }
             },

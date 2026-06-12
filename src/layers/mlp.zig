@@ -34,7 +34,7 @@ pub const MLP = struct {
         if (allocator.alloc(fType, nHidden)) |slice| {
             mlp.y = slice;
         } else |_| {
-            std.debug.print("Failure when trying to allocate memory for y!\n", .{});
+            std.log.err("Failure when trying to allocate memory for y!\n", .{});
             return err.allocationOfHiddens;
         }
 
@@ -42,7 +42,7 @@ pub const MLP = struct {
         if (allocator.alloc(fType, nHidden)) |slice| {
             mlp.dy = slice;
         } else |_| {
-            std.debug.print("Failure when trying to allocate memory for dy!\n", .{});
+            std.log.err("Failure when trying to allocate memory for dy!\n", .{});
             return err.allocationOfHiddens;
         }
 
@@ -58,7 +58,7 @@ pub const MLP = struct {
         if (allocator.alloc(fType, vSize)) |slice| {
             mlp.V = slice;
         } else |_| {
-            std.debug.print("Failure when trying to allocate memory for V!\n", .{});
+            std.log.err("Failure when trying to allocate memory for V!\n", .{});
             return err.allocationOfHiddens;
         }
 

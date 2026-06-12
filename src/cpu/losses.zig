@@ -44,7 +44,7 @@ pub fn computeLoss(pred: []const fType, out: []const fType, dL: []fType, lossFun
                 if (std.Thread.spawn(.{}, MSE, .{ pred[start..end], out[start..end], dL[start..end], lt })) |t| {
                     thread.* = t;
                 } else |_| {
-                    std.debug.print("Error in spawning thread {}!\n", .{i});
+                    std.log.err("Error in spawning thread {}!\n", .{i});
                     return err.threadRun;
                 }
             },

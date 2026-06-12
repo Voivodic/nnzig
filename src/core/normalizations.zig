@@ -92,7 +92,7 @@ pub const Norm = struct {
         if (norm.allocator.alloc(fType, nInputs)) |slice| {
             norm.aIn = slice;
         } else |_| {
-            std.debug.print("Problem in the allocation of the mean of the inputs!\n", .{});
+            std.log.err("Problem in the allocation of the mean of the inputs!\n", .{});
             return err.aAllocation;
         }
 
@@ -100,7 +100,7 @@ pub const Norm = struct {
         if (norm.allocator.alloc(fType, nInputs)) |slice| {
             norm.bIn = slice;
         } else |_| {
-            std.debug.print("Problem in the allocation of the std of the inputs!\n", .{});
+            std.log.err("Problem in the allocation of the std of the inputs!\n", .{});
             return err.bAllocation;
         }
 
@@ -114,7 +114,7 @@ pub const Norm = struct {
         if (norm.allocator.alloc(fType, nOutputs)) |slice| {
             norm.aOut = slice;
         } else |_| {
-            std.debug.print("Problem in the allocation of the mean of the outputs!\n", .{});
+            std.log.err("Problem in the allocation of the mean of the outputs!\n", .{});
             return err.aAllocation;
         }
 
@@ -122,7 +122,7 @@ pub const Norm = struct {
         if (norm.allocator.alloc(fType, nOutputs)) |slice| {
             norm.bOut = slice;
         } else |_| {
-            std.debug.print("Problem in the allocation of the std of the outputs!\n", .{});
+            std.log.err("Problem in the allocation of the std of the outputs!\n", .{});
             return err.bAllocation;
         }
 
@@ -175,13 +175,13 @@ pub const Norm = struct {
 
         // Check if the size of inputs and outputs are compatible
         if (inputs.len / nIn != outputs.len / nOut) {
-            std.debug.print("Inputs and outputs must have the same number of data vectors!\n", .{});
+            std.log.err("Inputs and outputs must have the same number of data vectors!\n", .{});
             return err.incompatibleSizes;
         }
 
         // Check if the normalizations were computed
         if (self.aIn.len == 0) {
-            std.debug.print("The normalization structure was not initialized!\n", .{});
+            std.log.err("The normalization structure was not initialized!\n", .{});
             return err.notInitialized;
         }
 
@@ -216,13 +216,13 @@ pub const Norm = struct {
 
         // Check if the size of inputs and outputs are compatible
         if (inputs.len / nIn != outputs.len / nOut) {
-            std.debug.print("Inputs and outputs must have the same number of data vectors!\n", .{});
+            std.log.err("Inputs and outputs must have the same number of data vectors!\n", .{});
             return err.incompatibleSizes;
         }
 
         // Check if the normalizations were computed
         if (self.aIn.len == 0) {
-            std.debug.print("The normalization structure was not initialized!\n", .{});
+            std.log.err("The normalization structure was not initialized!\n", .{});
             return err.notInitialized;
         }
 
@@ -244,7 +244,7 @@ pub const Norm = struct {
             if (std.Thread.spawn(.{}, normalizeChunk, .{ self, inputs, outputs, start, end })) |t| {
                 thread.* = t;
             } else |_| {
-                std.debug.print("Error in spawning thread {}!\n", .{i});
+                std.log.err("Error in spawning thread {}!\n", .{i});
                 return err.threadRun;
             }
         }
@@ -301,13 +301,13 @@ pub const Norm = struct {
 
         // Check if the size of inputs and outputs are compatible
         if (inputs.len / nIn != outputs.len / nOut) {
-            std.debug.print("Inputs and outputs must have the same number of data vectors!\n", .{});
+            std.log.err("Inputs and outputs must have the same number of data vectors!\n", .{});
             return err.incompatibleSizes;
         }
 
         // Check if the normalizations were computed
         if (self.bIn.len == 0) {
-            std.debug.print("The normalization structure was not initialized!\n", .{});
+            std.log.err("The normalization structure was not initialized!\n", .{});
             return err.notInitialized;
         }
 
@@ -329,7 +329,7 @@ pub const Norm = struct {
             if (std.Thread.spawn(.{}, denormalizeChunk, .{ self, inputs, outputs, start, end })) |t| {
                 thread.* = t;
             } else |_| {
-                std.debug.print("Error in spawning thread {}!\n", .{i});
+                std.log.err("Error in spawning thread {}!\n", .{i});
                 return err.threadRun;
             }
         }

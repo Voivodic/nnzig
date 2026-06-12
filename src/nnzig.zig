@@ -62,7 +62,7 @@ pub const NN = struct {
         if (allocator.alloc(fType, nWeights)) |slice| {
             nn.weights = slice;
         } else |_| {
-            std.debug.print("Failure when trying to allocate memory for the weights!\n", .{});
+            std.log.err("Failure when trying to allocate memory for the weights!\n", .{});
             return err.allocationOfWeights;
         }
 
@@ -70,7 +70,7 @@ pub const NN = struct {
         if (allocator.alloc(fType, nWeights)) |slice| {
             nn.gradW = slice;
         } else |_| {
-            std.debug.print("Failure when trying to allocate memory for the gradient of the weights!\n", .{});
+            std.log.err("Failure when trying to allocate memory for the gradient of the weights!\n", .{});
             return err.allocationOfWeights;
         }
 
@@ -78,7 +78,7 @@ pub const NN = struct {
         if (allocator.alloc(fType, nWeights)) |slice| {
             nn.mW = slice;
         } else |_| {
-            std.debug.print("Failure when trying to allocate memory for the mt of the weights!\n", .{});
+            std.log.err("Failure when trying to allocate memory for the mt of the weights!\n", .{});
             return err.allocationOfWeights;
         }
 
@@ -86,7 +86,7 @@ pub const NN = struct {
         if (allocator.alloc(fType, nWeights)) |slice| {
             nn.vW = slice;
         } else |_| {
-            std.debug.print("Failure when trying to allocate memory for the vt of the weights!\n", .{});
+            std.log.err("Failure when trying to allocate memory for the vt of the weights!\n", .{});
             return err.allocationOfWeights;
         }
 
@@ -98,7 +98,7 @@ pub const NN = struct {
         if (allocator.alloc(fType, nBiases)) |slice| {
             nn.biases = slice;
         } else |_| {
-            std.debug.print("Failure when trying to allocate memory for the biases!\n", .{});
+            std.log.err("Failure when trying to allocate memory for the biases!\n", .{});
             return err.allocationOfBiases;
         }
 
@@ -106,7 +106,7 @@ pub const NN = struct {
         if (allocator.alloc(fType, nBiases)) |slice| {
             nn.gradB = slice;
         } else |_| {
-            std.debug.print("Failure when trying to allocate memory for the gradient of the biases!\n", .{});
+            std.log.err("Failure when trying to allocate memory for the gradient of the biases!\n", .{});
             return err.allocationOfBiases;
         }
 
@@ -114,7 +114,7 @@ pub const NN = struct {
         if (allocator.alloc(fType, nBiases)) |slice| {
             nn.mB = slice;
         } else |_| {
-            std.debug.print("Failure when trying to allocate memory for the mt of the biases!\n", .{});
+            std.log.err("Failure when trying to allocate memory for the mt of the biases!\n", .{});
             return err.allocationOfBiases;
         }
 
@@ -122,7 +122,7 @@ pub const NN = struct {
         if (allocator.alloc(fType, nBiases)) |slice| {
             nn.vB = slice;
         } else |_| {
-            std.debug.print("Failure when trying to allocate memory for the vt of the biases!\n", .{});
+            std.log.err("Failure when trying to allocate memory for the vt of the biases!\n", .{});
             return err.allocationOfBiases;
         }
 
@@ -142,7 +142,7 @@ pub const NN = struct {
         if (allocator.alloc(fType, params.nEpochs)) |slice| {
             nn.lossesTraining = slice;
         } else |_| {
-            std.debug.print("Error while allocating the slice for the losses of the training!\n", .{});
+            std.log.err("Error while allocating the slice for the losses of the training!\n", .{});
             return err.lossesAllocation;
         }
 
@@ -150,7 +150,7 @@ pub const NN = struct {
         if (allocator.alloc(fType, params.nEpochs)) |slice| {
             nn.lossesValidation = slice;
         } else |_| {
-            std.debug.print("Error while allocating the slice for the losses of the validation!\n", .{});
+            std.log.err("Error while allocating the slice for the losses of the validation!\n", .{});
             return err.lossesAllocation;
         }
 
@@ -430,7 +430,7 @@ pub const NN = struct {
 
         // Check the size of the input
         if (input.len % nIn != 0) {
-            std.debug.print("The input has a size non multiple of nNeurons[0]!\n", .{});
+            std.log.err("The input has a size non multiple of nNeurons[0]!\n", .{});
             return err.incompatibleSizes;
         }
 
@@ -474,7 +474,7 @@ pub const NN = struct {
         if (self.allocator.alloc(fType, nOut)) |slice| {
             dL = slice;
         } else |_| {
-            std.debug.print("Problem to allocate the array for the derivatives of the loss!\n", .{});
+            std.log.err("Problem to allocate the array for the derivatives of the loss!\n", .{});
             return err.backProp;
         }
         defer self.allocator.free(dL);
@@ -548,19 +548,19 @@ pub const NN = struct {
 
         // Check the dimensions of the inputs
         if (inputs.len % nIn != 0) {
-            std.debug.print("Incompatible dimension of inputs and number of neurons in layer 0!\n", .{});
+            std.log.err("Incompatible dimension of inputs and number of neurons in layer 0!\n", .{});
             return err.incompatibleSizes;
         }
 
         // Check the dimensions of the outputs
         if (outputs.len % nOut != 0) {
-            std.debug.print("Incompatible dimension of outputs and number of neurons in layer -1!\n", .{});
+            std.log.err("Incompatible dimension of outputs and number of neurons in layer -1!\n", .{});
             return err.incompatibleSizes;
         }
 
         // Check the number of inputs and outputs
         if (inputs.len / nIn != outputs.len / nOut) {
-            std.debug.print("Incompatible number of inputs and outputs!\n", .{});
+            std.log.err("Incompatible number of inputs and outputs!\n", .{});
             return err.incompatibleSizes;
         }
 
@@ -572,7 +572,7 @@ pub const NN = struct {
         if (self.allocator.alloc(fType, nOut)) |slice| {
             dL = slice;
         } else |_| {
-            std.debug.print("Error while allocating the slice for dL!", .{});
+            std.log.err("Error while allocating the slice for dL!", .{});
             return err.backProp;
         }
         defer self.allocator.free(dL);
@@ -599,7 +599,7 @@ pub const NN = struct {
                 if (self.backProp(inputs[batch * params.batchSize * nIn .. (batch + 1) * params.batchSize * nIn], outputs[batch * params.batchSize * nOut .. (batch + 1) * params.batchSize * nOut])) |lossE| {
                     lossEpoch += lossE / nBatchesF;
                 } else |_| {
-                    std.debug.print("Problem when trying to backprop in epoch {} and batch {}!\n", .{ epoch, batch });
+                    std.log.err("Problem when trying to backprop in epoch {} and batch {}!\n", .{ epoch, batch });
                     return err.backProp;
                 }
 
@@ -613,7 +613,7 @@ pub const NN = struct {
                 if (self.backProp(inputs[nBatches * params.batchSize * nIn ..], outputs[nBatches * params.batchSize * nOut ..])) |lossE| {
                     lossEpoch += lossE / nBatchesF;
                 } else |_| {
-                    std.debug.print("Problem when trying to backprop in epoch {} and batch {}!\n", .{ epoch, nBatches });
+                    std.log.err("Problem when trying to backprop in epoch {} and batch {}!\n", .{ epoch, nBatches });
                     return err.backProp;
                 }
 
@@ -635,7 +635,7 @@ pub const NN = struct {
 
             // Print the current state
             if (params.printEvery > 0 and epoch % params.printEvery == 0) {
-                std.debug.print("Loss[{}] = ({}, {})\n", .{ epoch, self.lossesTraining[epoch], self.lossesValidation[epoch] });
+                std.log.info("Loss[{}] = ({}, {})\n", .{ epoch, self.lossesTraining[epoch], self.lossesValidation[epoch] });
             }
         }
     }
