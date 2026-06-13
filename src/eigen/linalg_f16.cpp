@@ -18,6 +18,16 @@ extern "C"{
         vecResult.noalias() = matA * vecB + vecC;
     }
 
+    // Multiply a matrix and a batch of vectors then add a vector
+    void eigenf16_matrixVectorMulAddBatch(const half* a, const half* b, const half* c, half* result, size_t a_rows, size_t a_cols, size_t batch_size){
+        Eigen::Map<const MatrixXh> matA(a, a_rows, a_cols);
+        Eigen::Map<const MatrixXh> matB(b, a_cols, batch_size);
+        Eigen::Map<const VectorXh> vecC(c, a_rows);
+        Eigen::Map<MatrixXh> matResult(result, a_rows, batch_size);
+
+        matResult.noalias() = (matA * matB).colwise() + vecC;
+    }
+
     // Multiply a vector by a matrix
     void eigenf16_vectorMatrixMul(half* a, const half* b, size_t b_rows, size_t b_cols){
         Eigen::Map<const MatrixXh> matB(b, b_rows, b_cols);
@@ -25,6 +35,15 @@ extern "C"{
         Eigen::Map<VectorXh> vecResult(a, b_cols);
 
         vecResult = vecA.transpose() * matB;
+    }
+
+    // Multiply a batch of row vectors by a matrix
+    void eigenf16_vectorMatrixMulBatch(const half* a, half* result, const half* b, size_t b_rows, size_t b_cols, size_t batch_size){
+        Eigen::Map<const MatrixXh> matA(a, b_rows, batch_size);
+        Eigen::Map<const MatrixXh> matB(b, b_rows, b_cols);
+        Eigen::Map<MatrixXh> matResult(result, b_cols, batch_size);
+
+        matResult.noalias() = matB.transpose() * matA;
     }
 
     // Multiply two vectors elementwise
@@ -59,6 +78,15 @@ extern "C"{
         matGrad.noalias() += vecV * vecY.transpose();
     }
 
+    // Update mt and vt for the weights (batch)
+    void eigenf16_updateGradWeightsBatch(const half* v, const half* y, half* grad, size_t v_size, size_t y_size, size_t batch_size){
+        Eigen::Map<const MatrixXh> matV(v, v_size, batch_size);
+        Eigen::Map<const MatrixXh> matY(y, y_size, batch_size);
+        Eigen::Map<MatrixXh> matGrad(grad, v_size, y_size);
+
+        matGrad.noalias() += matV * matY.transpose();
+    }
+
     // Update mt and vt for the biases
     void eigenf16_updateGradBiases(const half* v, half* grad, size_t v_size){
         Eigen::Map<const VectorXh> vecV(v, v_size);
@@ -66,6 +94,14 @@ extern "C"{
 
         // Update the gradients
         vecGrad.noalias() += vecV;
+    }
+
+    // Update mt and vt for the biases (batch)
+    void eigenf16_updateGradBiasesBatch(const half* v, half* grad, size_t v_size, size_t batch_size){
+        Eigen::Map<const MatrixXh> matV(v, v_size, batch_size);
+        Eigen::Map<VectorXh> vecGrad(grad, v_size);
+
+        vecGrad += matV.rowwise().sum();
     }
 
 }
