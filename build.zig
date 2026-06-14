@@ -1,67 +1,35 @@
 const std = @import("std");
 
-pub fn build(b: *std.Build) void {
-    // Use the standard target and optimization options
-    const target = b.standardTargetOptions(.{});
-    const optimize = b.standardOptimizeOption(.{});
+// Tree with all modules
+const Tree = struct {
+    params: *std.Build.Module,
+    eigen_wrapper: *std.Build.Module,
+    activation: *std.Build.Module,
+    loss: *std.Build.Module,
+    norms: *std.Build.Module,
+    io: *std.Build.Module,
+    mlp: *std.Build.Module,
+    nnzig: *std.Build.Module,
+};
 
-    // Accept a string path from the CLI. If not provided, default to "params.zon"
-    const params_fileName = b.option([]const u8, "params-path", "Path to the parameter ZON file") orelse "params.zon";
-
-    // --- Eigen wrapper ---
-
-    // Add the Eigen dependency from build.zig.zon
-    const eigen = b.dependency("eigen", .{
+// Creates a tree with all modules
+fn createTree(
+    b: *std.Build,
+    target: std.Build.ResolvedTarget,
+    optimize: std.builtin.OptimizeMode,
+    errors: *std.Build.Module,
+    eigen: *std.Build.Dependency,
+    params_path: []const u8,
+    precision_flag: []const u8,
+) Tree {
+    // Params file module (the ZON file)
+    const params_file = b.createModule(.{
+        .root_source_file = b.path(params_path),
         .target = target,
         .optimize = optimize,
     });
 
-    // Create the Eigen wrapper module
-    const eigen_wrapper = b.createModule(.{
-        .root_source_file = b.path("src/eigen/wrappers.zig"),
-        .target = target,
-        .optimize = optimize,
-        .link_libc = true,
-        .link_libcpp = true,
-    });
-    eigen_wrapper.addCSourceFiles(.{
-        .root = b.path("src/eigen"),
-        .files = &.{
-            "linalg_f32.cpp",
-            "linalg_f64.cpp",
-            "linalg_f16.cpp",
-        },
-        .flags = &.{
-            "-O3",
-            "-fPIC",
-        },
-    });
-    eigen_wrapper.addIncludePath(eigen.path("./"));
-
-    // Add the tests for the Eigen wrapper module
-    const test_eigen = b.addTest(.{
-        .name = "eigen",
-        .root_module = eigen_wrapper,
-    });
-    const run_test_eigen = b.addRunArtifact(test_eigen);
-
-    // --- Core modules ---
-
-    // Add the errors module
-    const errors = b.createModule(.{
-        .root_source_file = b.path("src/core/errors.zig"),
-        .target = target,
-        .optimize = optimize,
-    });
-
-    // Create a module with the params from params.zon
-    const params_file = b.addModule("paramsFile", .{
-        .root_source_file = b.path(params_fileName),
-        .target = target,
-        .optimize = optimize,
-    });
-
-    // Add the params module
+    // Params module (parses the ZON into typed constants)
     const params = b.createModule(.{
         .root_source_file = b.path("src/core/params.zig"),
         .target = target,
@@ -69,34 +37,23 @@ pub fn build(b: *std.Build) void {
     });
     params.addImport("paramsFile", params_file);
 
-    // Add the tests for the params module
-    const test_params = b.addTest(.{
-        .name = "params",
-        .root_module = params,
-    });
-    const run_test_params = b.addRunArtifact(test_params);
-
-    // --- IO modules ---
-
-    // Add the io module
-    const io = b.createModule(.{
-        .root_source_file = b.path("src/io/binary.zig"),
+    // Eigen wrapper module
+    const eigen_wrapper = b.createModule(.{
+        .root_source_file = b.path("src/eigen/wrappers.zig"),
         .target = target,
         .optimize = optimize,
+        .link_libc = true,
+        .link_libcpp = true,
     });
-    io.addImport("params", params);
-    io.addImport("errors", errors);
-
-    // Add the tests for the io module
-    const test_io = b.addTest(.{
-        .name = "io",
-        .root_module = io,
+    eigen_wrapper.addImport("params", params);
+    eigen_wrapper.addCSourceFiles(.{
+        .root = b.path("src/eigen"),
+        .files = &.{"linalg.cpp"},
+        .flags = &.{ "-O3", "-fPIC", precision_flag },
     });
-    const run_test_io = b.addRunArtifact(test_io);
+    eigen_wrapper.addIncludePath(eigen.path("./"));
 
-    // --- OPS modules ---
-
-    // Add the activation module
+    // Activation module
     const activation = b.createModule(.{
         .root_source_file = b.path("src/cpu/activations.zig"),
         .target = target,
@@ -105,14 +62,7 @@ pub fn build(b: *std.Build) void {
     activation.addImport("params", params);
     activation.addImport("errors", errors);
 
-    // Add the tests for the activation module
-    const test_activation = b.addTest(.{
-        .name = "activation",
-        .root_module = activation,
-    });
-    const run_test_activation = b.addRunArtifact(test_activation);
-
-    // Add the loss module
+    // Loss module
     const loss = b.createModule(.{
         .root_source_file = b.path("src/cpu/losses.zig"),
         .target = target,
@@ -121,14 +71,7 @@ pub fn build(b: *std.Build) void {
     loss.addImport("params", params);
     loss.addImport("errors", errors);
 
-    // Add the tests for the loss module
-    const test_loss = b.addTest(.{
-        .name = "loss",
-        .root_module = loss,
-    });
-    const run_test_loss = b.addRunArtifact(test_loss);
-
-    // Add the norms module
+    // Norms module
     const norms = b.createModule(.{
         .root_source_file = b.path("src/core/normalizations.zig"),
         .target = target,
@@ -137,16 +80,16 @@ pub fn build(b: *std.Build) void {
     norms.addImport("params", params);
     norms.addImport("errors", errors);
 
-    // Add the tests for the norms module
-    const test_norms = b.addTest(.{
-        .name = "norms",
-        .root_module = norms,
+    // IO module
+    const io = b.createModule(.{
+        .root_source_file = b.path("src/io/binary.zig"),
+        .target = target,
+        .optimize = optimize,
     });
-    const run_test_norms = b.addRunArtifact(test_norms);
+    io.addImport("params", params);
+    io.addImport("errors", errors);
 
-    // --- Layers modules ---
-
-    // Add the mlp module
+    // MLP module
     const mlp = b.createModule(.{
         .root_source_file = b.path("src/layers/mlp.zig"),
         .target = target,
@@ -157,101 +100,133 @@ pub fn build(b: *std.Build) void {
     mlp.addImport("errors", errors);
     mlp.addImport("params", params);
 
-    // Add the tests for the mlp module
-    const test_mlp = b.addTest(.{
-        .name = "mlp",
-        .root_module = mlp,
-    });
-    const run_test_mlp = b.addRunArtifact(test_mlp);
-
-    // --- Main NN module ---
-
-    // Add the nnzig module
-    const nnzig_mod = b.addModule("nnzig", .{
+    // Main NN module
+    const nnzig = b.createModule(.{
         .root_source_file = b.path("src/nnzig.zig"),
         .target = target,
         .optimize = optimize,
     });
-    nnzig_mod.addImport("errors", errors);
-    nnzig_mod.addImport("act", activation);
-    nnzig_mod.addImport("loss", loss);
-    nnzig_mod.addImport("eigen", eigen_wrapper);
-    nnzig_mod.addImport("mlp", mlp);
-    nnzig_mod.addImport("params", params);
-    nnzig_mod.addImport("norms", norms);
-    nnzig_mod.addImport("io", io);
+    nnzig.addImport("errors", errors);
+    nnzig.addImport("act", activation);
+    nnzig.addImport("loss", loss);
+    nnzig.addImport("eigen", eigen_wrapper);
+    nnzig.addImport("mlp", mlp);
+    nnzig.addImport("params", params);
+    nnzig.addImport("norms", norms);
+    nnzig.addImport("io", io);
 
-    const test_nnzig = b.addTest(.{
-        .name = "nnzig",
-        .root_module = nnzig_mod,
+    // io needs nnzig (circular reference resolved via late import)
+    io.addImport("nnzig", nnzig);
+
+    return .{
+        .params = params,
+        .eigen_wrapper = eigen_wrapper,
+        .activation = activation,
+        .loss = loss,
+        .norms = norms,
+        .io = io,
+        .mlp = mlp,
+        .nnzig = nnzig,
+    };
+}
+
+pub fn build(b: *std.Build) void {
+    // Use the standard target and optimization options
+    const target = b.standardTargetOptions(.{});
+    const optimize = b.standardOptimizeOption(.{});
+
+    // Shared errors module (does not depend on params)
+    const errors = b.createModule(.{
+        .root_source_file = b.path("src/core/errors.zig"),
+        .target = target,
+        .optimize = optimize,
     });
-    const run_test_nnzig = b.addRunArtifact(test_nnzig);
 
-    // Import nnzig to modules that need it
-    io.addImport("nnzig", nnzig_mod);
+    // Shared Eigen dependency
+    const eigen = b.dependency("eigen", .{
+        .target = target,
+        .optimize = optimize,
+    });
 
-    // --- Test modules ---
+    // Precision flags derived at comptime from each ZON file
+    const precision_flag_main = std.fmt.comptimePrint("-DFLOAT_PRECISION={d}", .{@import("params.zon").precision});
+    const precision_flag_test = std.fmt.comptimePrint("-DFLOAT_PRECISION={d}", .{@import("tests/params.zon").precision});
+    const precision_flag_bench = std.fmt.comptimePrint("-DFLOAT_PRECISION={d}", .{@import("benchmarks/params.zon").precision});
 
-    // Add the test module
+    // Create a separate module tree for each context
+    const tree_main = createTree(b, target, optimize, errors, eigen, "params.zon", precision_flag_main);
+    const tree_test = createTree(b, target, optimize, errors, eigen, "tests/params.zon", precision_flag_test);
+    const tree_bench = createTree(b, target, optimize, errors, eigen, "benchmarks/params.zon", precision_flag_bench);
+
+    // --- Test step (uses tests/params.zon) ---
+
+    const test_step = b.step("test", "Run tests");
+
+    const run_test_params = b.addRunArtifact(b.addTest(.{ .name = "params", .root_module = tree_test.params }));
+    test_step.dependOn(&run_test_params.step);
+
+    const run_test_eigen = b.addRunArtifact(b.addTest(.{ .name = "eigen", .root_module = tree_test.eigen_wrapper }));
+    test_step.dependOn(&run_test_eigen.step);
+
+    const run_test_io = b.addRunArtifact(b.addTest(.{ .name = "io", .root_module = tree_test.io }));
+    test_step.dependOn(&run_test_io.step);
+
+    const run_test_norms = b.addRunArtifact(b.addTest(.{ .name = "norms", .root_module = tree_test.norms }));
+    test_step.dependOn(&run_test_norms.step);
+
+    const run_test_activation = b.addRunArtifact(b.addTest(.{ .name = "activation", .root_module = tree_test.activation }));
+    test_step.dependOn(&run_test_activation.step);
+
+    const run_test_loss = b.addRunArtifact(b.addTest(.{ .name = "loss", .root_module = tree_test.loss }));
+    test_step.dependOn(&run_test_loss.step);
+
+    const run_test_mlp = b.addRunArtifact(b.addTest(.{ .name = "mlp", .root_module = tree_test.mlp }));
+    test_step.dependOn(&run_test_mlp.step);
+
+    const run_test_nnzig = b.addRunArtifact(b.addTest(.{ .name = "nnzig", .root_module = tree_test.nnzig }));
+    test_step.dependOn(&run_test_nnzig.step);
+
+    // Integration tests
     const test_mod = b.createModule(.{
         .root_source_file = b.path("tests/tests.zig"),
         .target = target,
         .optimize = optimize,
     });
-    test_mod.addImport("nnzig", nnzig_mod);
-    test_mod.addImport("params", params);
+    test_mod.addImport("nnzig", tree_test.nnzig);
+    test_mod.addImport("params", tree_test.params);
 
-    // Add the main tests
-    const tests = b.addTest(.{
-        .name = "main",
-        .root_module = test_mod,
-    });
-    const run_tests = b.addRunArtifact(tests);
-
-    // Create the test step
-    const test_step = b.step("test", "Run tests");
+    const run_tests = b.addRunArtifact(b.addTest(.{ .name = "main", .root_module = test_mod }));
     test_step.dependOn(&run_tests.step);
-    test_step.dependOn(&run_test_params.step);
-    test_step.dependOn(&run_test_eigen.step);
-    test_step.dependOn(&run_test_io.step);
-    test_step.dependOn(&run_test_norms.step);
-    test_step.dependOn(&run_test_activation.step);
-    test_step.dependOn(&run_test_loss.step);
-    test_step.dependOn(&run_test_mlp.step);
-    test_step.dependOn(&run_test_nnzig.step);
 
-    // --- Documentation step ---
+    // --- Documentation step (uses params.zon) ---
 
     const docs_step = b.step("docs", "Generate documentation");
+    const docs_test = b.addTest(.{ .name = "nnzig_docs", .root_module = tree_main.nnzig });
     docs_step.dependOn(&b.addInstallDirectory(.{
-        .source_dir = test_nnzig.getEmittedDocs(),
+        .source_dir = docs_test.getEmittedDocs(),
         .install_dir = .prefix,
         .install_subdir = "docs",
     }).step);
 
-    // --- Benchmark step ---
+    // --- Benchmark step (uses benchmarks/params.zon) ---
 
-    // Create the benchmark module
     const benchmark = b.createModule(.{
         .root_source_file = b.path("benchmarks/run_nnzig.zig"),
         .target = target,
         .optimize = optimize,
     });
-    benchmark.addImport("nnzig", nnzig_mod);
-    benchmark.addImport("params", params);
-    benchmark.addImport("io", io);
+    benchmark.addImport("nnzig", tree_bench.nnzig);
+    benchmark.addImport("params", tree_bench.params);
+    benchmark.addImport("io", tree_bench.io);
 
-    // Create the benchmark executable
     const exe_benchmark = b.addExecutable(.{
         .name = "benchmark",
         .root_module = benchmark,
     });
     b.installArtifact(exe_benchmark);
 
-    // Create the benchmark run artifact
     const run_benchmark = b.addRunArtifact(exe_benchmark);
 
-    // Create the benchmark step
     const benchmark_step = b.step("benchmark", "Run benchmarks");
     benchmark_step.dependOn(&run_benchmark.step);
 }
