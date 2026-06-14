@@ -48,7 +48,7 @@ fn createTree(
     eigen_wrapper.addImport("params", params);
     eigen_wrapper.addCSourceFiles(.{
         .root = b.path("src/eigen"),
-        .files = &.{"linalg.cpp"},
+        .files = &.{ "linalg.cpp", "activations.cpp" },
         .flags = &.{ "-O3", "-fPIC", precision_flag },
     });
     eigen_wrapper.addIncludePath(eigen.path("./"));
@@ -61,6 +61,7 @@ fn createTree(
     });
     activation.addImport("params", params);
     activation.addImport("errors", errors);
+    activation.addImport("eigen", eigen_wrapper);
 
     // Loss module
     const loss = b.createModule(.{

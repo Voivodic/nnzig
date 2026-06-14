@@ -233,3 +233,98 @@ test "[eigen] updateGradBiasesBatch" {
     try testing.expectApproxEqAbs(5.0, grad[0], 0.001);
     try testing.expectApproxEqAbs(7.0, grad[1], 0.001);
 }
+
+// --- Activation functions ---
+
+extern "c" fn eigen_none(input: [*]T, df: [*]T, n: usize) void;
+extern "c" fn eigen_relu(input: [*]T, df: [*]T, n: usize) void;
+extern "c" fn eigen_tanh(input: [*]T, df: [*]T, n: usize) void;
+extern "c" fn eigen_sigmoid(input: [*]T, df: [*]T, n: usize) void;
+
+/// Applies the "none" activation: leaves `input` untouched and sets every derivative in `df` to 1
+pub fn activateNone(input: []T, df: []T) void {
+    eigen_none(input.ptr, df.ptr, input.len);
+}
+
+test "[eigen] activateNone" {
+    var input = [_]T{ -2.0, -1.0, 0.0, 1.0, 2.0 };
+    var df: [5]T = undefined;
+
+    activateNone(&input, &df);
+
+    try testing.expectApproxEqAbs(-2.0, input[0], 0.001);
+    try testing.expectApproxEqAbs(2.0, input[4], 0.001);
+    for (df) |val| try testing.expectApproxEqAbs(1.0, val, 0.001);
+}
+
+/// Applies ReLU element-wise to `input` (in place) and writes its derivative into `df`
+pub fn activateRelu(input: []T, df: []T) void {
+    eigen_relu(input.ptr, df.ptr, input.len);
+}
+
+test "[eigen] activateRelu" {
+    var input = [_]T{ -2.0, -1.0, 0.0, 1.0, 2.0 };
+    var df: [5]T = undefined;
+
+    activateRelu(&input, &df);
+
+    try testing.expectApproxEqAbs(0.0, input[0], 0.001);
+    try testing.expectApproxEqAbs(0.0, input[1], 0.001);
+    try testing.expectApproxEqAbs(0.0, input[2], 0.001);
+    try testing.expectApproxEqAbs(1.0, input[3], 0.001);
+    try testing.expectApproxEqAbs(2.0, input[4], 0.001);
+
+    try testing.expectApproxEqAbs(0.0, df[0], 0.001);
+    try testing.expectApproxEqAbs(0.0, df[1], 0.001);
+    try testing.expectApproxEqAbs(1.0, df[2], 0.001);
+    try testing.expectApproxEqAbs(1.0, df[3], 0.001);
+    try testing.expectApproxEqAbs(1.0, df[4], 0.001);
+}
+
+/// Applies tanh element-wise to `input` (in place) and writes its derivative into `df`
+pub fn activateTanh(input: []T, df: []T) void {
+    eigen_tanh(input.ptr, df.ptr, input.len);
+}
+
+test "[eigen] activateTanh" {
+    var input = [_]T{ -2.0, -1.0, 0.0, 1.0, 2.0 };
+    var df: [5]T = undefined;
+
+    activateTanh(&input, &df);
+
+    try testing.expectApproxEqAbs(-0.964028, input[0], 1e-4);
+    try testing.expectApproxEqAbs(-0.761594, input[1], 1e-4);
+    try testing.expectApproxEqAbs(0.0, input[2], 1e-4);
+    try testing.expectApproxEqAbs(0.761594, input[3], 1e-4);
+    try testing.expectApproxEqAbs(0.964028, input[4], 1e-4);
+
+    try testing.expectApproxEqAbs(0.0706508, df[0], 1e-4);
+    try testing.expectApproxEqAbs(0.419974, df[1], 1e-4);
+    try testing.expectApproxEqAbs(1.0, df[2], 1e-4);
+    try testing.expectApproxEqAbs(0.419974, df[3], 1e-4);
+    try testing.expectApproxEqAbs(0.0706508, df[4], 1e-4);
+}
+
+/// Applies sigmoid element-wise to `input` (in place) and writes its derivative into `df`
+pub fn activateSigmoid(input: []T, df: []T) void {
+    eigen_sigmoid(input.ptr, df.ptr, input.len);
+}
+
+test "[eigen] activateSigmoid" {
+    var input = [_]T{ -2.0, -1.0, 0.0, 1.0, 2.0 };
+    var df: [5]T = undefined;
+
+    activateSigmoid(&input, &df);
+
+    try testing.expectApproxEqAbs(0.119203, input[0], 1e-4);
+    try testing.expectApproxEqAbs(0.268941, input[1], 1e-4);
+    try testing.expectApproxEqAbs(0.5, input[2], 1e-4);
+    try testing.expectApproxEqAbs(0.731059, input[3], 1e-4);
+    try testing.expectApproxEqAbs(0.880797, input[4], 1e-4);
+
+    try testing.expectApproxEqAbs(0.104994, df[0], 1e-4);
+    try testing.expectApproxEqAbs(0.196612, df[1], 1e-4);
+    try testing.expectApproxEqAbs(0.25, df[2], 1e-4);
+    try testing.expectApproxEqAbs(0.196612, df[3], 1e-4);
+    try testing.expectApproxEqAbs(0.104994, df[4], 1e-4);
+}

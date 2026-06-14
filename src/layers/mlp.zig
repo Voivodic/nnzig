@@ -95,7 +95,7 @@ pub const MLP = struct {
             eigen.matrixVectorMulAdd(weights[nprod..(nprod + nin * nout)], self.y[nsum..(nsum + nin)], biases[nBias..(nBias + nout)], self.y[(nsum + nin)..(nsum + nin + nout)]);
 
             // Apply the activation function
-            try act.activateElements(self.y[(nsum + nin)..(nsum + nin + nout)], self.dy[(nsum + nin)..(nsum + nin + nout)], activations[i]);
+            act.activateElements(self.y[(nsum + nin)..(nsum + nin + nout)], self.dy[(nsum + nin)..(nsum + nin + nout)], activations[i]);
 
             // Update the total sum and sum of products to keep track of the current position of the 1D slices
             nsum += nin;

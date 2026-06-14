@@ -1,109 +1,24 @@
-//! This module defines the activation functions and their derivatives
+//! This module defines the activation functions and their derivatives.
+//! The element-wise math is delegated to the Eigen C++ kernels in
+//! src/eigen/activations.cpp; this module only dispatches based on the
+//! configured activation function. Because the computation is element-wise,
+//! a single call handles any array length, including a whole batch.
 
 // Import the modules used
 const std = @import("std");
 const params = @import("params");
-const errors = @import("errors");
-const err = errors.activationError;
+const eigen = @import("eigen");
 const T = params.T;
 
-/// Identity activation: sets all derivatives to 1 (no transformation applied)
-fn none(df: []T) void {
-    for (df) |*d| {
-        d.* = 1.0;
-    }
-}
-
-/// ReLU activation: applies max(0, x) element-wise and computes its derivative
-fn relu(slice: []T, df: []T) void {
-    for (slice, df) |*elem, *d| {
-        if (elem.* < 0.0) {
-            elem.* = 0.0;
-            d.* = 0.0;
-        } else {
-            d.* = 1.0;
-        }
-    }
-}
-
-/// Hyperbolic tangent activation applied element-wise with its derivative
-fn tanh(slice: []T, df: []T) void {
-    for (slice, df) |*elem, *d| {
-        const exp = @exp(elem.*);
-        const invexp = 1.0 / exp;
-
-        elem.* = (exp * exp - 1.0) / (exp * exp + 1.0);
-        d.* = 4.0 / ((exp + invexp) * (exp + invexp));
-    }
-}
-
-/// Sigmoid activation: applies 1/(1+e^(-x)) element-wise with its derivative
-fn sigmoid(slice: []T, df: []T) void {
-    for (slice, df) |*elem, *d| {
-        const sigma = 1.0 / (1.0 + @exp(-elem.*));
-
-        elem.* = sigma;
-        d.* = sigma * (1.0 - sigma);
-    }
-}
-
-/// Apply the activation function to each element of the slice and compute its gradient
-pub fn activateElements(input: []T, df: []T, act: params.activation) !void {
-    // Compute the chunck size
-    const chunkSize: usize = (input.len + params.numThreads - 1) / params.numThreads;
-
-    // Define the array of threads
-    var threads: [params.numThreads]std.Thread = undefined;
-
-    // Compute the chuncks for each thread
-    for (&threads, 0..params.numThreads) |*thread, i| {
-        const start: usize = i * chunkSize;
-        const end: usize = @min(start + chunkSize, input.len);
-
-        // Check the activation function to be used
-        switch (act) {
-            // Trivial
-            params.activation.none => {
-                if (std.Thread.spawn(.{}, none, .{df[start..end] })) |t| {
-                    thread.* = t;
-                } else |_| {
-                    std.log.err("Error in spawning thread {}!\n", .{i});
-                    return err.threadRun;
-                }
-            },
-            // ReLU
-            params.activation.relu => {
-                if (std.Thread.spawn(.{}, relu, .{input[start..end], df[start..end] })) |t| {
-                    thread.* = t;
-                } else |_| {
-                    std.log.err("Error in spawning thread {}!\n", .{i});
-                    return err.threadRun;
-                }
-            },
-            // Tanh
-            params.activation.tanh => {
-                if (std.Thread.spawn(.{}, tanh, .{input[start..end], df[start..end] })) |t| {
-                    thread.* = t;
-                } else |_| {
-                    std.log.err("Error in spawning thread {}!\n", .{i});
-                    return err.threadRun;
-                }
-            },
-            // Sigmoid
-            params.activation.sigmoid => {
-                if (std.Thread.spawn(.{}, sigmoid, .{input[start..end], df[start..end] })) |t| {
-                    thread.* = t;
-                } else |_| {
-                    std.log.err("Error in spawning thread {}!\n", .{i});
-                    return err.threadRun;
-                }
-            },
-        }
-    }
-
-    // Await all threads to finish
-    for (&threads) |*thread| {
-        thread.*.join();
+/// Apply the activation function to each element of `input` (in place) and
+/// compute its derivative into `df`. Works for any array length, so a whole
+/// batch of data points can be processed in a single call.
+pub fn activateElements(input: []T, df: []T, act: params.activation) void {
+    switch (act) {
+        params.activation.none => eigen.activateNone(input, df),
+        params.activation.relu => eigen.activateRelu(input, df),
+        params.activation.tanh => eigen.activateTanh(input, df),
+        params.activation.sigmoid => eigen.activateSigmoid(input, df),
     }
 }
 
@@ -111,7 +26,7 @@ test "[act] activateElements none" {
     var input = [_]T{ -2.0, -1.0, 0.0, 1.0, 2.0 };
     var df: [5]T = undefined;
 
-    try activateElements(&input, &df, params.activation.none);
+    activateElements(&input, &df, params.activation.none);
 
     const testing = std.testing;
     for (input) |val| try testing.expect(std.math.isFinite(val));
@@ -122,7 +37,7 @@ test "[act] activateElements relu" {
     var input = [_]T{ -2.0, -1.0, 0.0, 1.0, 2.0 };
     var df: [5]T = undefined;
 
-    try activateElements(&input, &df, params.activation.relu);
+    activateElements(&input, &df, params.activation.relu);
 
     const testing = std.testing;
     try testing.expectEqual(@as(T, 0.0), input[0]);
@@ -139,23 +54,41 @@ test "[act] activateElements relu" {
 }
 
 test "[act] activateElements tanh" {
-    var input = [_]T{ 0.0 };
-    var df: [1]T = undefined;
+    var input = [_]T{ -2.0, -1.0, 0.0, 1.0, 2.0 };
+    var df: [5]T = undefined;
 
-    try activateElements(&input, &df, params.activation.tanh);
+    activateElements(&input, &df, params.activation.tanh);
 
     const testing = std.testing;
-    try testing.expectApproxEqAbs(@as(T, 0.0), input[0], 1e-4);
-    try testing.expect(df[0] > 0);
+    try testing.expectApproxEqAbs(@as(T, -0.964028), input[0], 1e-4);
+    try testing.expectApproxEqAbs(@as(T, -0.761594), input[1], 1e-4);
+    try testing.expectApproxEqAbs(@as(T, 0.0), input[2], 1e-4);
+    try testing.expectApproxEqAbs(@as(T, 0.761594), input[3], 1e-4);
+    try testing.expectApproxEqAbs(@as(T, 0.964028), input[4], 1e-4);
+
+    try testing.expectApproxEqAbs(@as(T, 0.0706508), df[0], 1e-4);
+    try testing.expectApproxEqAbs(@as(T, 0.419974), df[1], 1e-4);
+    try testing.expectApproxEqAbs(@as(T, 1.0), df[2], 1e-4);
+    try testing.expectApproxEqAbs(@as(T, 0.419974), df[3], 1e-4);
+    try testing.expectApproxEqAbs(@as(T, 0.0706508), df[4], 1e-4);
 }
 
 test "[act] activateElements sigmoid" {
-    var input = [_]T{ 0.0 };
-    var df: [1]T = undefined;
+    var input = [_]T{ -2.0, -1.0, 0.0, 1.0, 2.0 };
+    var df: [5]T = undefined;
 
-    try activateElements(&input, &df, params.activation.sigmoid);
+    activateElements(&input, &df, params.activation.sigmoid);
 
     const testing = std.testing;
-    try testing.expectApproxEqAbs(@as(T, 0.5), input[0], 1e-4);
-    try testing.expectApproxEqAbs(@as(T, 0.25), df[0], 1e-4);
+    try testing.expectApproxEqAbs(@as(T, 0.119203), input[0], 1e-4);
+    try testing.expectApproxEqAbs(@as(T, 0.268941), input[1], 1e-4);
+    try testing.expectApproxEqAbs(@as(T, 0.5), input[2], 1e-4);
+    try testing.expectApproxEqAbs(@as(T, 0.731059), input[3], 1e-4);
+    try testing.expectApproxEqAbs(@as(T, 0.880797), input[4], 1e-4);
+
+    try testing.expectApproxEqAbs(@as(T, 0.104994), df[0], 1e-4);
+    try testing.expectApproxEqAbs(@as(T, 0.196612), df[1], 1e-4);
+    try testing.expectApproxEqAbs(@as(T, 0.25), df[2], 1e-4);
+    try testing.expectApproxEqAbs(@as(T, 0.196612), df[3], 1e-4);
+    try testing.expectApproxEqAbs(@as(T, 0.104994), df[4], 1e-4);
 }
