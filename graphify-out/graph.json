@@ -147,7 +147,7 @@
       "label": "build()",
       "file_type": "code",
       "source_file": "build.zig",
-      "source_location": "L133",
+      "source_location": "L136",
       "_origin": "ast",
       "id": "build_build",
       "community": 10,
@@ -162,106 +162,6 @@
       "id": "core_errors",
       "community": 16,
       "norm_label": "errors.zig"
-    },
-    {
-      "label": "normalizations.zig",
-      "file_type": "code",
-      "source_file": "src/core/normalizations.zig",
-      "source_location": "L1",
-      "_origin": "ast",
-      "id": "core_normalizations",
-      "community": 3,
-      "norm_label": "normalizations.zig"
-    },
-    {
-      "label": "computeMeanStd()",
-      "file_type": "code",
-      "source_file": "src/core/normalizations.zig",
-      "source_location": "L11",
-      "_origin": "ast",
-      "id": "core_normalizations_computemeanstd",
-      "community": 3,
-      "norm_label": "computemeanstd()"
-    },
-    {
-      "label": "normalizeChunk()",
-      "file_type": "code",
-      "source_file": "src/core/normalizations.zig",
-      "source_location": "L41",
-      "_origin": "ast",
-      "id": "core_normalizations_normalizechunk",
-      "community": 3,
-      "norm_label": "normalizechunk()"
-    },
-    {
-      "label": "denormalizeChunk()",
-      "file_type": "code",
-      "source_file": "src/core/normalizations.zig",
-      "source_location": "L57",
-      "_origin": "ast",
-      "id": "core_normalizations_denormalizechunk",
-      "community": 3,
-      "norm_label": "denormalizechunk()"
-    },
-    {
-      "label": "Norm",
-      "file_type": "code",
-      "source_file": "src/core/normalizations.zig",
-      "source_location": "L73",
-      "_origin": "ast",
-      "id": "core_normalizations_norm",
-      "community": 3,
-      "norm_label": "norm"
-    },
-    {
-      "label": ".init()",
-      "file_type": "code",
-      "source_file": "src/core/normalizations.zig",
-      "source_location": "L81",
-      "_origin": "ast",
-      "id": "core_normalizations_norm_init",
-      "community": 3,
-      "norm_label": ".init()"
-    },
-    {
-      "label": ".deinit()",
-      "file_type": "code",
-      "source_file": "src/core/normalizations.zig",
-      "source_location": "L164",
-      "_origin": "ast",
-      "id": "core_normalizations_norm_deinit",
-      "community": 3,
-      "norm_label": ".deinit()"
-    },
-    {
-      "label": ".computeNormalization()",
-      "file_type": "code",
-      "source_file": "src/core/normalizations.zig",
-      "source_location": "L172",
-      "_origin": "ast",
-      "id": "core_normalizations_norm_computenormalization",
-      "community": 3,
-      "norm_label": ".computenormalization()"
-    },
-    {
-      "label": ".normalize()",
-      "file_type": "code",
-      "source_file": "src/core/normalizations.zig",
-      "source_location": "L213",
-      "_origin": "ast",
-      "id": "core_normalizations_norm_normalize",
-      "community": 3,
-      "norm_label": ".normalize()"
-    },
-    {
-      "label": ".denormalize()",
-      "file_type": "code",
-      "source_file": "src/core/normalizations.zig",
-      "source_location": "L301",
-      "_origin": "ast",
-      "id": "core_normalizations_norm_denormalize",
-      "community": 3,
-      "norm_label": ".denormalize()"
     },
     {
       "label": "params.zig",
@@ -364,50 +264,10 @@
       "norm_label": "activations.zig"
     },
     {
-      "label": "none()",
-      "file_type": "code",
-      "source_file": "src/cpu/activations.zig",
-      "source_location": "L11",
-      "_origin": "ast",
-      "id": "cpu_activations_none",
-      "community": 7,
-      "norm_label": "none()"
-    },
-    {
-      "label": "relu()",
-      "file_type": "code",
-      "source_file": "src/cpu/activations.zig",
-      "source_location": "L18",
-      "_origin": "ast",
-      "id": "cpu_activations_relu",
-      "community": 7,
-      "norm_label": "relu()"
-    },
-    {
-      "label": "tanh()",
-      "file_type": "code",
-      "source_file": "src/cpu/activations.zig",
-      "source_location": "L30",
-      "_origin": "ast",
-      "id": "cpu_activations_tanh",
-      "community": 7,
-      "norm_label": "tanh()"
-    },
-    {
-      "label": "sigmoid()",
-      "file_type": "code",
-      "source_file": "src/cpu/activations.zig",
-      "source_location": "L41",
-      "_origin": "ast",
-      "id": "cpu_activations_sigmoid",
-      "community": 7,
-      "norm_label": "sigmoid()"
-    },
-    {
       "label": "activateElements()",
       "file_type": "code",
       "source_file": "src/cpu/activations.zig",
-      "source_location": "L51",
+      "source_location": "L16",
       "_origin": "ast",
       "id": "cpu_activations_activateelements",
       "community": 7,
@@ -424,24 +284,84 @@
       "norm_label": "losses.zig"
     },
     {
-      "label": "MSE()",
-      "file_type": "code",
-      "source_file": "src/cpu/losses.zig",
-      "source_location": "L11",
-      "_origin": "ast",
-      "id": "cpu_losses_mse",
-      "community": 11,
-      "norm_label": "mse()"
-    },
-    {
       "label": "computeLoss()",
       "file_type": "code",
       "source_file": "src/cpu/losses.zig",
-      "source_location": "L25",
+      "source_location": "L15",
       "_origin": "ast",
       "id": "cpu_losses_computeloss",
       "community": 11,
       "norm_label": "computeloss()"
+    },
+    {
+      "label": "normalizations.zig",
+      "file_type": "code",
+      "source_file": "src/cpu/normalizations.zig",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "cpu_normalizations",
+      "community": 3,
+      "norm_label": "normalizations.zig"
+    },
+    {
+      "label": "Norm",
+      "file_type": "code",
+      "source_file": "src/cpu/normalizations.zig",
+      "source_location": "L15",
+      "_origin": "ast",
+      "id": "cpu_normalizations_norm",
+      "community": 3,
+      "norm_label": "norm"
+    },
+    {
+      "label": ".init()",
+      "file_type": "code",
+      "source_file": "src/cpu/normalizations.zig",
+      "source_location": "L23",
+      "_origin": "ast",
+      "id": "cpu_normalizations_norm_init",
+      "community": 3,
+      "norm_label": ".init()"
+    },
+    {
+      "label": ".deinit()",
+      "file_type": "code",
+      "source_file": "src/cpu/normalizations.zig",
+      "source_location": "L106",
+      "_origin": "ast",
+      "id": "cpu_normalizations_norm_deinit",
+      "community": 3,
+      "norm_label": ".deinit()"
+    },
+    {
+      "label": ".computeNormalization()",
+      "file_type": "code",
+      "source_file": "src/cpu/normalizations.zig",
+      "source_location": "L114",
+      "_origin": "ast",
+      "id": "cpu_normalizations_norm_computenormalization",
+      "community": 3,
+      "norm_label": ".computenormalization()"
+    },
+    {
+      "label": ".normalize()",
+      "file_type": "code",
+      "source_file": "src/cpu/normalizations.zig",
+      "source_location": "L155",
+      "_origin": "ast",
+      "id": "cpu_normalizations_norm_normalize",
+      "community": 3,
+      "norm_label": ".normalize()"
+    },
+    {
+      "label": ".denormalize()",
+      "file_type": "code",
+      "source_file": "src/cpu/normalizations.zig",
+      "source_location": "L218",
+      "_origin": "ast",
+      "id": "cpu_normalizations_norm_denormalize",
+      "community": 3,
+      "norm_label": ".denormalize()"
     },
     {
       "label": "activations.cpp",
@@ -454,24 +374,54 @@
       "norm_label": "activations.cpp"
     },
     {
-      "label": "noneHalf()",
+      "label": "eigen_none()",
       "file_type": "code",
       "source_file": "src/eigen/activations.cpp",
-      "source_location": "L12",
+      "source_location": "L24",
       "_origin": "ast",
-      "id": "eigen_activations_nonehalf",
+      "id": "eigen_activations_eigen_none",
       "community": 12,
-      "norm_label": "nonehalf()"
+      "norm_label": "eigen_none()"
     },
     {
-      "label": "half",
+      "label": "f_type",
       "file_type": "code",
       "source_file": "src/eigen/activations.cpp",
-      "source_location": "L12",
+      "source_location": "L24",
       "_origin": "ast",
-      "id": "half",
+      "id": "src_eigen_activations_cpp_f_type",
       "community": 12,
-      "norm_label": "half"
+      "norm_label": "f_type"
+    },
+    {
+      "label": "eigen_relu()",
+      "file_type": "code",
+      "source_file": "src/eigen/activations.cpp",
+      "source_location": "L31",
+      "_origin": "ast",
+      "id": "eigen_activations_eigen_relu",
+      "community": 12,
+      "norm_label": "eigen_relu()"
+    },
+    {
+      "label": "eigen_tanh()",
+      "file_type": "code",
+      "source_file": "src/eigen/activations.cpp",
+      "source_location": "L42",
+      "_origin": "ast",
+      "id": "eigen_activations_eigen_tanh",
+      "community": 12,
+      "norm_label": "eigen_tanh()"
+    },
+    {
+      "label": "eigen_sigmoid()",
+      "file_type": "code",
+      "source_file": "src/eigen/activations.cpp",
+      "source_location": "L52",
+      "_origin": "ast",
+      "id": "eigen_activations_eigen_sigmoid",
+      "community": 12,
+      "norm_label": "eigen_sigmoid()"
     },
     {
       "label": "linalg.cpp",
@@ -499,7 +449,7 @@
       "source_file": "src/eigen/linalg.cpp",
       "source_location": "L24",
       "_origin": "ast",
-      "id": "f_type",
+      "id": "src_eigen_linalg_cpp_f_type",
       "community": 2,
       "norm_label": "f_type"
     },
@@ -602,6 +552,86 @@
       "id": "eigen_linalg_eigen_updategradbiasesbatch",
       "community": 2,
       "norm_label": "eigen_updategradbiasesbatch()"
+    },
+    {
+      "label": "losses.cpp",
+      "file_type": "code",
+      "source_file": "src/eigen/losses.cpp",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "eigen_losses",
+      "community": 19,
+      "norm_label": "losses.cpp"
+    },
+    {
+      "label": "eigen_mse()",
+      "file_type": "code",
+      "source_file": "src/eigen/losses.cpp",
+      "source_location": "L23",
+      "_origin": "ast",
+      "id": "eigen_losses_eigen_mse",
+      "community": 19,
+      "norm_label": "eigen_mse()"
+    },
+    {
+      "label": "f_type",
+      "file_type": "code",
+      "source_file": "src/eigen/losses.cpp",
+      "source_location": "L23",
+      "_origin": "ast",
+      "id": "src_eigen_losses_cpp_f_type",
+      "community": 19,
+      "norm_label": "f_type"
+    },
+    {
+      "label": "normalizations.cpp",
+      "file_type": "code",
+      "source_file": "src/eigen/normalizations.cpp",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "eigen_normalizations",
+      "community": 20,
+      "norm_label": "normalizations.cpp"
+    },
+    {
+      "label": "eigen_computeMeanStd()",
+      "file_type": "code",
+      "source_file": "src/eigen/normalizations.cpp",
+      "source_location": "L25",
+      "_origin": "ast",
+      "id": "eigen_normalizations_eigen_computemeanstd",
+      "community": 20,
+      "norm_label": "eigen_computemeanstd()"
+    },
+    {
+      "label": "f_type",
+      "file_type": "code",
+      "source_file": "src/eigen/normalizations.cpp",
+      "source_location": "L25",
+      "_origin": "ast",
+      "id": "src_eigen_normalizations_cpp_f_type",
+      "community": 20,
+      "norm_label": "f_type"
+    },
+    {
+      "label": "eigen_normalize()",
+      "file_type": "code",
+      "source_file": "src/eigen/normalizations.cpp",
+      "source_location": "L47",
+      "_origin": "ast",
+      "id": "eigen_normalizations_eigen_normalize",
+      "community": 20,
+      "norm_label": "eigen_normalize()"
+    },
+    {
+      "label": "eigen_denormalize()",
+      "file_type": "code",
+      "source_file": "src/eigen/normalizations.cpp",
+      "source_location": "L66",
+      "_origin": "ast",
+      "id": "eigen_normalizations_eigen_denormalize",
+      "community": 20,
+      "norm_label": "eigen_denormalize()"
     },
     {
       "label": "wrappers.zig",
@@ -832,6 +862,166 @@
       "id": "eigen_wrappers_updategradbiasesbatch",
       "community": 0,
       "norm_label": "updategradbiasesbatch()"
+    },
+    {
+      "label": "eigen_none()",
+      "file_type": "code",
+      "source_file": "src/eigen/wrappers.zig",
+      "source_location": "L239",
+      "_origin": "ast",
+      "id": "eigen_wrappers_eigen_none",
+      "community": 0,
+      "norm_label": "eigen_none()"
+    },
+    {
+      "label": "eigen_relu()",
+      "file_type": "code",
+      "source_file": "src/eigen/wrappers.zig",
+      "source_location": "L240",
+      "_origin": "ast",
+      "id": "eigen_wrappers_eigen_relu",
+      "community": 0,
+      "norm_label": "eigen_relu()"
+    },
+    {
+      "label": "eigen_tanh()",
+      "file_type": "code",
+      "source_file": "src/eigen/wrappers.zig",
+      "source_location": "L241",
+      "_origin": "ast",
+      "id": "eigen_wrappers_eigen_tanh",
+      "community": 0,
+      "norm_label": "eigen_tanh()"
+    },
+    {
+      "label": "eigen_sigmoid()",
+      "file_type": "code",
+      "source_file": "src/eigen/wrappers.zig",
+      "source_location": "L242",
+      "_origin": "ast",
+      "id": "eigen_wrappers_eigen_sigmoid",
+      "community": 0,
+      "norm_label": "eigen_sigmoid()"
+    },
+    {
+      "label": "activateNone()",
+      "file_type": "code",
+      "source_file": "src/eigen/wrappers.zig",
+      "source_location": "L245",
+      "_origin": "ast",
+      "id": "eigen_wrappers_activatenone",
+      "community": 0,
+      "norm_label": "activatenone()"
+    },
+    {
+      "label": "activateRelu()",
+      "file_type": "code",
+      "source_file": "src/eigen/wrappers.zig",
+      "source_location": "L261",
+      "_origin": "ast",
+      "id": "eigen_wrappers_activaterelu",
+      "community": 0,
+      "norm_label": "activaterelu()"
+    },
+    {
+      "label": "activateTanh()",
+      "file_type": "code",
+      "source_file": "src/eigen/wrappers.zig",
+      "source_location": "L285",
+      "_origin": "ast",
+      "id": "eigen_wrappers_activatetanh",
+      "community": 0,
+      "norm_label": "activatetanh()"
+    },
+    {
+      "label": "activateSigmoid()",
+      "file_type": "code",
+      "source_file": "src/eigen/wrappers.zig",
+      "source_location": "L309",
+      "_origin": "ast",
+      "id": "eigen_wrappers_activatesigmoid",
+      "community": 0,
+      "norm_label": "activatesigmoid()"
+    },
+    {
+      "label": "eigen_mse()",
+      "file_type": "code",
+      "source_file": "src/eigen/wrappers.zig",
+      "source_location": "L334",
+      "_origin": "ast",
+      "id": "eigen_wrappers_eigen_mse",
+      "community": 0,
+      "norm_label": "eigen_mse()"
+    },
+    {
+      "label": "computeMSE()",
+      "file_type": "code",
+      "source_file": "src/eigen/wrappers.zig",
+      "source_location": "L338",
+      "_origin": "ast",
+      "id": "eigen_wrappers_computemse",
+      "community": 0,
+      "norm_label": "computemse()"
+    },
+    {
+      "label": "eigen_computeMeanStd()",
+      "file_type": "code",
+      "source_file": "src/eigen/wrappers.zig",
+      "source_location": "L364",
+      "_origin": "ast",
+      "id": "eigen_wrappers_eigen_computemeanstd",
+      "community": 0,
+      "norm_label": "eigen_computemeanstd()"
+    },
+    {
+      "label": "eigen_normalize()",
+      "file_type": "code",
+      "source_file": "src/eigen/wrappers.zig",
+      "source_location": "L365",
+      "_origin": "ast",
+      "id": "eigen_wrappers_eigen_normalize",
+      "community": 0,
+      "norm_label": "eigen_normalize()"
+    },
+    {
+      "label": "eigen_denormalize()",
+      "file_type": "code",
+      "source_file": "src/eigen/wrappers.zig",
+      "source_location": "L366",
+      "_origin": "ast",
+      "id": "eigen_wrappers_eigen_denormalize",
+      "community": 0,
+      "norm_label": "eigen_denormalize()"
+    },
+    {
+      "label": "computeMeanStd()",
+      "file_type": "code",
+      "source_file": "src/eigen/wrappers.zig",
+      "source_location": "L370",
+      "_origin": "ast",
+      "id": "eigen_wrappers_computemeanstd",
+      "community": 0,
+      "norm_label": "computemeanstd()"
+    },
+    {
+      "label": "normalize()",
+      "file_type": "code",
+      "source_file": "src/eigen/wrappers.zig",
+      "source_location": "L399",
+      "_origin": "ast",
+      "id": "eigen_wrappers_normalize",
+      "community": 0,
+      "norm_label": "normalize()"
+    },
+    {
+      "label": "denormalize()",
+      "file_type": "code",
+      "source_file": "src/eigen/wrappers.zig",
+      "source_location": "L428",
+      "_origin": "ast",
+      "id": "eigen_wrappers_denormalize",
+      "community": 0,
+      "norm_label": "denormalize()"
     },
     {
       "label": "binary.zig",
@@ -1144,17 +1334,194 @@
       "norm_label": "tests.zig"
     },
     {
+      "label": "AGENTS.md",
+      "file_type": "document",
+      "source_file": "AGENTS.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "agents",
+      "community": 18,
+      "norm_label": "agents.md"
+    },
+    {
+      "label": "NNzig",
+      "file_type": "document",
+      "source_file": "AGENTS.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "agents_nnzig",
+      "community": 18,
+      "norm_label": "nnzig"
+    },
+    {
+      "label": "Toolchain",
+      "file_type": "document",
+      "source_file": "AGENTS.md",
+      "source_location": "L5",
+      "_origin": "ast",
+      "id": "agents_toolchain",
+      "community": 18,
+      "norm_label": "toolchain"
+    },
+    {
+      "label": "Commands",
+      "file_type": "document",
+      "source_file": "AGENTS.md",
+      "source_location": "L10",
+      "_origin": "ast",
+      "id": "agents_commands",
+      "community": 18,
+      "norm_label": "commands"
+    },
+    {
+      "label": "Configuration model \u2014 read this before editing params",
+      "file_type": "document",
+      "source_file": "AGENTS.md",
+      "source_location": "L19",
+      "_origin": "ast",
+      "id": "agents_configuration_model_read_this_before_editing_params",
+      "community": 18,
+      "norm_label": "configuration model \u2014 read this before editing params"
+    },
+    {
+      "label": "Architecture",
+      "file_type": "document",
+      "source_file": "AGENTS.md",
+      "source_location": "L35",
+      "_origin": "ast",
+      "id": "agents_architecture",
+      "community": 18,
+      "norm_label": "architecture"
+    },
+    {
+      "label": "Zig 0.16 conventions used here",
+      "file_type": "document",
+      "source_file": "AGENTS.md",
+      "source_location": "L46",
+      "_origin": "ast",
+      "id": "agents_zig_0_16_conventions_used_here",
+      "community": 18,
+      "norm_label": "zig 0.16 conventions used here"
+    },
+    {
+      "label": "Benchmark setup",
+      "file_type": "document",
+      "source_file": "AGENTS.md",
+      "source_location": "L56",
+      "_origin": "ast",
+      "id": "agents_benchmark_setup",
+      "community": 18,
+      "norm_label": "benchmark setup"
+    },
+    {
+      "label": "graphify",
+      "file_type": "document",
+      "source_file": "AGENTS.md",
+      "source_location": "L62",
+      "_origin": "ast",
+      "id": "agents_graphify",
+      "community": 18,
+      "norm_label": "graphify"
+    },
+    {
+      "label": "README.md",
+      "file_type": "document",
+      "source_file": "README.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "readme",
+      "community": 9,
+      "norm_label": "readme.md"
+    },
+    {
       "label": "NNzig",
       "file_type": "document",
       "source_file": "README.md",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null,
+      "source_location": "L1",
+      "_origin": "ast",
       "id": "readme_nnzig",
       "community": 9,
       "norm_label": "nnzig"
+    },
+    {
+      "label": "Features",
+      "file_type": "document",
+      "source_file": "README.md",
+      "source_location": "L8",
+      "_origin": "ast",
+      "id": "readme_features",
+      "community": 9,
+      "norm_label": "features"
+    },
+    {
+      "label": "Requirements",
+      "file_type": "document",
+      "source_file": "README.md",
+      "source_location": "L18",
+      "_origin": "ast",
+      "id": "readme_requirements",
+      "community": 9,
+      "norm_label": "requirements"
+    },
+    {
+      "label": "Usage",
+      "file_type": "document",
+      "source_file": "README.md",
+      "source_location": "L25",
+      "_origin": "ast",
+      "id": "readme_usage",
+      "community": 9,
+      "norm_label": "usage"
+    },
+    {
+      "label": "Configuration",
+      "file_type": "document",
+      "source_file": "README.md",
+      "source_location": "L64",
+      "_origin": "ast",
+      "id": "readme_configuration",
+      "community": 9,
+      "norm_label": "configuration"
+    },
+    {
+      "label": "Testing",
+      "file_type": "document",
+      "source_file": "README.md",
+      "source_location": "L82",
+      "_origin": "ast",
+      "id": "readme_testing",
+      "community": 9,
+      "norm_label": "testing"
+    },
+    {
+      "label": "Documentation",
+      "file_type": "document",
+      "source_file": "README.md",
+      "source_location": "L90",
+      "_origin": "ast",
+      "id": "readme_documentation",
+      "community": 9,
+      "norm_label": "documentation"
+    },
+    {
+      "label": "Benchmarks",
+      "file_type": "document",
+      "source_file": "README.md",
+      "source_location": "L99",
+      "_origin": "ast",
+      "id": "readme_benchmarks",
+      "community": 9,
+      "norm_label": "benchmarks"
+    },
+    {
+      "label": "License",
+      "file_type": "document",
+      "source_file": "README.md",
+      "source_location": "L123",
+      "_origin": "ast",
+      "id": "readme_license",
+      "community": 9,
+      "norm_label": "license"
     },
     {
       "label": "Docs Workflow",
@@ -1165,9 +1532,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "docs_workflow",
       "community": 9,
-      "norm_label": "docs workflow"
+      "norm_label": "docs workflow",
+      "id": "docs_workflow"
     },
     {
       "label": "Test Workflow",
@@ -1178,9 +1545,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "test_workflow",
       "community": 9,
-      "norm_label": "test workflow"
+      "norm_label": "test workflow",
+      "id": "test_workflow"
     },
     {
       "label": "Zig Compiler",
@@ -1191,9 +1558,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "zig_compiler",
       "community": 9,
-      "norm_label": "zig compiler"
+      "norm_label": "zig compiler",
+      "id": "zig_compiler"
     },
     {
       "label": "GitHub Pages",
@@ -1204,9 +1571,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "github_pages",
       "community": 9,
-      "norm_label": "github pages"
+      "norm_label": "github pages",
+      "id": "github_pages"
     }
   ],
   "links": [
@@ -1216,9 +1583,9 @@
       "source_file": "benchmarks/plot_losses.py",
       "source_location": "L8",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "benchmarks_plot_losses",
-      "target": "benchmarks_plot_losses_read_losses_binary",
-      "confidence_score": 1.0
+      "target": "benchmarks_plot_losses_read_losses_binary"
     },
     {
       "relation": "contains",
@@ -1226,9 +1593,9 @@
       "source_file": "benchmarks/run_nnzig.zig",
       "source_location": "L6",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "benchmarks_run_nnzig",
-      "target": "benchmarks_run_nnzig_main",
-      "confidence_score": 1.0
+      "target": "benchmarks_run_nnzig_main"
     },
     {
       "relation": "contains",
@@ -1236,9 +1603,9 @@
       "source_file": "benchmarks/run_pytorch.py",
       "source_location": "L37",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "benchmarks_run_pytorch",
-      "target": "benchmarks_run_pytorch_mlp",
-      "confidence_score": 1.0
+      "target": "benchmarks_run_pytorch_mlp"
     },
     {
       "relation": "contains",
@@ -1246,9 +1613,9 @@
       "source_file": "benchmarks/run_pytorch.py",
       "source_location": "L6",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "benchmarks_run_pytorch",
-      "target": "benchmarks_run_pytorch_read_numpy_binary",
-      "confidence_score": 1.0
+      "target": "benchmarks_run_pytorch_read_numpy_binary"
     },
     {
       "relation": "contains",
@@ -1256,9 +1623,9 @@
       "source_file": "benchmarks/run_pytorch.py",
       "source_location": "L28",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "benchmarks_run_pytorch",
-      "target": "benchmarks_run_pytorch_write_losses_binary",
-      "confidence_score": 1.0
+      "target": "benchmarks_run_pytorch_write_losses_binary"
     },
     {
       "relation": "method",
@@ -1266,9 +1633,9 @@
       "source_file": "benchmarks/run_pytorch.py",
       "source_location": "L51",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "benchmarks_run_pytorch_mlp",
-      "target": "benchmarks_run_pytorch_mlp_forward",
-      "confidence_score": 1.0
+      "target": "benchmarks_run_pytorch_mlp_forward"
     },
     {
       "relation": "method",
@@ -1276,9 +1643,9 @@
       "source_file": "benchmarks/run_pytorch.py",
       "source_location": "L38",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "benchmarks_run_pytorch_mlp",
-      "target": "benchmarks_run_pytorch_mlp_init",
-      "confidence_score": 1.0
+      "target": "benchmarks_run_pytorch_mlp_init"
     },
     {
       "relation": "contains",
@@ -1286,9 +1653,9 @@
       "source_file": "build.zig",
       "source_location": "L133",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "build",
-      "target": "build_build",
-      "confidence_score": 1.0
+      "target": "build_build"
     },
     {
       "relation": "contains",
@@ -1296,9 +1663,9 @@
       "source_file": "build.zig",
       "source_location": "L16",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "build",
-      "target": "build_createtree",
-      "confidence_score": 1.0
+      "target": "build_createtree"
     },
     {
       "relation": "contains",
@@ -1306,9 +1673,9 @@
       "source_file": "build.zig",
       "source_location": "L4",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "build",
-      "target": "build_tree",
-      "confidence_score": 1.0
+      "target": "build_tree"
     },
     {
       "relation": "calls",
@@ -1316,109 +1683,9 @@
       "source_file": "build.zig",
       "source_location": "L157",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "build_build",
-      "target": "build_createtree",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "src/core/normalizations.zig",
-      "source_location": "L11",
-      "weight": 1.0,
-      "source": "core_normalizations",
-      "target": "core_normalizations_computemeanstd",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "src/core/normalizations.zig",
-      "source_location": "L57",
-      "weight": 1.0,
-      "source": "core_normalizations",
-      "target": "core_normalizations_denormalizechunk",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "src/core/normalizations.zig",
-      "source_location": "L73",
-      "weight": 1.0,
-      "source": "core_normalizations",
-      "target": "core_normalizations_norm",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "src/core/normalizations.zig",
-      "source_location": "L41",
-      "weight": 1.0,
-      "source": "core_normalizations",
-      "target": "core_normalizations_normalizechunk",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "source_file": "src/core/normalizations.zig",
-      "source_location": "L189",
-      "weight": 1.0,
-      "source": "core_normalizations_norm_computenormalization",
-      "target": "core_normalizations_computemeanstd",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "method",
-      "confidence": "EXTRACTED",
-      "source_file": "src/core/normalizations.zig",
-      "source_location": "L172",
-      "weight": 1.0,
-      "source": "core_normalizations_norm",
-      "target": "core_normalizations_norm_computenormalization",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "method",
-      "confidence": "EXTRACTED",
-      "source_file": "src/core/normalizations.zig",
-      "source_location": "L164",
-      "weight": 1.0,
-      "source": "core_normalizations_norm",
-      "target": "core_normalizations_norm_deinit",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "method",
-      "confidence": "EXTRACTED",
-      "source_file": "src/core/normalizations.zig",
-      "source_location": "L301",
-      "weight": 1.0,
-      "source": "core_normalizations_norm",
-      "target": "core_normalizations_norm_denormalize",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "method",
-      "confidence": "EXTRACTED",
-      "source_file": "src/core/normalizations.zig",
-      "source_location": "L81",
-      "weight": 1.0,
-      "source": "core_normalizations_norm",
-      "target": "core_normalizations_norm_init",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "method",
-      "confidence": "EXTRACTED",
-      "source_file": "src/core/normalizations.zig",
-      "source_location": "L213",
-      "weight": 1.0,
-      "source": "core_normalizations_norm",
-      "target": "core_normalizations_norm_normalize",
-      "confidence_score": 1.0
+      "target": "build_createtree"
     },
     {
       "relation": "contains",
@@ -1426,9 +1693,9 @@
       "source_file": "src/core/params.zig",
       "source_location": "L25",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "core_params",
-      "target": "core_params_activation",
-      "confidence_score": 1.0
+      "target": "core_params_activation"
     },
     {
       "relation": "contains",
@@ -1436,9 +1703,9 @@
       "source_file": "src/core/params.zig",
       "source_location": "L44",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "core_params",
-      "target": "core_params_baseparams",
-      "confidence_score": 1.0
+      "target": "core_params_baseparams"
     },
     {
       "relation": "contains",
@@ -1446,9 +1713,9 @@
       "source_file": "src/core/params.zig",
       "source_location": "L63",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "core_params",
-      "target": "core_params_convertinttotype",
-      "confidence_score": 1.0
+      "target": "core_params_convertinttotype"
     },
     {
       "relation": "contains",
@@ -1456,9 +1723,9 @@
       "source_file": "src/core/params.zig",
       "source_location": "L73",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "core_params",
-      "target": "core_params_convertstringtoenum",
-      "confidence_score": 1.0
+      "target": "core_params_convertstringtoenum"
     },
     {
       "relation": "contains",
@@ -1466,9 +1733,9 @@
       "source_file": "src/core/params.zig",
       "source_location": "L95",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "core_params",
-      "target": "core_params_converttupletoarray",
-      "confidence_score": 1.0
+      "target": "core_params_converttupletoarray"
     },
     {
       "relation": "contains",
@@ -1476,9 +1743,9 @@
       "source_file": "src/core/params.zig",
       "source_location": "L114",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "core_params",
-      "target": "core_params_converttupletoenumarray",
-      "confidence_score": 1.0
+      "target": "core_params_converttupletoenumarray"
     },
     {
       "relation": "contains",
@@ -1486,9 +1753,9 @@
       "source_file": "src/core/params.zig",
       "source_location": "L33",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "core_params",
-      "target": "core_params_loss",
-      "confidence_score": 1.0
+      "target": "core_params_loss"
     },
     {
       "relation": "contains",
@@ -1496,9 +1763,9 @@
       "source_file": "src/core/params.zig",
       "source_location": "L38",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "core_params",
-      "target": "core_params_norm",
-      "confidence_score": 1.0
+      "target": "core_params_norm"
     },
     {
       "relation": "calls",
@@ -1506,9 +1773,9 @@
       "source_file": "src/core/params.zig",
       "source_location": "L118",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "core_params_converttupletoenumarray",
-      "target": "core_params_convertstringtoenum",
-      "confidence_score": 1.0
+      "target": "core_params_convertstringtoenum"
     },
     {
       "relation": "contains",
@@ -1516,49 +1783,9 @@
       "source_file": "src/cpu/activations.zig",
       "source_location": "L51",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "cpu_activations",
-      "target": "cpu_activations_activateelements",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "src/cpu/activations.zig",
-      "source_location": "L11",
-      "weight": 1.0,
-      "source": "cpu_activations",
-      "target": "cpu_activations_none",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "src/cpu/activations.zig",
-      "source_location": "L18",
-      "weight": 1.0,
-      "source": "cpu_activations",
-      "target": "cpu_activations_relu",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "src/cpu/activations.zig",
-      "source_location": "L41",
-      "weight": 1.0,
-      "source": "cpu_activations",
-      "target": "cpu_activations_sigmoid",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "src/cpu/activations.zig",
-      "source_location": "L30",
-      "weight": 1.0,
-      "source": "cpu_activations",
-      "target": "cpu_activations_tanh",
-      "confidence_score": 1.0
+      "target": "cpu_activations_activateelements"
     },
     {
       "relation": "contains",
@@ -1566,40 +1793,153 @@
       "source_file": "src/cpu/losses.zig",
       "source_location": "L25",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "cpu_losses",
-      "target": "cpu_losses_computeloss",
-      "confidence_score": 1.0
+      "target": "cpu_losses_computeloss"
     },
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
-      "source_file": "src/cpu/losses.zig",
-      "source_location": "L11",
+      "source_file": "src/cpu/normalizations.zig",
+      "source_location": "L15",
       "weight": 1.0,
-      "source": "cpu_losses",
-      "target": "cpu_losses_mse",
+      "source": "cpu_normalizations",
+      "target": "cpu_normalizations_norm",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/cpu/normalizations.zig",
+      "source_location": "L114",
+      "weight": 1.0,
+      "source": "cpu_normalizations_norm",
+      "target": "cpu_normalizations_norm_computenormalization",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/cpu/normalizations.zig",
+      "source_location": "L106",
+      "weight": 1.0,
+      "source": "cpu_normalizations_norm",
+      "target": "cpu_normalizations_norm_deinit",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/cpu/normalizations.zig",
+      "source_location": "L218",
+      "weight": 1.0,
+      "source": "cpu_normalizations_norm",
+      "target": "cpu_normalizations_norm_denormalize",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/cpu/normalizations.zig",
+      "source_location": "L23",
+      "weight": 1.0,
+      "source": "cpu_normalizations_norm",
+      "target": "cpu_normalizations_norm_init",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/cpu/normalizations.zig",
+      "source_location": "L155",
+      "weight": 1.0,
+      "source": "cpu_normalizations_norm",
+      "target": "cpu_normalizations_norm_normalize",
       "confidence_score": 1.0
     },
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/eigen/activations.cpp",
-      "source_location": "L12",
+      "source_location": "L24",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "eigen_activations",
-      "target": "eigen_activations_nonehalf",
-      "confidence_score": 1.0
+      "target": "eigen_activations_eigen_none"
     },
     {
-      "relation": "references",
+      "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/eigen/activations.cpp",
-      "source_location": "L12",
+      "source_location": "L31",
       "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "eigen_activations",
+      "target": "eigen_activations_eigen_relu"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/eigen/activations.cpp",
+      "source_location": "L52",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "eigen_activations",
+      "target": "eigen_activations_eigen_sigmoid"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/eigen/activations.cpp",
+      "source_location": "L42",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "eigen_activations",
+      "target": "eigen_activations_eigen_tanh"
+    },
+    {
+      "relation": "references",
       "context": "parameter_type",
-      "source": "eigen_activations_nonehalf",
-      "target": "half",
-      "confidence_score": 1.0
+      "confidence": "EXTRACTED",
+      "source_file": "src/eigen/activations.cpp",
+      "source_location": "L24",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "eigen_activations_eigen_none",
+      "target": "src_eigen_activations_cpp_f_type"
+    },
+    {
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "src/eigen/activations.cpp",
+      "source_location": "L31",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "eigen_activations_eigen_relu",
+      "target": "src_eigen_activations_cpp_f_type"
+    },
+    {
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "src/eigen/activations.cpp",
+      "source_location": "L52",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "eigen_activations_eigen_sigmoid",
+      "target": "src_eigen_activations_cpp_f_type"
+    },
+    {
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "src/eigen/activations.cpp",
+      "source_location": "L42",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "eigen_activations_eigen_tanh",
+      "target": "src_eigen_activations_cpp_f_type"
     },
     {
       "relation": "contains",
@@ -1607,9 +1947,9 @@
       "source_file": "src/eigen/linalg.cpp",
       "source_location": "L24",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "eigen_linalg",
-      "target": "eigen_linalg_eigen_matrixvectormuladd",
-      "confidence_score": 1.0
+      "target": "eigen_linalg_eigen_matrixvectormuladd"
     },
     {
       "relation": "contains",
@@ -1617,9 +1957,9 @@
       "source_file": "src/eigen/linalg.cpp",
       "source_location": "L34",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "eigen_linalg",
-      "target": "eigen_linalg_eigen_matrixvectormuladdbatch",
-      "confidence_score": 1.0
+      "target": "eigen_linalg_eigen_matrixvectormuladdbatch"
     },
     {
       "relation": "contains",
@@ -1627,9 +1967,9 @@
       "source_file": "src/eigen/linalg.cpp",
       "source_location": "L70",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "eigen_linalg",
-      "target": "eigen_linalg_eigen_setzero",
-      "confidence_score": 1.0
+      "target": "eigen_linalg_eigen_setzero"
     },
     {
       "relation": "contains",
@@ -1637,9 +1977,9 @@
       "source_file": "src/eigen/linalg.cpp",
       "source_location": "L102",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "eigen_linalg",
-      "target": "eigen_linalg_eigen_updategradbiases",
-      "confidence_score": 1.0
+      "target": "eigen_linalg_eigen_updategradbiases"
     },
     {
       "relation": "contains",
@@ -1647,9 +1987,9 @@
       "source_file": "src/eigen/linalg.cpp",
       "source_location": "L110",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "eigen_linalg",
-      "target": "eigen_linalg_eigen_updategradbiasesbatch",
-      "confidence_score": 1.0
+      "target": "eigen_linalg_eigen_updategradbiasesbatch"
     },
     {
       "relation": "contains",
@@ -1657,9 +1997,9 @@
       "source_file": "src/eigen/linalg.cpp",
       "source_location": "L84",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "eigen_linalg",
-      "target": "eigen_linalg_eigen_updategradweights",
-      "confidence_score": 1.0
+      "target": "eigen_linalg_eigen_updategradweights"
     },
     {
       "relation": "contains",
@@ -1667,9 +2007,9 @@
       "source_file": "src/eigen/linalg.cpp",
       "source_location": "L93",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "eigen_linalg",
-      "target": "eigen_linalg_eigen_updategradweightsbatch",
-      "confidence_score": 1.0
+      "target": "eigen_linalg_eigen_updategradweightsbatch"
     },
     {
       "relation": "contains",
@@ -1677,9 +2017,9 @@
       "source_file": "src/eigen/linalg.cpp",
       "source_location": "L76",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "eigen_linalg",
-      "target": "eigen_linalg_eigen_vectorinit",
-      "confidence_score": 1.0
+      "target": "eigen_linalg_eigen_vectorinit"
     },
     {
       "relation": "contains",
@@ -1687,9 +2027,9 @@
       "source_file": "src/eigen/linalg.cpp",
       "source_location": "L44",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "eigen_linalg",
-      "target": "eigen_linalg_eigen_vectormatrixmul",
-      "confidence_score": 1.0
+      "target": "eigen_linalg_eigen_vectormatrixmul"
     },
     {
       "relation": "contains",
@@ -1697,9 +2037,9 @@
       "source_file": "src/eigen/linalg.cpp",
       "source_location": "L53",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "eigen_linalg",
-      "target": "eigen_linalg_eigen_vectormatrixmulbatch",
-      "confidence_score": 1.0
+      "target": "eigen_linalg_eigen_vectormatrixmulbatch"
     },
     {
       "relation": "contains",
@@ -1707,9 +2047,9 @@
       "source_file": "src/eigen/linalg.cpp",
       "source_location": "L62",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "eigen_linalg",
-      "target": "eigen_linalg_eigen_vectormul",
-      "confidence_score": 1.0
+      "target": "eigen_linalg_eigen_vectormul"
     },
     {
       "relation": "references",
@@ -1718,9 +2058,9 @@
       "source_location": "L24",
       "weight": 1.0,
       "context": "parameter_type",
+      "confidence_score": 1.0,
       "source": "eigen_linalg_eigen_matrixvectormuladd",
-      "target": "f_type",
-      "confidence_score": 1.0
+      "target": "src_eigen_linalg_cpp_f_type"
     },
     {
       "relation": "references",
@@ -1729,9 +2069,9 @@
       "source_location": "L34",
       "weight": 1.0,
       "context": "parameter_type",
+      "confidence_score": 1.0,
       "source": "eigen_linalg_eigen_matrixvectormuladdbatch",
-      "target": "f_type",
-      "confidence_score": 1.0
+      "target": "src_eigen_linalg_cpp_f_type"
     },
     {
       "relation": "references",
@@ -1740,9 +2080,9 @@
       "source_location": "L70",
       "weight": 1.0,
       "context": "parameter_type",
+      "confidence_score": 1.0,
       "source": "eigen_linalg_eigen_setzero",
-      "target": "f_type",
-      "confidence_score": 1.0
+      "target": "src_eigen_linalg_cpp_f_type"
     },
     {
       "relation": "references",
@@ -1751,9 +2091,9 @@
       "source_location": "L102",
       "weight": 1.0,
       "context": "parameter_type",
+      "confidence_score": 1.0,
       "source": "eigen_linalg_eigen_updategradbiases",
-      "target": "f_type",
-      "confidence_score": 1.0
+      "target": "src_eigen_linalg_cpp_f_type"
     },
     {
       "relation": "references",
@@ -1762,9 +2102,9 @@
       "source_location": "L110",
       "weight": 1.0,
       "context": "parameter_type",
+      "confidence_score": 1.0,
       "source": "eigen_linalg_eigen_updategradbiasesbatch",
-      "target": "f_type",
-      "confidence_score": 1.0
+      "target": "src_eigen_linalg_cpp_f_type"
     },
     {
       "relation": "references",
@@ -1773,9 +2113,9 @@
       "source_location": "L84",
       "weight": 1.0,
       "context": "parameter_type",
+      "confidence_score": 1.0,
       "source": "eigen_linalg_eigen_updategradweights",
-      "target": "f_type",
-      "confidence_score": 1.0
+      "target": "src_eigen_linalg_cpp_f_type"
     },
     {
       "relation": "references",
@@ -1784,9 +2124,9 @@
       "source_location": "L93",
       "weight": 1.0,
       "context": "parameter_type",
+      "confidence_score": 1.0,
       "source": "eigen_linalg_eigen_updategradweightsbatch",
-      "target": "f_type",
-      "confidence_score": 1.0
+      "target": "src_eigen_linalg_cpp_f_type"
     },
     {
       "relation": "references",
@@ -1795,9 +2135,9 @@
       "source_location": "L76",
       "weight": 1.0,
       "context": "parameter_type",
+      "confidence_score": 1.0,
       "source": "eigen_linalg_eigen_vectorinit",
-      "target": "f_type",
-      "confidence_score": 1.0
+      "target": "src_eigen_linalg_cpp_f_type"
     },
     {
       "relation": "references",
@@ -1806,9 +2146,9 @@
       "source_location": "L44",
       "weight": 1.0,
       "context": "parameter_type",
+      "confidence_score": 1.0,
       "source": "eigen_linalg_eigen_vectormatrixmul",
-      "target": "f_type",
-      "confidence_score": 1.0
+      "target": "src_eigen_linalg_cpp_f_type"
     },
     {
       "relation": "references",
@@ -1817,9 +2157,9 @@
       "source_location": "L53",
       "weight": 1.0,
       "context": "parameter_type",
+      "confidence_score": 1.0,
       "source": "eigen_linalg_eigen_vectormatrixmulbatch",
-      "target": "f_type",
-      "confidence_score": 1.0
+      "target": "src_eigen_linalg_cpp_f_type"
     },
     {
       "relation": "references",
@@ -1828,8 +2168,182 @@
       "source_location": "L62",
       "weight": 1.0,
       "context": "parameter_type",
+      "confidence_score": 1.0,
       "source": "eigen_linalg_eigen_vectormul",
-      "target": "f_type",
+      "target": "src_eigen_linalg_cpp_f_type"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/eigen/losses.cpp",
+      "source_location": "L23",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "eigen_losses",
+      "target": "eigen_losses_eigen_mse"
+    },
+    {
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "src/eigen/losses.cpp",
+      "source_location": "L23",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "eigen_losses_eigen_mse",
+      "target": "src_eigen_losses_cpp_f_type"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/eigen/normalizations.cpp",
+      "source_location": "L25",
+      "weight": 1.0,
+      "source": "eigen_normalizations",
+      "target": "eigen_normalizations_eigen_computemeanstd",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/eigen/normalizations.cpp",
+      "source_location": "L66",
+      "weight": 1.0,
+      "source": "eigen_normalizations",
+      "target": "eigen_normalizations_eigen_denormalize",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/eigen/normalizations.cpp",
+      "source_location": "L47",
+      "weight": 1.0,
+      "source": "eigen_normalizations",
+      "target": "eigen_normalizations_eigen_normalize",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "src/eigen/normalizations.cpp",
+      "source_location": "L25",
+      "weight": 1.0,
+      "context": "parameter_type",
+      "source": "eigen_normalizations_eigen_computemeanstd",
+      "target": "src_eigen_normalizations_cpp_f_type",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "src/eigen/normalizations.cpp",
+      "source_location": "L66",
+      "weight": 1.0,
+      "context": "parameter_type",
+      "source": "eigen_normalizations_eigen_denormalize",
+      "target": "src_eigen_normalizations_cpp_f_type",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "src/eigen/normalizations.cpp",
+      "source_location": "L47",
+      "weight": 1.0,
+      "context": "parameter_type",
+      "source": "eigen_normalizations_eigen_normalize",
+      "target": "src_eigen_normalizations_cpp_f_type",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/eigen/wrappers.zig",
+      "source_location": "L245",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "eigen_wrappers",
+      "target": "eigen_wrappers_activatenone"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/eigen/wrappers.zig",
+      "source_location": "L261",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "eigen_wrappers",
+      "target": "eigen_wrappers_activaterelu"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/eigen/wrappers.zig",
+      "source_location": "L300",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "eigen_wrappers",
+      "target": "eigen_wrappers_activatesigmoid"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/eigen/wrappers.zig",
+      "source_location": "L285",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "eigen_wrappers",
+      "target": "eigen_wrappers_activatetanh"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/eigen/wrappers.zig",
+      "source_location": "L370",
+      "weight": 1.0,
+      "source": "eigen_wrappers",
+      "target": "eigen_wrappers_computemeanstd",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/eigen/wrappers.zig",
+      "source_location": "L338",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "eigen_wrappers",
+      "target": "eigen_wrappers_computemse"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/eigen/wrappers.zig",
+      "source_location": "L428",
+      "weight": 1.0,
+      "source": "eigen_wrappers",
+      "target": "eigen_wrappers_denormalize",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/eigen/wrappers.zig",
+      "source_location": "L364",
+      "weight": 1.0,
+      "source": "eigen_wrappers",
+      "target": "eigen_wrappers_eigen_computemeanstd",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/eigen/wrappers.zig",
+      "source_location": "L366",
+      "weight": 1.0,
+      "source": "eigen_wrappers",
+      "target": "eigen_wrappers_eigen_denormalize",
       "confidence_score": 1.0
     },
     {
@@ -1838,9 +2352,9 @@
       "source_file": "src/eigen/wrappers.zig",
       "source_location": "L11",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "eigen_wrappers",
-      "target": "eigen_wrappers_eigen_matrixvectormuladd",
-      "confidence_score": 1.0
+      "target": "eigen_wrappers_eigen_matrixvectormuladd"
     },
     {
       "relation": "contains",
@@ -1848,9 +2362,49 @@
       "source_file": "src/eigen/wrappers.zig",
       "source_location": "L30",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "eigen_wrappers",
-      "target": "eigen_wrappers_eigen_matrixvectormuladdbatch",
+      "target": "eigen_wrappers_eigen_matrixvectormuladdbatch"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/eigen/wrappers.zig",
+      "source_location": "L334",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "eigen_wrappers",
+      "target": "eigen_wrappers_eigen_mse"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/eigen/wrappers.zig",
+      "source_location": "L239",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "eigen_wrappers",
+      "target": "eigen_wrappers_eigen_none"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/eigen/wrappers.zig",
+      "source_location": "L365",
+      "weight": 1.0,
+      "source": "eigen_wrappers",
+      "target": "eigen_wrappers_eigen_normalize",
       "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/eigen/wrappers.zig",
+      "source_location": "L240",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "eigen_wrappers",
+      "target": "eigen_wrappers_eigen_relu"
     },
     {
       "relation": "contains",
@@ -1858,9 +2412,29 @@
       "source_file": "src/eigen/wrappers.zig",
       "source_location": "L118",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "eigen_wrappers",
-      "target": "eigen_wrappers_eigen_setzero",
-      "confidence_score": 1.0
+      "target": "eigen_wrappers_eigen_setzero"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/eigen/wrappers.zig",
+      "source_location": "L242",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "eigen_wrappers",
+      "target": "eigen_wrappers_eigen_sigmoid"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/eigen/wrappers.zig",
+      "source_location": "L241",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "eigen_wrappers",
+      "target": "eigen_wrappers_eigen_tanh"
     },
     {
       "relation": "contains",
@@ -1868,9 +2442,9 @@
       "source_file": "src/eigen/wrappers.zig",
       "source_location": "L200",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "eigen_wrappers",
-      "target": "eigen_wrappers_eigen_updategradbiases",
-      "confidence_score": 1.0
+      "target": "eigen_wrappers_eigen_updategradbiases"
     },
     {
       "relation": "contains",
@@ -1878,9 +2452,9 @@
       "source_file": "src/eigen/wrappers.zig",
       "source_location": "L217",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "eigen_wrappers",
-      "target": "eigen_wrappers_eigen_updategradbiasesbatch",
-      "confidence_score": 1.0
+      "target": "eigen_wrappers_eigen_updategradbiasesbatch"
     },
     {
       "relation": "contains",
@@ -1888,9 +2462,9 @@
       "source_file": "src/eigen/wrappers.zig",
       "source_location": "L155",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "eigen_wrappers",
-      "target": "eigen_wrappers_eigen_updategradweights",
-      "confidence_score": 1.0
+      "target": "eigen_wrappers_eigen_updategradweights"
     },
     {
       "relation": "contains",
@@ -1898,9 +2472,9 @@
       "source_file": "src/eigen/wrappers.zig",
       "source_location": "L175",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "eigen_wrappers",
-      "target": "eigen_wrappers_eigen_updategradweightsbatch",
-      "confidence_score": 1.0
+      "target": "eigen_wrappers_eigen_updategradweightsbatch"
     },
     {
       "relation": "contains",
@@ -1908,9 +2482,9 @@
       "source_file": "src/eigen/wrappers.zig",
       "source_location": "L135",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "eigen_wrappers",
-      "target": "eigen_wrappers_eigen_vectorinit",
-      "confidence_score": 1.0
+      "target": "eigen_wrappers_eigen_vectorinit"
     },
     {
       "relation": "contains",
@@ -1918,9 +2492,9 @@
       "source_file": "src/eigen/wrappers.zig",
       "source_location": "L57",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "eigen_wrappers",
-      "target": "eigen_wrappers_eigen_vectormatrixmul",
-      "confidence_score": 1.0
+      "target": "eigen_wrappers_eigen_vectormatrixmul"
     },
     {
       "relation": "contains",
@@ -1928,9 +2502,9 @@
       "source_file": "src/eigen/wrappers.zig",
       "source_location": "L74",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "eigen_wrappers",
-      "target": "eigen_wrappers_eigen_vectormatrixmulbatch",
-      "confidence_score": 1.0
+      "target": "eigen_wrappers_eigen_vectormatrixmulbatch"
     },
     {
       "relation": "contains",
@@ -1938,9 +2512,9 @@
       "source_file": "src/eigen/wrappers.zig",
       "source_location": "L99",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "eigen_wrappers",
-      "target": "eigen_wrappers_eigen_vectormul",
-      "confidence_score": 1.0
+      "target": "eigen_wrappers_eigen_vectormul"
     },
     {
       "relation": "contains",
@@ -1948,9 +2522,9 @@
       "source_file": "src/eigen/wrappers.zig",
       "source_location": "L14",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "eigen_wrappers",
-      "target": "eigen_wrappers_matrixvectormuladd",
-      "confidence_score": 1.0
+      "target": "eigen_wrappers_matrixvectormuladd"
     },
     {
       "relation": "contains",
@@ -1958,8 +2532,18 @@
       "source_file": "src/eigen/wrappers.zig",
       "source_location": "L33",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "eigen_wrappers",
-      "target": "eigen_wrappers_matrixvectormuladdbatch",
+      "target": "eigen_wrappers_matrixvectormuladdbatch"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/eigen/wrappers.zig",
+      "source_location": "L399",
+      "weight": 1.0,
+      "source": "eigen_wrappers",
+      "target": "eigen_wrappers_normalize",
       "confidence_score": 1.0
     },
     {
@@ -1968,9 +2552,9 @@
       "source_file": "src/eigen/wrappers.zig",
       "source_location": "L121",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "eigen_wrappers",
-      "target": "eigen_wrappers_setzero",
-      "confidence_score": 1.0
+      "target": "eigen_wrappers_setzero"
     },
     {
       "relation": "contains",
@@ -1978,9 +2562,9 @@
       "source_file": "src/eigen/wrappers.zig",
       "source_location": "L203",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "eigen_wrappers",
-      "target": "eigen_wrappers_updategradbiases",
-      "confidence_score": 1.0
+      "target": "eigen_wrappers_updategradbiases"
     },
     {
       "relation": "contains",
@@ -1988,9 +2572,9 @@
       "source_file": "src/eigen/wrappers.zig",
       "source_location": "L220",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "eigen_wrappers",
-      "target": "eigen_wrappers_updategradbiasesbatch",
-      "confidence_score": 1.0
+      "target": "eigen_wrappers_updategradbiasesbatch"
     },
     {
       "relation": "contains",
@@ -1998,9 +2582,9 @@
       "source_file": "src/eigen/wrappers.zig",
       "source_location": "L158",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "eigen_wrappers",
-      "target": "eigen_wrappers_updategradweights",
-      "confidence_score": 1.0
+      "target": "eigen_wrappers_updategradweights"
     },
     {
       "relation": "contains",
@@ -2008,9 +2592,9 @@
       "source_file": "src/eigen/wrappers.zig",
       "source_location": "L178",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "eigen_wrappers",
-      "target": "eigen_wrappers_updategradweightsbatch",
-      "confidence_score": 1.0
+      "target": "eigen_wrappers_updategradweightsbatch"
     },
     {
       "relation": "contains",
@@ -2018,9 +2602,9 @@
       "source_file": "src/eigen/wrappers.zig",
       "source_location": "L138",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "eigen_wrappers",
-      "target": "eigen_wrappers_vectorinit",
-      "confidence_score": 1.0
+      "target": "eigen_wrappers_vectorinit"
     },
     {
       "relation": "contains",
@@ -2028,9 +2612,9 @@
       "source_file": "src/eigen/wrappers.zig",
       "source_location": "L60",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "eigen_wrappers",
-      "target": "eigen_wrappers_vectormatrixmul",
-      "confidence_score": 1.0
+      "target": "eigen_wrappers_vectormatrixmul"
     },
     {
       "relation": "contains",
@@ -2038,9 +2622,9 @@
       "source_file": "src/eigen/wrappers.zig",
       "source_location": "L77",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "eigen_wrappers",
-      "target": "eigen_wrappers_vectormatrixmulbatch",
-      "confidence_score": 1.0
+      "target": "eigen_wrappers_vectormatrixmulbatch"
     },
     {
       "relation": "contains",
@@ -2048,9 +2632,9 @@
       "source_file": "src/eigen/wrappers.zig",
       "source_location": "L102",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "eigen_wrappers",
-      "target": "eigen_wrappers_vectormul",
-      "confidence_score": 1.0
+      "target": "eigen_wrappers_vectormul"
     },
     {
       "relation": "calls",
@@ -2058,9 +2642,9 @@
       "source_file": "src/eigen/wrappers.zig",
       "source_location": "L15",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "eigen_wrappers_matrixvectormuladd",
-      "target": "eigen_wrappers_eigen_matrixvectormuladd",
-      "confidence_score": 1.0
+      "target": "eigen_wrappers_eigen_matrixvectormuladd"
     },
     {
       "relation": "calls",
@@ -2068,9 +2652,9 @@
       "source_file": "src/eigen/wrappers.zig",
       "source_location": "L38",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "eigen_wrappers_matrixvectormuladdbatch",
-      "target": "eigen_wrappers_eigen_matrixvectormuladdbatch",
-      "confidence_score": 1.0
+      "target": "eigen_wrappers_eigen_matrixvectormuladdbatch"
     },
     {
       "relation": "calls",
@@ -2078,9 +2662,9 @@
       "source_file": "src/eigen/wrappers.zig",
       "source_location": "L61",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "eigen_wrappers_vectormatrixmul",
-      "target": "eigen_wrappers_eigen_vectormatrixmul",
-      "confidence_score": 1.0
+      "target": "eigen_wrappers_eigen_vectormatrixmul"
     },
     {
       "relation": "calls",
@@ -2088,9 +2672,9 @@
       "source_file": "src/eigen/wrappers.zig",
       "source_location": "L81",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "eigen_wrappers_vectormatrixmulbatch",
-      "target": "eigen_wrappers_eigen_vectormatrixmulbatch",
-      "confidence_score": 1.0
+      "target": "eigen_wrappers_eigen_vectormatrixmulbatch"
     },
     {
       "relation": "calls",
@@ -2098,9 +2682,9 @@
       "source_file": "src/eigen/wrappers.zig",
       "source_location": "L103",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "eigen_wrappers_vectormul",
-      "target": "eigen_wrappers_eigen_vectormul",
-      "confidence_score": 1.0
+      "target": "eigen_wrappers_eigen_vectormul"
     },
     {
       "relation": "calls",
@@ -2108,9 +2692,9 @@
       "source_file": "src/eigen/wrappers.zig",
       "source_location": "L122",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "eigen_wrappers_setzero",
-      "target": "eigen_wrappers_eigen_setzero",
-      "confidence_score": 1.0
+      "target": "eigen_wrappers_eigen_setzero"
     },
     {
       "relation": "calls",
@@ -2118,9 +2702,9 @@
       "source_file": "src/eigen/wrappers.zig",
       "source_location": "L139",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "eigen_wrappers_vectorinit",
-      "target": "eigen_wrappers_eigen_vectorinit",
-      "confidence_score": 1.0
+      "target": "eigen_wrappers_eigen_vectorinit"
     },
     {
       "relation": "calls",
@@ -2128,9 +2712,9 @@
       "source_file": "src/eigen/wrappers.zig",
       "source_location": "L159",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "eigen_wrappers_updategradweights",
-      "target": "eigen_wrappers_eigen_updategradweights",
-      "confidence_score": 1.0
+      "target": "eigen_wrappers_eigen_updategradweights"
     },
     {
       "relation": "calls",
@@ -2138,9 +2722,9 @@
       "source_file": "src/eigen/wrappers.zig",
       "source_location": "L182",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "eigen_wrappers_updategradweightsbatch",
-      "target": "eigen_wrappers_eigen_updategradweightsbatch",
-      "confidence_score": 1.0
+      "target": "eigen_wrappers_eigen_updategradweightsbatch"
     },
     {
       "relation": "calls",
@@ -2148,9 +2732,9 @@
       "source_file": "src/eigen/wrappers.zig",
       "source_location": "L204",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "eigen_wrappers_updategradbiases",
-      "target": "eigen_wrappers_eigen_updategradbiases",
-      "confidence_score": 1.0
+      "target": "eigen_wrappers_eigen_updategradbiases"
     },
     {
       "relation": "calls",
@@ -2158,8 +2742,88 @@
       "source_file": "src/eigen/wrappers.zig",
       "source_location": "L224",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "eigen_wrappers_updategradbiasesbatch",
-      "target": "eigen_wrappers_eigen_updategradbiasesbatch",
+      "target": "eigen_wrappers_eigen_updategradbiasesbatch"
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "src/eigen/wrappers.zig",
+      "source_location": "L246",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "eigen_wrappers_activatenone",
+      "target": "eigen_wrappers_eigen_none"
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "src/eigen/wrappers.zig",
+      "source_location": "L262",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "eigen_wrappers_activaterelu",
+      "target": "eigen_wrappers_eigen_relu"
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "src/eigen/wrappers.zig",
+      "source_location": "L286",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "eigen_wrappers_activatetanh",
+      "target": "eigen_wrappers_eigen_tanh"
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "src/eigen/wrappers.zig",
+      "source_location": "L301",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "eigen_wrappers_activatesigmoid",
+      "target": "eigen_wrappers_eigen_sigmoid"
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "src/eigen/wrappers.zig",
+      "source_location": "L340",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "eigen_wrappers_computemse",
+      "target": "eigen_wrappers_eigen_mse"
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "src/eigen/wrappers.zig",
+      "source_location": "L373",
+      "weight": 1.0,
+      "source": "eigen_wrappers_computemeanstd",
+      "target": "eigen_wrappers_eigen_computemeanstd",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "src/eigen/wrappers.zig",
+      "source_location": "L402",
+      "weight": 1.0,
+      "source": "eigen_wrappers_normalize",
+      "target": "eigen_wrappers_eigen_normalize",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "src/eigen/wrappers.zig",
+      "source_location": "L431",
+      "weight": 1.0,
+      "source": "eigen_wrappers_denormalize",
+      "target": "eigen_wrappers_eigen_denormalize",
       "confidence_score": 1.0
     },
     {
@@ -2168,9 +2832,9 @@
       "source_file": "src/io/binary.zig",
       "source_location": "L22",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "io_binary",
-      "target": "io_binary_dataheader",
-      "confidence_score": 1.0
+      "target": "io_binary_dataheader"
     },
     {
       "relation": "contains",
@@ -2178,9 +2842,9 @@
       "source_file": "src/io/binary.zig",
       "source_location": "L166",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "io_binary",
-      "target": "io_binary_loaddata",
-      "confidence_score": 1.0
+      "target": "io_binary_loaddata"
     },
     {
       "relation": "contains",
@@ -2188,9 +2852,9 @@
       "source_file": "src/io/binary.zig",
       "source_location": "L49",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "io_binary",
-      "target": "io_binary_loadweights",
-      "confidence_score": 1.0
+      "target": "io_binary_loadweights"
     },
     {
       "relation": "contains",
@@ -2198,9 +2862,9 @@
       "source_file": "src/io/binary.zig",
       "source_location": "L15",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "io_binary",
-      "target": "io_binary_nnheader",
-      "confidence_score": 1.0
+      "target": "io_binary_nnheader"
     },
     {
       "relation": "contains",
@@ -2208,9 +2872,9 @@
       "source_file": "src/io/binary.zig",
       "source_location": "L125",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "io_binary",
-      "target": "io_binary_savedata",
-      "confidence_score": 1.0
+      "target": "io_binary_savedata"
     },
     {
       "relation": "contains",
@@ -2218,9 +2882,9 @@
       "source_file": "src/io/binary.zig",
       "source_location": "L30",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "io_binary",
-      "target": "io_binary_saveweights",
-      "confidence_score": 1.0
+      "target": "io_binary_saveweights"
     },
     {
       "relation": "contains",
@@ -2228,9 +2892,9 @@
       "source_file": "src/layers/mlp.zig",
       "source_location": "L14",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "layers_mlp",
-      "target": "layers_mlp_mlp",
-      "confidence_score": 1.0
+      "target": "layers_mlp_mlp"
     },
     {
       "relation": "method",
@@ -2238,9 +2902,9 @@
       "source_file": "src/layers/mlp.zig",
       "source_location": "L111",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "layers_mlp_mlp",
-      "target": "layers_mlp_mlp_backward",
-      "confidence_score": 1.0
+      "target": "layers_mlp_mlp_backward"
     },
     {
       "relation": "method",
@@ -2248,9 +2912,9 @@
       "source_file": "src/layers/mlp.zig",
       "source_location": "L69",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "layers_mlp_mlp",
-      "target": "layers_mlp_mlp_deinit",
-      "confidence_score": 1.0
+      "target": "layers_mlp_mlp_deinit"
     },
     {
       "relation": "method",
@@ -2258,9 +2922,9 @@
       "source_file": "src/layers/mlp.zig",
       "source_location": "L79",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "layers_mlp_mlp",
-      "target": "layers_mlp_mlp_forward",
-      "confidence_score": 1.0
+      "target": "layers_mlp_mlp_forward"
     },
     {
       "relation": "method",
@@ -2268,9 +2932,9 @@
       "source_file": "src/layers/mlp.zig",
       "source_location": "L21",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "layers_mlp_mlp",
-      "target": "layers_mlp_mlp_init",
-      "confidence_score": 1.0
+      "target": "layers_mlp_mlp_init"
     },
     {
       "relation": "contains",
@@ -2278,9 +2942,9 @@
       "source_file": "src/nnzig.zig",
       "source_location": "L19",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "src_nnzig",
-      "target": "src_nnzig_nn",
-      "confidence_score": 1.0
+      "target": "src_nnzig_nn"
     },
     {
       "relation": "method",
@@ -2288,9 +2952,9 @@
       "source_file": "src/nnzig.zig",
       "source_location": "L466",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "src_nnzig_nn",
-      "target": "src_nnzig_nn_backprop",
-      "confidence_score": 1.0
+      "target": "src_nnzig_nn_backprop"
     },
     {
       "relation": "method",
@@ -2298,9 +2962,9 @@
       "source_file": "src/nnzig.zig",
       "source_location": "L229",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "src_nnzig_nn",
-      "target": "src_nnzig_nn_computenormalization",
-      "confidence_score": 1.0
+      "target": "src_nnzig_nn_computenormalization"
     },
     {
       "relation": "method",
@@ -2308,9 +2972,9 @@
       "source_file": "src/nnzig.zig",
       "source_location": "L164",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "src_nnzig_nn",
-      "target": "src_nnzig_nn_deinit",
-      "confidence_score": 1.0
+      "target": "src_nnzig_nn_deinit"
     },
     {
       "relation": "method",
@@ -2318,9 +2982,9 @@
       "source_file": "src/nnzig.zig",
       "source_location": "L323",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "src_nnzig_nn",
-      "target": "src_nnzig_nn_denormalize",
-      "confidence_score": 1.0
+      "target": "src_nnzig_nn_denormalize"
     },
     {
       "relation": "method",
@@ -2328,9 +2992,9 @@
       "source_file": "src/nnzig.zig",
       "source_location": "L431",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "src_nnzig_nn",
-      "target": "src_nnzig_nn_forward",
-      "confidence_score": 1.0
+      "target": "src_nnzig_nn_forward"
     },
     {
       "relation": "method",
@@ -2338,9 +3002,9 @@
       "source_file": "src/nnzig.zig",
       "source_location": "L37",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "src_nnzig_nn",
-      "target": "src_nnzig_nn_init",
-      "confidence_score": 1.0
+      "target": "src_nnzig_nn_init"
     },
     {
       "relation": "method",
@@ -2348,9 +3012,9 @@
       "source_file": "src/nnzig.zig",
       "source_location": "L697",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "src_nnzig_nn",
-      "target": "src_nnzig_nn_loadweights",
-      "confidence_score": 1.0
+      "target": "src_nnzig_nn_loadweights"
     },
     {
       "relation": "method",
@@ -2358,9 +3022,9 @@
       "source_file": "src/nnzig.zig",
       "source_location": "L275",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "src_nnzig_nn",
-      "target": "src_nnzig_nn_normalize",
-      "confidence_score": 1.0
+      "target": "src_nnzig_nn_normalize"
     },
     {
       "relation": "method",
@@ -2368,9 +3032,9 @@
       "source_file": "src/nnzig.zig",
       "source_location": "L741",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "src_nnzig_nn",
-      "target": "src_nnzig_nn_savelosses",
-      "confidence_score": 1.0
+      "target": "src_nnzig_nn_savelosses"
     },
     {
       "relation": "method",
@@ -2378,9 +3042,9 @@
       "source_file": "src/nnzig.zig",
       "source_location": "L692",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "src_nnzig_nn",
-      "target": "src_nnzig_nn_saveweights",
-      "confidence_score": 1.0
+      "target": "src_nnzig_nn_saveweights"
     },
     {
       "relation": "method",
@@ -2388,9 +3052,9 @@
       "source_file": "src/nnzig.zig",
       "source_location": "L548",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "src_nnzig_nn",
-      "target": "src_nnzig_nn_train",
-      "confidence_score": 1.0
+      "target": "src_nnzig_nn_train"
     },
     {
       "relation": "method",
@@ -2398,9 +3062,9 @@
       "source_file": "src/nnzig.zig",
       "source_location": "L513",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "src_nnzig_nn",
-      "target": "src_nnzig_nn_updatemv",
-      "confidence_score": 1.0
+      "target": "src_nnzig_nn_updatemv"
     },
     {
       "relation": "method",
@@ -2408,9 +3072,9 @@
       "source_file": "src/nnzig.zig",
       "source_location": "L528",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "src_nnzig_nn",
-      "target": "src_nnzig_nn_updateweights",
-      "confidence_score": 1.0
+      "target": "src_nnzig_nn_updateweights"
     },
     {
       "relation": "method",
@@ -2418,9 +3082,9 @@
       "source_file": "src/nnzig.zig",
       "source_location": "L377",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "src_nnzig_nn",
-      "target": "src_nnzig_nn_zerograd",
-      "confidence_score": 1.0
+      "target": "src_nnzig_nn_zerograd"
     },
     {
       "relation": "method",
@@ -2428,9 +3092,9 @@
       "source_file": "src/nnzig.zig",
       "source_location": "L404",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "src_nnzig_nn",
-      "target": "src_nnzig_nn_zerolosses",
-      "confidence_score": 1.0
+      "target": "src_nnzig_nn_zerolosses"
     },
     {
       "relation": "calls",
@@ -2438,9 +3102,9 @@
       "source_file": "src/nnzig.zig",
       "source_location": "L158",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "src_nnzig_nn_init",
-      "target": "src_nnzig_nn_zerolosses",
-      "confidence_score": 1.0
+      "target": "src_nnzig_nn_zerolosses"
     },
     {
       "relation": "calls",
@@ -2448,9 +3112,9 @@
       "source_file": "src/nnzig.zig",
       "source_location": "L473",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "src_nnzig_nn_backprop",
-      "target": "src_nnzig_nn_zerograd",
-      "confidence_score": 1.0
+      "target": "src_nnzig_nn_zerograd"
     },
     {
       "relation": "calls",
@@ -2458,9 +3122,9 @@
       "source_file": "src/nnzig.zig",
       "source_location": "L571",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "src_nnzig_nn_train",
-      "target": "src_nnzig_nn_zerolosses",
-      "confidence_score": 1.0
+      "target": "src_nnzig_nn_zerolosses"
     },
     {
       "relation": "calls",
@@ -2468,9 +3132,9 @@
       "source_file": "src/nnzig.zig",
       "source_location": "L491",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "src_nnzig_nn_backprop",
-      "target": "src_nnzig_nn_forward",
-      "confidence_score": 1.0
+      "target": "src_nnzig_nn_forward"
     },
     {
       "relation": "calls",
@@ -2478,9 +3142,9 @@
       "source_file": "src/nnzig.zig",
       "source_location": "L635",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "src_nnzig_nn_train",
-      "target": "src_nnzig_nn_forward",
-      "confidence_score": 1.0
+      "target": "src_nnzig_nn_forward"
     },
     {
       "relation": "calls",
@@ -2488,9 +3152,9 @@
       "source_file": "src/nnzig.zig",
       "source_location": "L602",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "src_nnzig_nn_train",
-      "target": "src_nnzig_nn_backprop",
-      "confidence_score": 1.0
+      "target": "src_nnzig_nn_backprop"
     },
     {
       "relation": "calls",
@@ -2498,9 +3162,9 @@
       "source_file": "src/nnzig.zig",
       "source_location": "L610",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "src_nnzig_nn_train",
-      "target": "src_nnzig_nn_updatemv",
-      "confidence_score": 1.0
+      "target": "src_nnzig_nn_updatemv"
     },
     {
       "relation": "calls",
@@ -2508,9 +3172,99 @@
       "source_file": "src/nnzig.zig",
       "source_location": "L612",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "src_nnzig_nn_train",
-      "target": "src_nnzig_nn_updateweights",
-      "confidence_score": 1.0
+      "target": "src_nnzig_nn_updateweights"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "AGENTS.md",
+      "source_location": "L1",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "agents",
+      "target": "agents_nnzig"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "AGENTS.md",
+      "source_location": "L35",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "agents_nnzig",
+      "target": "agents_architecture"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "AGENTS.md",
+      "source_location": "L56",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "agents_nnzig",
+      "target": "agents_benchmark_setup"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "AGENTS.md",
+      "source_location": "L10",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "agents_nnzig",
+      "target": "agents_commands"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "AGENTS.md",
+      "source_location": "L19",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "agents_nnzig",
+      "target": "agents_configuration_model_read_this_before_editing_params"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "AGENTS.md",
+      "source_location": "L62",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "agents_nnzig",
+      "target": "agents_graphify"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "AGENTS.md",
+      "source_location": "L5",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "agents_nnzig",
+      "target": "agents_toolchain"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "AGENTS.md",
+      "source_location": "L46",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "agents_nnzig",
+      "target": "agents_zig_0_16_conventions_used_here"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "README.md",
+      "source_location": "L1",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "readme",
+      "target": "readme_nnzig"
     },
     {
       "relation": "conceptually_related_to",
@@ -2521,6 +3275,86 @@
       "weight": 1.0,
       "source": "docs_workflow",
       "target": "readme_nnzig"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "README.md",
+      "source_location": "L99",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "readme_nnzig",
+      "target": "readme_benchmarks"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "README.md",
+      "source_location": "L64",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "readme_nnzig",
+      "target": "readme_configuration"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "README.md",
+      "source_location": "L90",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "readme_nnzig",
+      "target": "readme_documentation"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "README.md",
+      "source_location": "L8",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "readme_nnzig",
+      "target": "readme_features"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "README.md",
+      "source_location": "L123",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "readme_nnzig",
+      "target": "readme_license"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "README.md",
+      "source_location": "L18",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "readme_nnzig",
+      "target": "readme_requirements"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "README.md",
+      "source_location": "L82",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "readme_nnzig",
+      "target": "readme_testing"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "README.md",
+      "source_location": "L25",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "readme_nnzig",
+      "target": "readme_usage"
     },
     {
       "relation": "conceptually_related_to",
@@ -2564,5 +3398,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "81918b76ca8c8a2ec41d6e6678fe8bcc6d9e6e36"
+  "built_at_commit": "e5fd8b6e23bf0d80cf1ceca8e5fa1fe214937bdf"
 }
