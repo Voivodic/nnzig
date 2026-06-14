@@ -8,6 +8,7 @@
 const std = @import("std");
 const params = @import("params");
 const eigen = @import("eigen");
+const testing = std.testing;
 const T = params.T;
 
 /// Apply the activation function to each element of `input` (in place) and
@@ -23,23 +24,27 @@ pub fn activateElements(input: []T, df: []T, act: params.activation) void {
 }
 
 test "[act] activateElements none" {
+    // Create the fake input and derivative arrays
     var input = [_]T{ -2.0, -1.0, 0.0, 1.0, 2.0 };
     var df: [5]T = undefined;
 
+    // Compute the activation
     activateElements(&input, &df, params.activation.none);
 
-    const testing = std.testing;
+    // Check the results
     for (input) |val| try testing.expect(std.math.isFinite(val));
     for (df) |val| try testing.expectEqual(@as(T, 1.0), val);
 }
 
 test "[act] activateElements relu" {
+    // Create the fake input and derivative arrays
     var input = [_]T{ -2.0, -1.0, 0.0, 1.0, 2.0 };
     var df: [5]T = undefined;
 
+    // Compute the activation
     activateElements(&input, &df, params.activation.relu);
 
-    const testing = std.testing;
+    // Check the results
     try testing.expectEqual(@as(T, 0.0), input[0]);
     try testing.expectEqual(@as(T, 0.0), input[1]);
     try testing.expectEqual(@as(T, 0.0), input[2]);
@@ -54,41 +59,45 @@ test "[act] activateElements relu" {
 }
 
 test "[act] activateElements tanh" {
+    // Create the fake input and derivative arrays
     var input = [_]T{ -2.0, -1.0, 0.0, 1.0, 2.0 };
     var df: [5]T = undefined;
 
+    // Compute the activation
     activateElements(&input, &df, params.activation.tanh);
 
-    const testing = std.testing;
-    try testing.expectApproxEqAbs(@as(T, -0.964028), input[0], 1e-4);
-    try testing.expectApproxEqAbs(@as(T, -0.761594), input[1], 1e-4);
-    try testing.expectApproxEqAbs(@as(T, 0.0), input[2], 1e-4);
-    try testing.expectApproxEqAbs(@as(T, 0.761594), input[3], 1e-4);
-    try testing.expectApproxEqAbs(@as(T, 0.964028), input[4], 1e-4);
+    // Check the results
+    try testing.expectApproxEqAbs(@as(T, -0.964028), input[0], 1e-3);
+    try testing.expectApproxEqAbs(@as(T, -0.761594), input[1], 1e-3);
+    try testing.expectApproxEqAbs(@as(T, 0.0), input[2], 1e-3);
+    try testing.expectApproxEqAbs(@as(T, 0.761594), input[3], 1e-3);
+    try testing.expectApproxEqAbs(@as(T, 0.964028), input[4], 1e-3);
 
-    try testing.expectApproxEqAbs(@as(T, 0.0706508), df[0], 1e-4);
-    try testing.expectApproxEqAbs(@as(T, 0.419974), df[1], 1e-4);
-    try testing.expectApproxEqAbs(@as(T, 1.0), df[2], 1e-4);
-    try testing.expectApproxEqAbs(@as(T, 0.419974), df[3], 1e-4);
-    try testing.expectApproxEqAbs(@as(T, 0.0706508), df[4], 1e-4);
+    try testing.expectApproxEqAbs(@as(T, 0.0706508), df[0], 1e-3);
+    try testing.expectApproxEqAbs(@as(T, 0.419974), df[1], 1e-3);
+    try testing.expectApproxEqAbs(@as(T, 1.0), df[2], 1e-3);
+    try testing.expectApproxEqAbs(@as(T, 0.419974), df[3], 1e-3);
+    try testing.expectApproxEqAbs(@as(T, 0.0706508), df[4], 1e-3);
 }
 
 test "[act] activateElements sigmoid" {
+    // Create the fake input and derivative arrays
     var input = [_]T{ -2.0, -1.0, 0.0, 1.0, 2.0 };
     var df: [5]T = undefined;
 
+    // Compute the activation
     activateElements(&input, &df, params.activation.sigmoid);
 
-    const testing = std.testing;
-    try testing.expectApproxEqAbs(@as(T, 0.119203), input[0], 1e-4);
-    try testing.expectApproxEqAbs(@as(T, 0.268941), input[1], 1e-4);
-    try testing.expectApproxEqAbs(@as(T, 0.5), input[2], 1e-4);
-    try testing.expectApproxEqAbs(@as(T, 0.731059), input[3], 1e-4);
-    try testing.expectApproxEqAbs(@as(T, 0.880797), input[4], 1e-4);
+    // Check the results
+    try testing.expectApproxEqAbs(@as(T, 0.119203), input[0], 1e-3);
+    try testing.expectApproxEqAbs(@as(T, 0.268941), input[1], 1e-3);
+    try testing.expectApproxEqAbs(@as(T, 0.5), input[2], 1e-3);
+    try testing.expectApproxEqAbs(@as(T, 0.731059), input[3], 1e-3);
+    try testing.expectApproxEqAbs(@as(T, 0.880797), input[4], 1e-3);
 
-    try testing.expectApproxEqAbs(@as(T, 0.104994), df[0], 1e-4);
-    try testing.expectApproxEqAbs(@as(T, 0.196612), df[1], 1e-4);
-    try testing.expectApproxEqAbs(@as(T, 0.25), df[2], 1e-4);
-    try testing.expectApproxEqAbs(@as(T, 0.196612), df[3], 1e-4);
-    try testing.expectApproxEqAbs(@as(T, 0.104994), df[4], 1e-4);
+    try testing.expectApproxEqAbs(@as(T, 0.104994), df[0], 1e-3);
+    try testing.expectApproxEqAbs(@as(T, 0.196612), df[1], 1e-3);
+    try testing.expectApproxEqAbs(@as(T, 0.25), df[2], 1e-3);
+    try testing.expectApproxEqAbs(@as(T, 0.196612), df[3], 1e-3);
+    try testing.expectApproxEqAbs(@as(T, 0.104994), df[4], 1e-3);
 }

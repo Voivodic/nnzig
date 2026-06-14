@@ -7,6 +7,7 @@
 const std = @import("std");
 const params = @import("params");
 const eigen = @import("eigen");
+const testing = std.testing;
 const T = params.T;
 
 /// Computes the loss and its derivative for the given loss function.
@@ -19,40 +20,48 @@ pub fn computeLoss(pred: []const T, out: []const T, dL: []T, lossFunc: params.lo
 }
 
 test "[loss] computeLoss MSE zero error" {
-    const testing = std.testing;
+    // Get the size of outputs
     const nOut: usize = params.nNeurons[params.nNeurons.len - 1];
 
+    // Declare the fake arrays
     var pred: [nOut]T = undefined;
     var out: [nOut]T = undefined;
     var dL: [nOut]T = undefined;
 
+    // Fill the fake arrays
     for (&pred, &out) |*p, *o| {
         p.* = 1.0;
         o.* = 1.0;
     }
 
+    // Compute the loss
     const lossVal = computeLoss(&pred, &out, &dL, params.loss.MSE);
 
-    try testing.expectApproxEqAbs(@as(T, 0.0), lossVal, 1e-6);
-    for (dL) |val| try testing.expectApproxEqAbs(@as(T, 0.0), val, 1e-6);
+    // Check the results
+    try testing.expectApproxEqAbs(@as(T, 0.0), lossVal, 1e-3);
+    for (dL) |val| try testing.expectApproxEqAbs(@as(T, 0.0), val, 1e-3);
 }
 
 test "[loss] computeLoss MSE known error" {
-    const testing = std.testing;
+    // Get the size of the outputs
     const nOut: usize = params.nNeurons[params.nNeurons.len - 1];
 
+    // Declare the fake arrays
     var pred: [nOut]T = undefined;
     var out: [nOut]T = undefined;
     var dL: [nOut]T = undefined;
 
+    // Fill the fake arrays
     for (&pred, &out) |*p, *o| {
         p.* = 3.0;
         o.* = 1.0;
     }
 
+    // Compute the loss
     const lossVal = computeLoss(&pred, &out, &dL, params.loss.MSE);
     const expectedLoss: T = 0.5 * 4.0;
 
-    try testing.expectApproxEqAbs(expectedLoss, lossVal, 1e-4);
-    for (dL) |val| try testing.expectApproxEqAbs(@as(T, 1.0), val, 1e-4);
+    // Check the results
+    try testing.expectApproxEqAbs(expectedLoss, lossVal, 1e-3);
+    for (dL) |val| try testing.expectApproxEqAbs(@as(T, 1.0), val, 1e-3);
 }

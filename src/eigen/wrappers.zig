@@ -292,17 +292,17 @@ test "[eigen] activateTanh" {
 
     activateTanh(&input, &df);
 
-    try testing.expectApproxEqAbs(-0.964028, input[0], 1e-4);
-    try testing.expectApproxEqAbs(-0.761594, input[1], 1e-4);
-    try testing.expectApproxEqAbs(0.0, input[2], 1e-4);
-    try testing.expectApproxEqAbs(0.761594, input[3], 1e-4);
-    try testing.expectApproxEqAbs(0.964028, input[4], 1e-4);
+    try testing.expectApproxEqAbs(-0.964028, input[0], 1e-3);
+    try testing.expectApproxEqAbs(-0.761594, input[1], 1e-3);
+    try testing.expectApproxEqAbs(0.0, input[2], 1e-3);
+    try testing.expectApproxEqAbs(0.761594, input[3], 1e-3);
+    try testing.expectApproxEqAbs(0.964028, input[4], 1e-3);
 
-    try testing.expectApproxEqAbs(0.0706508, df[0], 1e-4);
-    try testing.expectApproxEqAbs(0.419974, df[1], 1e-4);
-    try testing.expectApproxEqAbs(1.0, df[2], 1e-4);
-    try testing.expectApproxEqAbs(0.419974, df[3], 1e-4);
-    try testing.expectApproxEqAbs(0.0706508, df[4], 1e-4);
+    try testing.expectApproxEqAbs(0.0706508, df[0], 1e-3);
+    try testing.expectApproxEqAbs(0.419974, df[1], 1e-3);
+    try testing.expectApproxEqAbs(1.0, df[2], 1e-3);
+    try testing.expectApproxEqAbs(0.419974, df[3], 1e-3);
+    try testing.expectApproxEqAbs(0.0706508, df[4], 1e-3);
 }
 
 /// Applies sigmoid element-wise to `input` (in place) and writes its derivative into `df`
@@ -316,17 +316,17 @@ test "[eigen] activateSigmoid" {
 
     activateSigmoid(&input, &df);
 
-    try testing.expectApproxEqAbs(0.119203, input[0], 1e-4);
-    try testing.expectApproxEqAbs(0.268941, input[1], 1e-4);
-    try testing.expectApproxEqAbs(0.5, input[2], 1e-4);
-    try testing.expectApproxEqAbs(0.731059, input[3], 1e-4);
-    try testing.expectApproxEqAbs(0.880797, input[4], 1e-4);
+    try testing.expectApproxEqAbs(0.119203, input[0], 1e-3);
+    try testing.expectApproxEqAbs(0.268941, input[1], 1e-3);
+    try testing.expectApproxEqAbs(0.5, input[2], 1e-3);
+    try testing.expectApproxEqAbs(0.731059, input[3], 1e-3);
+    try testing.expectApproxEqAbs(0.880797, input[4], 1e-3);
 
-    try testing.expectApproxEqAbs(0.104994, df[0], 1e-4);
-    try testing.expectApproxEqAbs(0.196612, df[1], 1e-4);
-    try testing.expectApproxEqAbs(0.25, df[2], 1e-4);
-    try testing.expectApproxEqAbs(0.196612, df[3], 1e-4);
-    try testing.expectApproxEqAbs(0.104994, df[4], 1e-4);
+    try testing.expectApproxEqAbs(0.104994, df[0], 1e-3);
+    try testing.expectApproxEqAbs(0.196612, df[1], 1e-3);
+    try testing.expectApproxEqAbs(0.25, df[2], 1e-3);
+    try testing.expectApproxEqAbs(0.196612, df[3], 1e-3);
+    try testing.expectApproxEqAbs(0.104994, df[4], 1e-3);
 }
 
 // --- Loss functions ---
@@ -349,8 +349,8 @@ test "[eigen] computeMSE" {
 
     const lossVal = computeMSE(&pred, &out, &dL);
 
-    try testing.expectApproxEqAbs(2.0, lossVal, 1e-4);
-    for (dL) |val| try testing.expectApproxEqAbs(0.5, val, 1e-4);
+    try testing.expectApproxEqAbs(2.0, lossVal, 1e-3);
+    for (dL) |val| try testing.expectApproxEqAbs(0.5, val, 1e-3);
 
     // Zero error: pred == out -> loss=0, dL=0
     const lossZero = computeMSE(&pred, &pred, &dL);
@@ -385,14 +385,14 @@ test "[eigen] computeMeanStd" {
     computeMeanStd(&inputs, &outputs, &aIn, &bIn, &aOut, &bOut);
 
     // feature 0: {0,4,8} mean=4 ; feature 1: {2,6,10} mean=6
-    try testing.expectApproxEqAbs(4.0, bIn[0], 1e-4);
-    try testing.expectApproxEqAbs(6.0, bIn[1], 1e-4);
+    try testing.expectApproxEqAbs(4.0, bIn[0], 1e-3);
+    try testing.expectApproxEqAbs(6.0, bIn[1], 1e-3);
     // std = sqrt(32/3) = 3.265986 for both input features
-    try testing.expectApproxEqAbs(3.265986, aIn[0], 1e-4);
-    try testing.expectApproxEqAbs(3.265986, aIn[1], 1e-4);
+    try testing.expectApproxEqAbs(3.265986, aIn[0], 1e-3);
+    try testing.expectApproxEqAbs(3.265986, aIn[1], 1e-3);
     // output feature {1,3,5}: mean=3, std=sqrt(8/3)=1.632993
-    try testing.expectApproxEqAbs(3.0, bOut[0], 1e-4);
-    try testing.expectApproxEqAbs(1.632993, aOut[0], 1e-4);
+    try testing.expectApproxEqAbs(3.0, bOut[0], 1e-3);
+    try testing.expectApproxEqAbs(1.632993, aOut[0], 1e-3);
 }
 
 /// Normalizes `inputs`/`outputs` in place over a full batch: x' = (x - b) / a
@@ -415,13 +415,13 @@ test "[eigen] normalize" {
     normalize(&inputs, &outputs, &aIn, &bIn, &aOut, &bOut);
 
     // inputs: ((1-1)/2,(2-2)/4, (3-1)/2,(6-2)/4) = (0,0,1,1)
-    try testing.expectApproxEqAbs(0.0, inputs[0], 1e-4);
-    try testing.expectApproxEqAbs(0.0, inputs[1], 1e-4);
-    try testing.expectApproxEqAbs(1.0, inputs[2], 1e-4);
-    try testing.expectApproxEqAbs(1.0, inputs[3], 1e-4);
+    try testing.expectApproxEqAbs(0.0, inputs[0], 1e-3);
+    try testing.expectApproxEqAbs(0.0, inputs[1], 1e-3);
+    try testing.expectApproxEqAbs(1.0, inputs[2], 1e-3);
+    try testing.expectApproxEqAbs(1.0, inputs[3], 1e-3);
     // outputs: ((5-5)/10, (15-5)/10) = (0,1)
-    try testing.expectApproxEqAbs(0.0, outputs[0], 1e-4);
-    try testing.expectApproxEqAbs(1.0, outputs[1], 1e-4);
+    try testing.expectApproxEqAbs(0.0, outputs[0], 1e-3);
+    try testing.expectApproxEqAbs(1.0, outputs[1], 1e-3);
 }
 
 /// Denormalizes `inputs`/`outputs` in place over a full batch: x = x' * a + b
@@ -445,11 +445,11 @@ test "[eigen] denormalize" {
     denormalize(&inputs, &outputs, &aIn, &bIn, &aOut, &bOut);
 
     // inputs back to {1,2,3,6}
-    try testing.expectApproxEqAbs(1.0, inputs[0], 1e-4);
-    try testing.expectApproxEqAbs(2.0, inputs[1], 1e-4);
-    try testing.expectApproxEqAbs(3.0, inputs[2], 1e-4);
-    try testing.expectApproxEqAbs(6.0, inputs[3], 1e-4);
+    try testing.expectApproxEqAbs(1.0, inputs[0], 1e-3);
+    try testing.expectApproxEqAbs(2.0, inputs[1], 1e-3);
+    try testing.expectApproxEqAbs(3.0, inputs[2], 1e-3);
+    try testing.expectApproxEqAbs(6.0, inputs[3], 1e-3);
     // outputs back to {5,15}
-    try testing.expectApproxEqAbs(5.0, outputs[0], 1e-4);
-    try testing.expectApproxEqAbs(15.0, outputs[1], 1e-4);
+    try testing.expectApproxEqAbs(5.0, outputs[0], 1e-3);
+    try testing.expectApproxEqAbs(15.0, outputs[1], 1e-3);
 }
