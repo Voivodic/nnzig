@@ -35,9 +35,9 @@ Network shape, precision, and training hyperparameters are **compile-time consta
 ## Architecture
 
 - `src/nnzig.zig` — public API: the `NN` struct (`init`/`deinit`, `forward`, `train`, normalization, `save/loadWeights`, `saveLosses`). Training is mini-batch gradient descent with the Adam optimizer.
-- `src/eigen/` — **the heavy linear algebra lives here, in C++/Eigen** (`linalg.cpp`, `activations.cpp`) wrapped by `wrappers.zig`. Forward/backward/gradient kernels call through these extern functions; do not reimplement them in pure Zig.
-- `src/core/` — `params.zig` (config), `errors.zig` (shared error enum), `normalizations.zig`.
-- `src/cpu/` — pure-Zig activations and losses.
+- `src/eigen/` — **the heavy linear algebra lives here, in C++/Eigen** (`linalg.cpp`, `activations.cpp`, `losses.cpp`, `normalizations.cpp`) wrapped by `wrappers.zig`. Forward/backward/gradient/activation/loss/normalization kernels call through these extern functions; do not reimplement them in pure Zig.
+- `src/core/` — `params.zig` (config), `errors.zig` (shared error enum).
+- `src/cpu/` — thin dispatchers (activations, losses, normalizations) that call the Eigen kernels.
 - `src/layers/mlp.zig` — MLP layer.
 - `src/io/binary.zig` — binary weight/loss/dataset I/O.
 

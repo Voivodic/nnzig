@@ -48,7 +48,7 @@ fn createTree(
     eigen_wrapper.addImport("params", params);
     eigen_wrapper.addCSourceFiles(.{
         .root = b.path("src/eigen"),
-        .files = &.{ "linalg.cpp", "activations.cpp", "losses.cpp" },
+        .files = &.{ "linalg.cpp", "activations.cpp", "losses.cpp", "normalizations.cpp" },
         .flags = &.{ "-O3", "-fPIC", precision_flag },
     });
     eigen_wrapper.addIncludePath(eigen.path("./"));
@@ -75,12 +75,13 @@ fn createTree(
 
     // Norms module
     const norms = b.createModule(.{
-        .root_source_file = b.path("src/core/normalizations.zig"),
+        .root_source_file = b.path("src/cpu/normalizations.zig"),
         .target = target,
         .optimize = optimize,
     });
     norms.addImport("params", params);
     norms.addImport("errors", errors);
+    norms.addImport("eigen", eigen_wrapper);
 
     // IO module
     const io = b.createModule(.{

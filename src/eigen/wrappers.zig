@@ -358,3 +358,98 @@ test "[eigen] computeMSE" {
     try testing.expectApproxEqAbs(0.0, lossZero, 1e-6);
     for (dL) |val| try testing.expectApproxEqAbs(0.0, val, 1e-6);
 }
+
+// --- Normalization functions ---
+
+extern "c" fn eigen_computeMeanStd(inputs: [*]const T, outputs: [*]const T, aIn: [*]T, bIn: [*]T, aOut: [*]T, bOut: [*]T, nIn: usize, nOut: usize, nData: usize) void;
+extern "c" fn eigen_normalize(inputs: [*]T, outputs: [*]T, aIn: [*]const T, bIn: [*]const T, aOut: [*]const T, bOut: [*]const T, nIn: usize, nOut: usize, nData: usize) void;
+extern "c" fn eigen_denormalize(inputs: [*]T, outputs: [*]T, aIn: [*]const T, bIn: [*]const T, aOut: [*]const T, bOut: [*]const T, nIn: usize, nOut: usize, nData: usize) void;
+
+/// Computes Z-score factors over a batch: writes the population std into `aIn`/`aOut`
+/// and the mean into `bIn`/`bOut` using Eigen.
+pub fn computeMeanStd(inputs: []const T, outputs: []const T, aIn: []T, bIn: []T, aOut: []T, bOut: []T) void {
+    const nIn: usize = aIn.len;
+    const nOut: usize = aOut.len;
+    const nData: usize = inputs.len / nIn;
+    eigen_computeMeanStd(inputs.ptr, outputs.ptr, aIn.ptr, bIn.ptr, aOut.ptr, bOut.ptr, nIn, nOut, nData);
+}
+
+test "[eigen] computeMeanStd" {
+    const inputs = [_]T{ 0.0, 2.0, 4.0, 6.0, 8.0, 10.0 };
+    const outputs = [_]T{ 1.0, 3.0, 5.0 };
+    var aIn: [2]T = undefined;
+    var bIn: [2]T = undefined;
+    var aOut: [1]T = undefined;
+    var bOut: [1]T = undefined;
+
+    computeMeanStd(&inputs, &outputs, &aIn, &bIn, &aOut, &bOut);
+
+    // feature 0: {0,4,8} mean=4 ; feature 1: {2,6,10} mean=6
+    try testing.expectApproxEqAbs(4.0, bIn[0], 1e-4);
+    try testing.expectApproxEqAbs(6.0, bIn[1], 1e-4);
+    // std = sqrt(32/3) = 3.265986 for both input features
+    try testing.expectApproxEqAbs(3.265986, aIn[0], 1e-4);
+    try testing.expectApproxEqAbs(3.265986, aIn[1], 1e-4);
+    // output feature {1,3,5}: mean=3, std=sqrt(8/3)=1.632993
+    try testing.expectApproxEqAbs(3.0, bOut[0], 1e-4);
+    try testing.expectApproxEqAbs(1.632993, aOut[0], 1e-4);
+}
+
+/// Normalizes `inputs`/`outputs` in place over a full batch: x' = (x - b) / a
+pub fn normalize(inputs: []T, outputs: []T, aIn: []const T, bIn: []const T, aOut: []const T, bOut: []const T) void {
+    const nIn: usize = aIn.len;
+    const nOut: usize = aOut.len;
+    const nData: usize = inputs.len / nIn;
+    eigen_normalize(inputs.ptr, outputs.ptr, aIn.ptr, bIn.ptr, aOut.ptr, bOut.ptr, nIn, nOut, nData);
+}
+
+test "[eigen] normalize" {
+    const aIn = [_]T{ 2.0, 4.0 };
+    const bIn = [_]T{ 1.0, 2.0 };
+    const aOut = [_]T{10.0};
+    const bOut = [_]T{5.0};
+
+    var inputs = [_]T{ 1.0, 2.0, 3.0, 6.0 };
+    var outputs = [_]T{ 5.0, 15.0 };
+
+    normalize(&inputs, &outputs, &aIn, &bIn, &aOut, &bOut);
+
+    // inputs: ((1-1)/2,(2-2)/4, (3-1)/2,(6-2)/4) = (0,0,1,1)
+    try testing.expectApproxEqAbs(0.0, inputs[0], 1e-4);
+    try testing.expectApproxEqAbs(0.0, inputs[1], 1e-4);
+    try testing.expectApproxEqAbs(1.0, inputs[2], 1e-4);
+    try testing.expectApproxEqAbs(1.0, inputs[3], 1e-4);
+    // outputs: ((5-5)/10, (15-5)/10) = (0,1)
+    try testing.expectApproxEqAbs(0.0, outputs[0], 1e-4);
+    try testing.expectApproxEqAbs(1.0, outputs[1], 1e-4);
+}
+
+/// Denormalizes `inputs`/`outputs` in place over a full batch: x = x' * a + b
+pub fn denormalize(inputs: []T, outputs: []T, aIn: []const T, bIn: []const T, aOut: []const T, bOut: []const T) void {
+    const nIn: usize = aIn.len;
+    const nOut: usize = aOut.len;
+    const nData: usize = inputs.len / nIn;
+    eigen_denormalize(inputs.ptr, outputs.ptr, aIn.ptr, bIn.ptr, aOut.ptr, bOut.ptr, nIn, nOut, nData);
+}
+
+test "[eigen] denormalize" {
+    const aIn = [_]T{ 2.0, 4.0 };
+    const bIn = [_]T{ 1.0, 2.0 };
+    const aOut = [_]T{10.0};
+    const bOut = [_]T{5.0};
+
+    // start from normalized values
+    var inputs = [_]T{ 0.0, 0.0, 1.0, 1.0 };
+    var outputs = [_]T{ 0.0, 1.0 };
+
+    denormalize(&inputs, &outputs, &aIn, &bIn, &aOut, &bOut);
+
+    // inputs back to {1,2,3,6}
+    try testing.expectApproxEqAbs(1.0, inputs[0], 1e-4);
+    try testing.expectApproxEqAbs(2.0, inputs[1], 1e-4);
+    try testing.expectApproxEqAbs(3.0, inputs[2], 1e-4);
+    try testing.expectApproxEqAbs(6.0, inputs[3], 1e-4);
+    // outputs back to {5,15}
+    try testing.expectApproxEqAbs(5.0, outputs[0], 1e-4);
+    try testing.expectApproxEqAbs(15.0, outputs[1], 1e-4);
+}

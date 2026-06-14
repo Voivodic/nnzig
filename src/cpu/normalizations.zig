@@ -1,73 +1,15 @@
-//! This module is used to normalize and denormalize the data
-//! The data is normalized by x' = (x - b)/a => x = x'*a + b
+//! This module is used to normalize and denormalize the data.
+//! The data is normalized by x' = (x - b)/a => x = x'*a + b.
+//! The factor computation and the (de)normalization transforms are delegated to
+//! the Eigen C++ kernels in src/eigen/normalizations.cpp; this module owns the
+//! Norm structure (the factor slices) and validates the inputs.
 
 // Import the modules used
 const std = @import("std");
 const params = @import("params");
+const eigen = @import("eigen");
 const err = @import("errors").normalizationError;
 const T = params.T;
-
-/// Computes Z-score normalization factors: `a` is the standard deviation and `b` is the mean
-fn computeMeanStd(norm: *const Norm, inputs: []const T, outputs: []const T) void {
-    const nIn = params.nNeurons[0];
-    const nOut = params.nNeurons[params.nNeurons.len - 1];
-    const nData: usize = inputs.len / nIn;
-    const N: T = @as(T, @floatFromInt(nData));
-
-    // Compute means
-    for (0..nData) |i| {
-        for (0..nIn) |j| {
-            norm.bIn[j] += inputs[i * nIn + j] / N;
-        }
-        for (0..nOut) |j| {
-            norm.bOut[j] += outputs[i * nOut + j] / N;
-        }
-    }
-
-    // Compute the stds
-    for (0..nData) |i| {
-        for (0..nIn) |j| {
-            norm.aIn[j] += (inputs[i * nIn + j] - norm.bIn[j]) * (inputs[i * nIn + j] - norm.bIn[j]) / N;
-        }
-        for (0..nOut) |j| {
-            norm.aOut[j] += (outputs[i * nOut + j] - norm.bOut[j]) * (outputs[i * nOut + j] - norm.bOut[j]) / N;
-        }
-    }
-    for (norm.aIn) |*a| a.* = std.math.sqrt(a.*);
-    for (norm.aOut) |*a| a.* = std.math.sqrt(a.*);
-}
-
-/// Normalizes a chunk of data in-place using the stored factors: x' = (x - b) / a
-fn normalizeChunk(norm: *const Norm, inputs: []T, outputs: []T, startData: usize, endData: usize) void {
-    const nIn = params.nNeurons[0];
-    const nOut = params.nNeurons[params.nNeurons.len - 1];
-
-    // Normalize the inputs and outputs
-    for (startData..endData) |i| {
-        for (0..nIn) |j| {
-            inputs[i * nIn + j] = (inputs[i * nIn + j] - norm.bIn[j]) / norm.aIn[j];
-        }
-        for (0..nOut) |j| {
-            outputs[i * nOut + j] = (outputs[i * nOut + j] - norm.bOut[j]) / norm.aOut[j];
-        }
-    }
-}
-
-/// Denormalizes a chunk of data in-place using the stored factors: x = x' * a + b
-fn denormalizeChunk(norm: *const Norm, inputs: []T, outputs: []T, startData: usize, endData: usize) void {
-    const nIn = params.nNeurons[0];
-    const nOut = params.nNeurons[params.nNeurons.len - 1];
-
-    // Denormalize the inputs and outputs
-    for (startData..endData) |i| {
-        for (0..nIn) |j| {
-            inputs[i * nIn + j] = (inputs[i * nIn + j]) * (norm.aIn[j]) + norm.bIn[j];
-        }
-        for (0..nOut) |j| {
-            outputs[i * nOut + j] = (outputs[i * nOut + j]) * norm.aOut[j] + norm.bOut[j];
-        }
-    }
-}
 
 /// Main structure to handle the normalization and denormalization
 pub const Norm = struct {
@@ -186,7 +128,7 @@ pub const Norm = struct {
         }
 
         // Compute the slope and shift for the inputs and outputs
-        computeMeanStd(self, inputs, outputs);
+        eigen.computeMeanStd(inputs, outputs, self.aIn, self.bIn, self.aOut, self.bOut);
     }
 
     test "[norms] computeNormalization" {
@@ -226,33 +168,8 @@ pub const Norm = struct {
             return err.notInitialized;
         }
 
-        // Compute the number of data points
-        const nData: usize = inputs.len / nIn;
-
-        // Compute the chunck size
-        const chunkSize: usize = (nData + params.numThreads - 1) / params.numThreads;
-
-        // Define the array of threads
-        var threads: [params.numThreads]std.Thread = undefined;
-
-        // Compute the chuncks for each thread
-        for (&threads, 0..params.numThreads) |*thread, i| {
-            const start: usize = i * chunkSize;
-            const end: usize = @min(start + chunkSize, nData);
-
-            // Normalize the inputs and outputs in the current chunk
-            if (std.Thread.spawn(.{}, normalizeChunk, .{ self, inputs, outputs, start, end })) |t| {
-                thread.* = t;
-            } else |_| {
-                std.log.err("Error in spawning thread {}!\n", .{i});
-                return err.threadRun;
-            }
-        }
-
-        // Await all threads to finish
-        for (&threads) |*thread| {
-            thread.*.join();
-        }
+        // Normalize the inputs and outputs in place using Eigen
+        eigen.normalize(inputs, outputs, self.aIn, self.bIn, self.aOut, self.bOut);
     }
 
     test "[norms] normalize" {
@@ -314,33 +231,8 @@ pub const Norm = struct {
             return err.notInitialized;
         }
 
-        // Compute the number of data points
-        const nData: usize = inputs.len / nIn;
-
-        // Compute the chunck size
-        const chunkSize: usize = (nData + params.numThreads - 1) / params.numThreads;
-
-        // Define the array of threads
-        var threads: [params.numThreads]std.Thread = undefined;
-
-        // Compute the chuncks for each thread
-        for (&threads, 0..params.numThreads) |*thread, i| {
-            const start: usize = i * chunkSize;
-            const end: usize = @min(start + chunkSize, nData);
-
-            // Denormalize the inputs and outputs in the current chunk
-            if (std.Thread.spawn(.{}, denormalizeChunk, .{ self, inputs, outputs, start, end })) |t| {
-                thread.* = t;
-            } else |_| {
-                std.log.err("Error in spawning thread {}!\n", .{i});
-                return err.threadRun;
-            }
-        }
-
-        // Await all threads to finish
-        for (&threads) |*thread| {
-            thread.*.join();
-        }
+        // Denormalize the inputs and outputs in place using Eigen
+        eigen.denormalize(inputs, outputs, self.aIn, self.bIn, self.aOut, self.bOut);
     }
 
     test "[norms] denormalize" {
