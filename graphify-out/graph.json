@@ -1,0 +1,2568 @@
+{
+  "directed": false,
+  "multigraph": false,
+  "graph": {},
+  "nodes": [
+    {
+      "label": "generate_data.py",
+      "file_type": "code",
+      "source_file": "benchmarks/generate_data.py",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "benchmarks_generate_data",
+      "community": 15,
+      "norm_label": "generate_data.py"
+    },
+    {
+      "label": "plot_losses.py",
+      "file_type": "code",
+      "source_file": "benchmarks/plot_losses.py",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "benchmarks_plot_losses",
+      "community": 13,
+      "norm_label": "plot_losses.py"
+    },
+    {
+      "label": "read_losses_binary()",
+      "file_type": "code",
+      "source_file": "benchmarks/plot_losses.py",
+      "source_location": "L8",
+      "_origin": "ast",
+      "id": "benchmarks_plot_losses_read_losses_binary",
+      "community": 13,
+      "norm_label": "read_losses_binary()"
+    },
+    {
+      "label": "run_nnzig.zig",
+      "file_type": "code",
+      "source_file": "benchmarks/run_nnzig.zig",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "benchmarks_run_nnzig",
+      "community": 14,
+      "norm_label": "run_nnzig.zig"
+    },
+    {
+      "label": "main()",
+      "file_type": "code",
+      "source_file": "benchmarks/run_nnzig.zig",
+      "source_location": "L6",
+      "_origin": "ast",
+      "id": "benchmarks_run_nnzig_main",
+      "community": 14,
+      "norm_label": "main()"
+    },
+    {
+      "label": "run_pytorch.py",
+      "file_type": "code",
+      "source_file": "benchmarks/run_pytorch.py",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "benchmarks_run_pytorch",
+      "community": 6,
+      "norm_label": "run_pytorch.py"
+    },
+    {
+      "label": "read_numpy_binary()",
+      "file_type": "code",
+      "source_file": "benchmarks/run_pytorch.py",
+      "source_location": "L6",
+      "_origin": "ast",
+      "id": "benchmarks_run_pytorch_read_numpy_binary",
+      "community": 6,
+      "norm_label": "read_numpy_binary()"
+    },
+    {
+      "label": "write_losses_binary()",
+      "file_type": "code",
+      "source_file": "benchmarks/run_pytorch.py",
+      "source_location": "L28",
+      "_origin": "ast",
+      "id": "benchmarks_run_pytorch_write_losses_binary",
+      "community": 6,
+      "norm_label": "write_losses_binary()"
+    },
+    {
+      "label": "MLP",
+      "file_type": "code",
+      "source_file": "benchmarks/run_pytorch.py",
+      "source_location": "L37",
+      "_origin": "ast",
+      "id": "benchmarks_run_pytorch_mlp",
+      "community": 6,
+      "norm_label": "mlp"
+    },
+    {
+      "label": ".__init__()",
+      "file_type": "code",
+      "source_file": "benchmarks/run_pytorch.py",
+      "source_location": "L38",
+      "_origin": "ast",
+      "id": "benchmarks_run_pytorch_mlp_init",
+      "community": 6,
+      "norm_label": ".__init__()"
+    },
+    {
+      "label": ".forward()",
+      "file_type": "code",
+      "source_file": "benchmarks/run_pytorch.py",
+      "source_location": "L51",
+      "_origin": "ast",
+      "id": "benchmarks_run_pytorch_mlp_forward",
+      "community": 6,
+      "norm_label": ".forward()"
+    },
+    {
+      "label": "build.zig",
+      "file_type": "code",
+      "source_file": "build.zig",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "build",
+      "community": 10,
+      "norm_label": "build.zig"
+    },
+    {
+      "label": "Tree",
+      "file_type": "code",
+      "source_file": "build.zig",
+      "source_location": "L4",
+      "_origin": "ast",
+      "id": "build_tree",
+      "community": 10,
+      "norm_label": "tree"
+    },
+    {
+      "label": "createTree()",
+      "file_type": "code",
+      "source_file": "build.zig",
+      "source_location": "L16",
+      "_origin": "ast",
+      "id": "build_createtree",
+      "community": 10,
+      "norm_label": "createtree()"
+    },
+    {
+      "label": "build()",
+      "file_type": "code",
+      "source_file": "build.zig",
+      "source_location": "L133",
+      "_origin": "ast",
+      "id": "build_build",
+      "community": 10,
+      "norm_label": "build()"
+    },
+    {
+      "label": "errors.zig",
+      "file_type": "code",
+      "source_file": "src/core/errors.zig",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "core_errors",
+      "community": 16,
+      "norm_label": "errors.zig"
+    },
+    {
+      "label": "normalizations.zig",
+      "file_type": "code",
+      "source_file": "src/core/normalizations.zig",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "core_normalizations",
+      "community": 3,
+      "norm_label": "normalizations.zig"
+    },
+    {
+      "label": "computeMeanStd()",
+      "file_type": "code",
+      "source_file": "src/core/normalizations.zig",
+      "source_location": "L11",
+      "_origin": "ast",
+      "id": "core_normalizations_computemeanstd",
+      "community": 3,
+      "norm_label": "computemeanstd()"
+    },
+    {
+      "label": "normalizeChunk()",
+      "file_type": "code",
+      "source_file": "src/core/normalizations.zig",
+      "source_location": "L41",
+      "_origin": "ast",
+      "id": "core_normalizations_normalizechunk",
+      "community": 3,
+      "norm_label": "normalizechunk()"
+    },
+    {
+      "label": "denormalizeChunk()",
+      "file_type": "code",
+      "source_file": "src/core/normalizations.zig",
+      "source_location": "L57",
+      "_origin": "ast",
+      "id": "core_normalizations_denormalizechunk",
+      "community": 3,
+      "norm_label": "denormalizechunk()"
+    },
+    {
+      "label": "Norm",
+      "file_type": "code",
+      "source_file": "src/core/normalizations.zig",
+      "source_location": "L73",
+      "_origin": "ast",
+      "id": "core_normalizations_norm",
+      "community": 3,
+      "norm_label": "norm"
+    },
+    {
+      "label": ".init()",
+      "file_type": "code",
+      "source_file": "src/core/normalizations.zig",
+      "source_location": "L81",
+      "_origin": "ast",
+      "id": "core_normalizations_norm_init",
+      "community": 3,
+      "norm_label": ".init()"
+    },
+    {
+      "label": ".deinit()",
+      "file_type": "code",
+      "source_file": "src/core/normalizations.zig",
+      "source_location": "L164",
+      "_origin": "ast",
+      "id": "core_normalizations_norm_deinit",
+      "community": 3,
+      "norm_label": ".deinit()"
+    },
+    {
+      "label": ".computeNormalization()",
+      "file_type": "code",
+      "source_file": "src/core/normalizations.zig",
+      "source_location": "L172",
+      "_origin": "ast",
+      "id": "core_normalizations_norm_computenormalization",
+      "community": 3,
+      "norm_label": ".computenormalization()"
+    },
+    {
+      "label": ".normalize()",
+      "file_type": "code",
+      "source_file": "src/core/normalizations.zig",
+      "source_location": "L213",
+      "_origin": "ast",
+      "id": "core_normalizations_norm_normalize",
+      "community": 3,
+      "norm_label": ".normalize()"
+    },
+    {
+      "label": ".denormalize()",
+      "file_type": "code",
+      "source_file": "src/core/normalizations.zig",
+      "source_location": "L301",
+      "_origin": "ast",
+      "id": "core_normalizations_norm_denormalize",
+      "community": 3,
+      "norm_label": ".denormalize()"
+    },
+    {
+      "label": "params.zig",
+      "file_type": "code",
+      "source_file": "src/core/params.zig",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "core_params",
+      "community": 4,
+      "norm_label": "params.zig"
+    },
+    {
+      "label": "activation",
+      "file_type": "code",
+      "source_file": "src/core/params.zig",
+      "source_location": "L25",
+      "_origin": "ast",
+      "id": "core_params_activation",
+      "community": 4,
+      "norm_label": "activation"
+    },
+    {
+      "label": "loss",
+      "file_type": "code",
+      "source_file": "src/core/params.zig",
+      "source_location": "L33",
+      "_origin": "ast",
+      "id": "core_params_loss",
+      "community": 4,
+      "norm_label": "loss"
+    },
+    {
+      "label": "norm",
+      "file_type": "code",
+      "source_file": "src/core/params.zig",
+      "source_location": "L38",
+      "_origin": "ast",
+      "id": "core_params_norm",
+      "community": 4,
+      "norm_label": "norm"
+    },
+    {
+      "label": "baseParams",
+      "file_type": "code",
+      "source_file": "src/core/params.zig",
+      "source_location": "L44",
+      "_origin": "ast",
+      "id": "core_params_baseparams",
+      "community": 4,
+      "norm_label": "baseparams"
+    },
+    {
+      "label": "convertIntToType()",
+      "file_type": "code",
+      "source_file": "src/core/params.zig",
+      "source_location": "L63",
+      "_origin": "ast",
+      "id": "core_params_convertinttotype",
+      "community": 4,
+      "norm_label": "convertinttotype()"
+    },
+    {
+      "label": "convertStringToEnum()",
+      "file_type": "code",
+      "source_file": "src/core/params.zig",
+      "source_location": "L73",
+      "_origin": "ast",
+      "id": "core_params_convertstringtoenum",
+      "community": 4,
+      "norm_label": "convertstringtoenum()"
+    },
+    {
+      "label": "convertTupleToArray()",
+      "file_type": "code",
+      "source_file": "src/core/params.zig",
+      "source_location": "L95",
+      "_origin": "ast",
+      "id": "core_params_converttupletoarray",
+      "community": 4,
+      "norm_label": "converttupletoarray()"
+    },
+    {
+      "label": "convertTupleToEnumArray()",
+      "file_type": "code",
+      "source_file": "src/core/params.zig",
+      "source_location": "L114",
+      "_origin": "ast",
+      "id": "core_params_converttupletoenumarray",
+      "community": 4,
+      "norm_label": "converttupletoenumarray()"
+    },
+    {
+      "label": "activations.zig",
+      "file_type": "code",
+      "source_file": "src/cpu/activations.zig",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "cpu_activations",
+      "community": 7,
+      "norm_label": "activations.zig"
+    },
+    {
+      "label": "none()",
+      "file_type": "code",
+      "source_file": "src/cpu/activations.zig",
+      "source_location": "L11",
+      "_origin": "ast",
+      "id": "cpu_activations_none",
+      "community": 7,
+      "norm_label": "none()"
+    },
+    {
+      "label": "relu()",
+      "file_type": "code",
+      "source_file": "src/cpu/activations.zig",
+      "source_location": "L18",
+      "_origin": "ast",
+      "id": "cpu_activations_relu",
+      "community": 7,
+      "norm_label": "relu()"
+    },
+    {
+      "label": "tanh()",
+      "file_type": "code",
+      "source_file": "src/cpu/activations.zig",
+      "source_location": "L30",
+      "_origin": "ast",
+      "id": "cpu_activations_tanh",
+      "community": 7,
+      "norm_label": "tanh()"
+    },
+    {
+      "label": "sigmoid()",
+      "file_type": "code",
+      "source_file": "src/cpu/activations.zig",
+      "source_location": "L41",
+      "_origin": "ast",
+      "id": "cpu_activations_sigmoid",
+      "community": 7,
+      "norm_label": "sigmoid()"
+    },
+    {
+      "label": "activateElements()",
+      "file_type": "code",
+      "source_file": "src/cpu/activations.zig",
+      "source_location": "L51",
+      "_origin": "ast",
+      "id": "cpu_activations_activateelements",
+      "community": 7,
+      "norm_label": "activateelements()"
+    },
+    {
+      "label": "losses.zig",
+      "file_type": "code",
+      "source_file": "src/cpu/losses.zig",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "cpu_losses",
+      "community": 11,
+      "norm_label": "losses.zig"
+    },
+    {
+      "label": "MSE()",
+      "file_type": "code",
+      "source_file": "src/cpu/losses.zig",
+      "source_location": "L11",
+      "_origin": "ast",
+      "id": "cpu_losses_mse",
+      "community": 11,
+      "norm_label": "mse()"
+    },
+    {
+      "label": "computeLoss()",
+      "file_type": "code",
+      "source_file": "src/cpu/losses.zig",
+      "source_location": "L25",
+      "_origin": "ast",
+      "id": "cpu_losses_computeloss",
+      "community": 11,
+      "norm_label": "computeloss()"
+    },
+    {
+      "label": "activations.cpp",
+      "file_type": "code",
+      "source_file": "src/eigen/activations.cpp",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "eigen_activations",
+      "community": 12,
+      "norm_label": "activations.cpp"
+    },
+    {
+      "label": "noneHalf()",
+      "file_type": "code",
+      "source_file": "src/eigen/activations.cpp",
+      "source_location": "L12",
+      "_origin": "ast",
+      "id": "eigen_activations_nonehalf",
+      "community": 12,
+      "norm_label": "nonehalf()"
+    },
+    {
+      "label": "half",
+      "file_type": "code",
+      "source_file": "src/eigen/activations.cpp",
+      "source_location": "L12",
+      "_origin": "ast",
+      "id": "half",
+      "community": 12,
+      "norm_label": "half"
+    },
+    {
+      "label": "linalg.cpp",
+      "file_type": "code",
+      "source_file": "src/eigen/linalg.cpp",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "eigen_linalg",
+      "community": 2,
+      "norm_label": "linalg.cpp"
+    },
+    {
+      "label": "eigen_matrixVectorMulAdd()",
+      "file_type": "code",
+      "source_file": "src/eigen/linalg.cpp",
+      "source_location": "L24",
+      "_origin": "ast",
+      "id": "eigen_linalg_eigen_matrixvectormuladd",
+      "community": 2,
+      "norm_label": "eigen_matrixvectormuladd()"
+    },
+    {
+      "label": "f_type",
+      "file_type": "code",
+      "source_file": "src/eigen/linalg.cpp",
+      "source_location": "L24",
+      "_origin": "ast",
+      "id": "f_type",
+      "community": 2,
+      "norm_label": "f_type"
+    },
+    {
+      "label": "eigen_matrixVectorMulAddBatch()",
+      "file_type": "code",
+      "source_file": "src/eigen/linalg.cpp",
+      "source_location": "L34",
+      "_origin": "ast",
+      "id": "eigen_linalg_eigen_matrixvectormuladdbatch",
+      "community": 2,
+      "norm_label": "eigen_matrixvectormuladdbatch()"
+    },
+    {
+      "label": "eigen_vectorMatrixMul()",
+      "file_type": "code",
+      "source_file": "src/eigen/linalg.cpp",
+      "source_location": "L44",
+      "_origin": "ast",
+      "id": "eigen_linalg_eigen_vectormatrixmul",
+      "community": 2,
+      "norm_label": "eigen_vectormatrixmul()"
+    },
+    {
+      "label": "eigen_vectorMatrixMulBatch()",
+      "file_type": "code",
+      "source_file": "src/eigen/linalg.cpp",
+      "source_location": "L53",
+      "_origin": "ast",
+      "id": "eigen_linalg_eigen_vectormatrixmulbatch",
+      "community": 2,
+      "norm_label": "eigen_vectormatrixmulbatch()"
+    },
+    {
+      "label": "eigen_vectorMul()",
+      "file_type": "code",
+      "source_file": "src/eigen/linalg.cpp",
+      "source_location": "L62",
+      "_origin": "ast",
+      "id": "eigen_linalg_eigen_vectormul",
+      "community": 2,
+      "norm_label": "eigen_vectormul()"
+    },
+    {
+      "label": "eigen_setZero()",
+      "file_type": "code",
+      "source_file": "src/eigen/linalg.cpp",
+      "source_location": "L70",
+      "_origin": "ast",
+      "id": "eigen_linalg_eigen_setzero",
+      "community": 2,
+      "norm_label": "eigen_setzero()"
+    },
+    {
+      "label": "eigen_vectorInit()",
+      "file_type": "code",
+      "source_file": "src/eigen/linalg.cpp",
+      "source_location": "L76",
+      "_origin": "ast",
+      "id": "eigen_linalg_eigen_vectorinit",
+      "community": 2,
+      "norm_label": "eigen_vectorinit()"
+    },
+    {
+      "label": "eigen_updateGradWeights()",
+      "file_type": "code",
+      "source_file": "src/eigen/linalg.cpp",
+      "source_location": "L84",
+      "_origin": "ast",
+      "id": "eigen_linalg_eigen_updategradweights",
+      "community": 2,
+      "norm_label": "eigen_updategradweights()"
+    },
+    {
+      "label": "eigen_updateGradWeightsBatch()",
+      "file_type": "code",
+      "source_file": "src/eigen/linalg.cpp",
+      "source_location": "L93",
+      "_origin": "ast",
+      "id": "eigen_linalg_eigen_updategradweightsbatch",
+      "community": 2,
+      "norm_label": "eigen_updategradweightsbatch()"
+    },
+    {
+      "label": "eigen_updateGradBiases()",
+      "file_type": "code",
+      "source_file": "src/eigen/linalg.cpp",
+      "source_location": "L102",
+      "_origin": "ast",
+      "id": "eigen_linalg_eigen_updategradbiases",
+      "community": 2,
+      "norm_label": "eigen_updategradbiases()"
+    },
+    {
+      "label": "eigen_updateGradBiasesBatch()",
+      "file_type": "code",
+      "source_file": "src/eigen/linalg.cpp",
+      "source_location": "L110",
+      "_origin": "ast",
+      "id": "eigen_linalg_eigen_updategradbiasesbatch",
+      "community": 2,
+      "norm_label": "eigen_updategradbiasesbatch()"
+    },
+    {
+      "label": "wrappers.zig",
+      "file_type": "code",
+      "source_file": "src/eigen/wrappers.zig",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "eigen_wrappers",
+      "community": 0,
+      "norm_label": "wrappers.zig"
+    },
+    {
+      "label": "eigen_matrixVectorMulAdd()",
+      "file_type": "code",
+      "source_file": "src/eigen/wrappers.zig",
+      "source_location": "L11",
+      "_origin": "ast",
+      "id": "eigen_wrappers_eigen_matrixvectormuladd",
+      "community": 0,
+      "norm_label": "eigen_matrixvectormuladd()"
+    },
+    {
+      "label": "matrixVectorMulAdd()",
+      "file_type": "code",
+      "source_file": "src/eigen/wrappers.zig",
+      "source_location": "L14",
+      "_origin": "ast",
+      "id": "eigen_wrappers_matrixvectormuladd",
+      "community": 0,
+      "norm_label": "matrixvectormuladd()"
+    },
+    {
+      "label": "eigen_matrixVectorMulAddBatch()",
+      "file_type": "code",
+      "source_file": "src/eigen/wrappers.zig",
+      "source_location": "L30",
+      "_origin": "ast",
+      "id": "eigen_wrappers_eigen_matrixvectormuladdbatch",
+      "community": 0,
+      "norm_label": "eigen_matrixvectormuladdbatch()"
+    },
+    {
+      "label": "matrixVectorMulAddBatch()",
+      "file_type": "code",
+      "source_file": "src/eigen/wrappers.zig",
+      "source_location": "L33",
+      "_origin": "ast",
+      "id": "eigen_wrappers_matrixvectormuladdbatch",
+      "community": 0,
+      "norm_label": "matrixvectormuladdbatch()"
+    },
+    {
+      "label": "eigen_vectorMatrixMul()",
+      "file_type": "code",
+      "source_file": "src/eigen/wrappers.zig",
+      "source_location": "L57",
+      "_origin": "ast",
+      "id": "eigen_wrappers_eigen_vectormatrixmul",
+      "community": 0,
+      "norm_label": "eigen_vectormatrixmul()"
+    },
+    {
+      "label": "vectorMatrixMul()",
+      "file_type": "code",
+      "source_file": "src/eigen/wrappers.zig",
+      "source_location": "L60",
+      "_origin": "ast",
+      "id": "eigen_wrappers_vectormatrixmul",
+      "community": 0,
+      "norm_label": "vectormatrixmul()"
+    },
+    {
+      "label": "eigen_vectorMatrixMulBatch()",
+      "file_type": "code",
+      "source_file": "src/eigen/wrappers.zig",
+      "source_location": "L74",
+      "_origin": "ast",
+      "id": "eigen_wrappers_eigen_vectormatrixmulbatch",
+      "community": 0,
+      "norm_label": "eigen_vectormatrixmulbatch()"
+    },
+    {
+      "label": "vectorMatrixMulBatch()",
+      "file_type": "code",
+      "source_file": "src/eigen/wrappers.zig",
+      "source_location": "L77",
+      "_origin": "ast",
+      "id": "eigen_wrappers_vectormatrixmulbatch",
+      "community": 0,
+      "norm_label": "vectormatrixmulbatch()"
+    },
+    {
+      "label": "eigen_vectorMul()",
+      "file_type": "code",
+      "source_file": "src/eigen/wrappers.zig",
+      "source_location": "L99",
+      "_origin": "ast",
+      "id": "eigen_wrappers_eigen_vectormul",
+      "community": 0,
+      "norm_label": "eigen_vectormul()"
+    },
+    {
+      "label": "vectorMul()",
+      "file_type": "code",
+      "source_file": "src/eigen/wrappers.zig",
+      "source_location": "L102",
+      "_origin": "ast",
+      "id": "eigen_wrappers_vectormul",
+      "community": 0,
+      "norm_label": "vectormul()"
+    },
+    {
+      "label": "eigen_setZero()",
+      "file_type": "code",
+      "source_file": "src/eigen/wrappers.zig",
+      "source_location": "L118",
+      "_origin": "ast",
+      "id": "eigen_wrappers_eigen_setzero",
+      "community": 0,
+      "norm_label": "eigen_setzero()"
+    },
+    {
+      "label": "setZero()",
+      "file_type": "code",
+      "source_file": "src/eigen/wrappers.zig",
+      "source_location": "L121",
+      "_origin": "ast",
+      "id": "eigen_wrappers_setzero",
+      "community": 0,
+      "norm_label": "setzero()"
+    },
+    {
+      "label": "eigen_vectorInit()",
+      "file_type": "code",
+      "source_file": "src/eigen/wrappers.zig",
+      "source_location": "L135",
+      "_origin": "ast",
+      "id": "eigen_wrappers_eigen_vectorinit",
+      "community": 0,
+      "norm_label": "eigen_vectorinit()"
+    },
+    {
+      "label": "vectorInit()",
+      "file_type": "code",
+      "source_file": "src/eigen/wrappers.zig",
+      "source_location": "L138",
+      "_origin": "ast",
+      "id": "eigen_wrappers_vectorinit",
+      "community": 0,
+      "norm_label": "vectorinit()"
+    },
+    {
+      "label": "eigen_updateGradWeights()",
+      "file_type": "code",
+      "source_file": "src/eigen/wrappers.zig",
+      "source_location": "L155",
+      "_origin": "ast",
+      "id": "eigen_wrappers_eigen_updategradweights",
+      "community": 0,
+      "norm_label": "eigen_updategradweights()"
+    },
+    {
+      "label": "updateGradWeights()",
+      "file_type": "code",
+      "source_file": "src/eigen/wrappers.zig",
+      "source_location": "L158",
+      "_origin": "ast",
+      "id": "eigen_wrappers_updategradweights",
+      "community": 0,
+      "norm_label": "updategradweights()"
+    },
+    {
+      "label": "eigen_updateGradWeightsBatch()",
+      "file_type": "code",
+      "source_file": "src/eigen/wrappers.zig",
+      "source_location": "L175",
+      "_origin": "ast",
+      "id": "eigen_wrappers_eigen_updategradweightsbatch",
+      "community": 0,
+      "norm_label": "eigen_updategradweightsbatch()"
+    },
+    {
+      "label": "updateGradWeightsBatch()",
+      "file_type": "code",
+      "source_file": "src/eigen/wrappers.zig",
+      "source_location": "L178",
+      "_origin": "ast",
+      "id": "eigen_wrappers_updategradweightsbatch",
+      "community": 0,
+      "norm_label": "updategradweightsbatch()"
+    },
+    {
+      "label": "eigen_updateGradBiases()",
+      "file_type": "code",
+      "source_file": "src/eigen/wrappers.zig",
+      "source_location": "L200",
+      "_origin": "ast",
+      "id": "eigen_wrappers_eigen_updategradbiases",
+      "community": 0,
+      "norm_label": "eigen_updategradbiases()"
+    },
+    {
+      "label": "updateGradBiases()",
+      "file_type": "code",
+      "source_file": "src/eigen/wrappers.zig",
+      "source_location": "L203",
+      "_origin": "ast",
+      "id": "eigen_wrappers_updategradbiases",
+      "community": 0,
+      "norm_label": "updategradbiases()"
+    },
+    {
+      "label": "eigen_updateGradBiasesBatch()",
+      "file_type": "code",
+      "source_file": "src/eigen/wrappers.zig",
+      "source_location": "L217",
+      "_origin": "ast",
+      "id": "eigen_wrappers_eigen_updategradbiasesbatch",
+      "community": 0,
+      "norm_label": "eigen_updategradbiasesbatch()"
+    },
+    {
+      "label": "updateGradBiasesBatch()",
+      "file_type": "code",
+      "source_file": "src/eigen/wrappers.zig",
+      "source_location": "L220",
+      "_origin": "ast",
+      "id": "eigen_wrappers_updategradbiasesbatch",
+      "community": 0,
+      "norm_label": "updategradbiasesbatch()"
+    },
+    {
+      "label": "binary.zig",
+      "file_type": "code",
+      "source_file": "src/io/binary.zig",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "io_binary",
+      "community": 5,
+      "norm_label": "binary.zig"
+    },
+    {
+      "label": "NNHeader",
+      "file_type": "code",
+      "source_file": "src/io/binary.zig",
+      "source_location": "L15",
+      "_origin": "ast",
+      "id": "io_binary_nnheader",
+      "community": 5,
+      "norm_label": "nnheader"
+    },
+    {
+      "label": "DataHeader",
+      "file_type": "code",
+      "source_file": "src/io/binary.zig",
+      "source_location": "L22",
+      "_origin": "ast",
+      "id": "io_binary_dataheader",
+      "community": 5,
+      "norm_label": "dataheader"
+    },
+    {
+      "label": "saveWeights()",
+      "file_type": "code",
+      "source_file": "src/io/binary.zig",
+      "source_location": "L30",
+      "_origin": "ast",
+      "id": "io_binary_saveweights",
+      "community": 5,
+      "norm_label": "saveweights()"
+    },
+    {
+      "label": "loadWeights()",
+      "file_type": "code",
+      "source_file": "src/io/binary.zig",
+      "source_location": "L49",
+      "_origin": "ast",
+      "id": "io_binary_loadweights",
+      "community": 5,
+      "norm_label": "loadweights()"
+    },
+    {
+      "label": "saveData()",
+      "file_type": "code",
+      "source_file": "src/io/binary.zig",
+      "source_location": "L125",
+      "_origin": "ast",
+      "id": "io_binary_savedata",
+      "community": 5,
+      "norm_label": "savedata()"
+    },
+    {
+      "label": "loadData()",
+      "file_type": "code",
+      "source_file": "src/io/binary.zig",
+      "source_location": "L166",
+      "_origin": "ast",
+      "id": "io_binary_loaddata",
+      "community": 5,
+      "norm_label": "loaddata()"
+    },
+    {
+      "label": "mlp.zig",
+      "file_type": "code",
+      "source_file": "src/layers/mlp.zig",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "layers_mlp",
+      "community": 8,
+      "norm_label": "mlp.zig"
+    },
+    {
+      "label": "MLP",
+      "file_type": "code",
+      "source_file": "src/layers/mlp.zig",
+      "source_location": "L14",
+      "_origin": "ast",
+      "id": "layers_mlp_mlp",
+      "community": 8,
+      "norm_label": "mlp"
+    },
+    {
+      "label": ".init()",
+      "file_type": "code",
+      "source_file": "src/layers/mlp.zig",
+      "source_location": "L21",
+      "_origin": "ast",
+      "id": "layers_mlp_mlp_init",
+      "community": 8,
+      "norm_label": ".init()"
+    },
+    {
+      "label": ".deinit()",
+      "file_type": "code",
+      "source_file": "src/layers/mlp.zig",
+      "source_location": "L69",
+      "_origin": "ast",
+      "id": "layers_mlp_mlp_deinit",
+      "community": 8,
+      "norm_label": ".deinit()"
+    },
+    {
+      "label": ".forward()",
+      "file_type": "code",
+      "source_file": "src/layers/mlp.zig",
+      "source_location": "L79",
+      "_origin": "ast",
+      "id": "layers_mlp_mlp_forward",
+      "community": 8,
+      "norm_label": ".forward()"
+    },
+    {
+      "label": ".backward()",
+      "file_type": "code",
+      "source_file": "src/layers/mlp.zig",
+      "source_location": "L111",
+      "_origin": "ast",
+      "id": "layers_mlp_mlp_backward",
+      "community": 8,
+      "norm_label": ".backward()"
+    },
+    {
+      "label": "nnzig.zig",
+      "file_type": "code",
+      "source_file": "src/nnzig.zig",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "src_nnzig",
+      "community": 1,
+      "norm_label": "nnzig.zig"
+    },
+    {
+      "label": "NN",
+      "file_type": "code",
+      "source_file": "src/nnzig.zig",
+      "source_location": "L19",
+      "_origin": "ast",
+      "id": "src_nnzig_nn",
+      "community": 1,
+      "norm_label": "nn"
+    },
+    {
+      "label": ".init()",
+      "file_type": "code",
+      "source_file": "src/nnzig.zig",
+      "source_location": "L37",
+      "_origin": "ast",
+      "id": "src_nnzig_nn_init",
+      "community": 1,
+      "norm_label": ".init()"
+    },
+    {
+      "label": ".deinit()",
+      "file_type": "code",
+      "source_file": "src/nnzig.zig",
+      "source_location": "L164",
+      "_origin": "ast",
+      "id": "src_nnzig_nn_deinit",
+      "community": 1,
+      "norm_label": ".deinit()"
+    },
+    {
+      "label": ".computeNormalization()",
+      "file_type": "code",
+      "source_file": "src/nnzig.zig",
+      "source_location": "L229",
+      "_origin": "ast",
+      "id": "src_nnzig_nn_computenormalization",
+      "community": 1,
+      "norm_label": ".computenormalization()"
+    },
+    {
+      "label": ".normalize()",
+      "file_type": "code",
+      "source_file": "src/nnzig.zig",
+      "source_location": "L275",
+      "_origin": "ast",
+      "id": "src_nnzig_nn_normalize",
+      "community": 1,
+      "norm_label": ".normalize()"
+    },
+    {
+      "label": ".denormalize()",
+      "file_type": "code",
+      "source_file": "src/nnzig.zig",
+      "source_location": "L323",
+      "_origin": "ast",
+      "id": "src_nnzig_nn_denormalize",
+      "community": 1,
+      "norm_label": ".denormalize()"
+    },
+    {
+      "label": ".zeroGrad()",
+      "file_type": "code",
+      "source_file": "src/nnzig.zig",
+      "source_location": "L377",
+      "_origin": "ast",
+      "id": "src_nnzig_nn_zerograd",
+      "community": 1,
+      "norm_label": ".zerograd()"
+    },
+    {
+      "label": ".zeroLosses()",
+      "file_type": "code",
+      "source_file": "src/nnzig.zig",
+      "source_location": "L404",
+      "_origin": "ast",
+      "id": "src_nnzig_nn_zerolosses",
+      "community": 1,
+      "norm_label": ".zerolosses()"
+    },
+    {
+      "label": ".forward()",
+      "file_type": "code",
+      "source_file": "src/nnzig.zig",
+      "source_location": "L431",
+      "_origin": "ast",
+      "id": "src_nnzig_nn_forward",
+      "community": 1,
+      "norm_label": ".forward()"
+    },
+    {
+      "label": ".backProp()",
+      "file_type": "code",
+      "source_file": "src/nnzig.zig",
+      "source_location": "L466",
+      "_origin": "ast",
+      "id": "src_nnzig_nn_backprop",
+      "community": 1,
+      "norm_label": ".backprop()"
+    },
+    {
+      "label": ".updateMV()",
+      "file_type": "code",
+      "source_file": "src/nnzig.zig",
+      "source_location": "L513",
+      "_origin": "ast",
+      "id": "src_nnzig_nn_updatemv",
+      "community": 1,
+      "norm_label": ".updatemv()"
+    },
+    {
+      "label": ".updateWeights()",
+      "file_type": "code",
+      "source_file": "src/nnzig.zig",
+      "source_location": "L528",
+      "_origin": "ast",
+      "id": "src_nnzig_nn_updateweights",
+      "community": 1,
+      "norm_label": ".updateweights()"
+    },
+    {
+      "label": ".train()",
+      "file_type": "code",
+      "source_file": "src/nnzig.zig",
+      "source_location": "L548",
+      "_origin": "ast",
+      "id": "src_nnzig_nn_train",
+      "community": 1,
+      "norm_label": ".train()"
+    },
+    {
+      "label": ".saveWeights()",
+      "file_type": "code",
+      "source_file": "src/nnzig.zig",
+      "source_location": "L692",
+      "_origin": "ast",
+      "id": "src_nnzig_nn_saveweights",
+      "community": 1,
+      "norm_label": ".saveweights()"
+    },
+    {
+      "label": ".loadWeights()",
+      "file_type": "code",
+      "source_file": "src/nnzig.zig",
+      "source_location": "L697",
+      "_origin": "ast",
+      "id": "src_nnzig_nn_loadweights",
+      "community": 1,
+      "norm_label": ".loadweights()"
+    },
+    {
+      "label": ".saveLosses()",
+      "file_type": "code",
+      "source_file": "src/nnzig.zig",
+      "source_location": "L741",
+      "_origin": "ast",
+      "id": "src_nnzig_nn_savelosses",
+      "community": 1,
+      "norm_label": ".savelosses()"
+    },
+    {
+      "label": "tests.zig",
+      "file_type": "code",
+      "source_file": "tests/tests.zig",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "tests_tests",
+      "community": 17,
+      "norm_label": "tests.zig"
+    },
+    {
+      "label": "NNzig",
+      "file_type": "document",
+      "source_file": "README.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "id": "readme_nnzig",
+      "community": 9,
+      "norm_label": "nnzig"
+    },
+    {
+      "label": "Docs Workflow",
+      "file_type": "code",
+      "source_file": ".github/workflows/docs.yml",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "id": "docs_workflow",
+      "community": 9,
+      "norm_label": "docs workflow"
+    },
+    {
+      "label": "Test Workflow",
+      "file_type": "code",
+      "source_file": ".github/workflows/test.yml",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "id": "test_workflow",
+      "community": 9,
+      "norm_label": "test workflow"
+    },
+    {
+      "label": "Zig Compiler",
+      "file_type": "concept",
+      "source_file": null,
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "id": "zig_compiler",
+      "community": 9,
+      "norm_label": "zig compiler"
+    },
+    {
+      "label": "GitHub Pages",
+      "file_type": "concept",
+      "source_file": null,
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "id": "github_pages",
+      "community": 9,
+      "norm_label": "github pages"
+    }
+  ],
+  "links": [
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "benchmarks/plot_losses.py",
+      "source_location": "L8",
+      "weight": 1.0,
+      "source": "benchmarks_plot_losses",
+      "target": "benchmarks_plot_losses_read_losses_binary",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "benchmarks/run_nnzig.zig",
+      "source_location": "L6",
+      "weight": 1.0,
+      "source": "benchmarks_run_nnzig",
+      "target": "benchmarks_run_nnzig_main",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "benchmarks/run_pytorch.py",
+      "source_location": "L37",
+      "weight": 1.0,
+      "source": "benchmarks_run_pytorch",
+      "target": "benchmarks_run_pytorch_mlp",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "benchmarks/run_pytorch.py",
+      "source_location": "L6",
+      "weight": 1.0,
+      "source": "benchmarks_run_pytorch",
+      "target": "benchmarks_run_pytorch_read_numpy_binary",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "benchmarks/run_pytorch.py",
+      "source_location": "L28",
+      "weight": 1.0,
+      "source": "benchmarks_run_pytorch",
+      "target": "benchmarks_run_pytorch_write_losses_binary",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "benchmarks/run_pytorch.py",
+      "source_location": "L51",
+      "weight": 1.0,
+      "source": "benchmarks_run_pytorch_mlp",
+      "target": "benchmarks_run_pytorch_mlp_forward",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "benchmarks/run_pytorch.py",
+      "source_location": "L38",
+      "weight": 1.0,
+      "source": "benchmarks_run_pytorch_mlp",
+      "target": "benchmarks_run_pytorch_mlp_init",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "build.zig",
+      "source_location": "L133",
+      "weight": 1.0,
+      "source": "build",
+      "target": "build_build",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "build.zig",
+      "source_location": "L16",
+      "weight": 1.0,
+      "source": "build",
+      "target": "build_createtree",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "build.zig",
+      "source_location": "L4",
+      "weight": 1.0,
+      "source": "build",
+      "target": "build_tree",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "build.zig",
+      "source_location": "L157",
+      "weight": 1.0,
+      "source": "build_build",
+      "target": "build_createtree",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/core/normalizations.zig",
+      "source_location": "L11",
+      "weight": 1.0,
+      "source": "core_normalizations",
+      "target": "core_normalizations_computemeanstd",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/core/normalizations.zig",
+      "source_location": "L57",
+      "weight": 1.0,
+      "source": "core_normalizations",
+      "target": "core_normalizations_denormalizechunk",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/core/normalizations.zig",
+      "source_location": "L73",
+      "weight": 1.0,
+      "source": "core_normalizations",
+      "target": "core_normalizations_norm",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/core/normalizations.zig",
+      "source_location": "L41",
+      "weight": 1.0,
+      "source": "core_normalizations",
+      "target": "core_normalizations_normalizechunk",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "src/core/normalizations.zig",
+      "source_location": "L189",
+      "weight": 1.0,
+      "source": "core_normalizations_norm_computenormalization",
+      "target": "core_normalizations_computemeanstd",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/core/normalizations.zig",
+      "source_location": "L172",
+      "weight": 1.0,
+      "source": "core_normalizations_norm",
+      "target": "core_normalizations_norm_computenormalization",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/core/normalizations.zig",
+      "source_location": "L164",
+      "weight": 1.0,
+      "source": "core_normalizations_norm",
+      "target": "core_normalizations_norm_deinit",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/core/normalizations.zig",
+      "source_location": "L301",
+      "weight": 1.0,
+      "source": "core_normalizations_norm",
+      "target": "core_normalizations_norm_denormalize",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/core/normalizations.zig",
+      "source_location": "L81",
+      "weight": 1.0,
+      "source": "core_normalizations_norm",
+      "target": "core_normalizations_norm_init",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/core/normalizations.zig",
+      "source_location": "L213",
+      "weight": 1.0,
+      "source": "core_normalizations_norm",
+      "target": "core_normalizations_norm_normalize",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/core/params.zig",
+      "source_location": "L25",
+      "weight": 1.0,
+      "source": "core_params",
+      "target": "core_params_activation",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/core/params.zig",
+      "source_location": "L44",
+      "weight": 1.0,
+      "source": "core_params",
+      "target": "core_params_baseparams",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/core/params.zig",
+      "source_location": "L63",
+      "weight": 1.0,
+      "source": "core_params",
+      "target": "core_params_convertinttotype",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/core/params.zig",
+      "source_location": "L73",
+      "weight": 1.0,
+      "source": "core_params",
+      "target": "core_params_convertstringtoenum",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/core/params.zig",
+      "source_location": "L95",
+      "weight": 1.0,
+      "source": "core_params",
+      "target": "core_params_converttupletoarray",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/core/params.zig",
+      "source_location": "L114",
+      "weight": 1.0,
+      "source": "core_params",
+      "target": "core_params_converttupletoenumarray",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/core/params.zig",
+      "source_location": "L33",
+      "weight": 1.0,
+      "source": "core_params",
+      "target": "core_params_loss",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/core/params.zig",
+      "source_location": "L38",
+      "weight": 1.0,
+      "source": "core_params",
+      "target": "core_params_norm",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "src/core/params.zig",
+      "source_location": "L118",
+      "weight": 1.0,
+      "source": "core_params_converttupletoenumarray",
+      "target": "core_params_convertstringtoenum",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/cpu/activations.zig",
+      "source_location": "L51",
+      "weight": 1.0,
+      "source": "cpu_activations",
+      "target": "cpu_activations_activateelements",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/cpu/activations.zig",
+      "source_location": "L11",
+      "weight": 1.0,
+      "source": "cpu_activations",
+      "target": "cpu_activations_none",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/cpu/activations.zig",
+      "source_location": "L18",
+      "weight": 1.0,
+      "source": "cpu_activations",
+      "target": "cpu_activations_relu",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/cpu/activations.zig",
+      "source_location": "L41",
+      "weight": 1.0,
+      "source": "cpu_activations",
+      "target": "cpu_activations_sigmoid",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/cpu/activations.zig",
+      "source_location": "L30",
+      "weight": 1.0,
+      "source": "cpu_activations",
+      "target": "cpu_activations_tanh",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/cpu/losses.zig",
+      "source_location": "L25",
+      "weight": 1.0,
+      "source": "cpu_losses",
+      "target": "cpu_losses_computeloss",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/cpu/losses.zig",
+      "source_location": "L11",
+      "weight": 1.0,
+      "source": "cpu_losses",
+      "target": "cpu_losses_mse",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/eigen/activations.cpp",
+      "source_location": "L12",
+      "weight": 1.0,
+      "source": "eigen_activations",
+      "target": "eigen_activations_nonehalf",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "src/eigen/activations.cpp",
+      "source_location": "L12",
+      "weight": 1.0,
+      "context": "parameter_type",
+      "source": "eigen_activations_nonehalf",
+      "target": "half",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/eigen/linalg.cpp",
+      "source_location": "L24",
+      "weight": 1.0,
+      "source": "eigen_linalg",
+      "target": "eigen_linalg_eigen_matrixvectormuladd",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/eigen/linalg.cpp",
+      "source_location": "L34",
+      "weight": 1.0,
+      "source": "eigen_linalg",
+      "target": "eigen_linalg_eigen_matrixvectormuladdbatch",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/eigen/linalg.cpp",
+      "source_location": "L70",
+      "weight": 1.0,
+      "source": "eigen_linalg",
+      "target": "eigen_linalg_eigen_setzero",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/eigen/linalg.cpp",
+      "source_location": "L102",
+      "weight": 1.0,
+      "source": "eigen_linalg",
+      "target": "eigen_linalg_eigen_updategradbiases",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/eigen/linalg.cpp",
+      "source_location": "L110",
+      "weight": 1.0,
+      "source": "eigen_linalg",
+      "target": "eigen_linalg_eigen_updategradbiasesbatch",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/eigen/linalg.cpp",
+      "source_location": "L84",
+      "weight": 1.0,
+      "source": "eigen_linalg",
+      "target": "eigen_linalg_eigen_updategradweights",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/eigen/linalg.cpp",
+      "source_location": "L93",
+      "weight": 1.0,
+      "source": "eigen_linalg",
+      "target": "eigen_linalg_eigen_updategradweightsbatch",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/eigen/linalg.cpp",
+      "source_location": "L76",
+      "weight": 1.0,
+      "source": "eigen_linalg",
+      "target": "eigen_linalg_eigen_vectorinit",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/eigen/linalg.cpp",
+      "source_location": "L44",
+      "weight": 1.0,
+      "source": "eigen_linalg",
+      "target": "eigen_linalg_eigen_vectormatrixmul",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/eigen/linalg.cpp",
+      "source_location": "L53",
+      "weight": 1.0,
+      "source": "eigen_linalg",
+      "target": "eigen_linalg_eigen_vectormatrixmulbatch",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/eigen/linalg.cpp",
+      "source_location": "L62",
+      "weight": 1.0,
+      "source": "eigen_linalg",
+      "target": "eigen_linalg_eigen_vectormul",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "src/eigen/linalg.cpp",
+      "source_location": "L24",
+      "weight": 1.0,
+      "context": "parameter_type",
+      "source": "eigen_linalg_eigen_matrixvectormuladd",
+      "target": "f_type",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "src/eigen/linalg.cpp",
+      "source_location": "L34",
+      "weight": 1.0,
+      "context": "parameter_type",
+      "source": "eigen_linalg_eigen_matrixvectormuladdbatch",
+      "target": "f_type",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "src/eigen/linalg.cpp",
+      "source_location": "L70",
+      "weight": 1.0,
+      "context": "parameter_type",
+      "source": "eigen_linalg_eigen_setzero",
+      "target": "f_type",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "src/eigen/linalg.cpp",
+      "source_location": "L102",
+      "weight": 1.0,
+      "context": "parameter_type",
+      "source": "eigen_linalg_eigen_updategradbiases",
+      "target": "f_type",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "src/eigen/linalg.cpp",
+      "source_location": "L110",
+      "weight": 1.0,
+      "context": "parameter_type",
+      "source": "eigen_linalg_eigen_updategradbiasesbatch",
+      "target": "f_type",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "src/eigen/linalg.cpp",
+      "source_location": "L84",
+      "weight": 1.0,
+      "context": "parameter_type",
+      "source": "eigen_linalg_eigen_updategradweights",
+      "target": "f_type",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "src/eigen/linalg.cpp",
+      "source_location": "L93",
+      "weight": 1.0,
+      "context": "parameter_type",
+      "source": "eigen_linalg_eigen_updategradweightsbatch",
+      "target": "f_type",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "src/eigen/linalg.cpp",
+      "source_location": "L76",
+      "weight": 1.0,
+      "context": "parameter_type",
+      "source": "eigen_linalg_eigen_vectorinit",
+      "target": "f_type",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "src/eigen/linalg.cpp",
+      "source_location": "L44",
+      "weight": 1.0,
+      "context": "parameter_type",
+      "source": "eigen_linalg_eigen_vectormatrixmul",
+      "target": "f_type",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "src/eigen/linalg.cpp",
+      "source_location": "L53",
+      "weight": 1.0,
+      "context": "parameter_type",
+      "source": "eigen_linalg_eigen_vectormatrixmulbatch",
+      "target": "f_type",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "src/eigen/linalg.cpp",
+      "source_location": "L62",
+      "weight": 1.0,
+      "context": "parameter_type",
+      "source": "eigen_linalg_eigen_vectormul",
+      "target": "f_type",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/eigen/wrappers.zig",
+      "source_location": "L11",
+      "weight": 1.0,
+      "source": "eigen_wrappers",
+      "target": "eigen_wrappers_eigen_matrixvectormuladd",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/eigen/wrappers.zig",
+      "source_location": "L30",
+      "weight": 1.0,
+      "source": "eigen_wrappers",
+      "target": "eigen_wrappers_eigen_matrixvectormuladdbatch",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/eigen/wrappers.zig",
+      "source_location": "L118",
+      "weight": 1.0,
+      "source": "eigen_wrappers",
+      "target": "eigen_wrappers_eigen_setzero",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/eigen/wrappers.zig",
+      "source_location": "L200",
+      "weight": 1.0,
+      "source": "eigen_wrappers",
+      "target": "eigen_wrappers_eigen_updategradbiases",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/eigen/wrappers.zig",
+      "source_location": "L217",
+      "weight": 1.0,
+      "source": "eigen_wrappers",
+      "target": "eigen_wrappers_eigen_updategradbiasesbatch",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/eigen/wrappers.zig",
+      "source_location": "L155",
+      "weight": 1.0,
+      "source": "eigen_wrappers",
+      "target": "eigen_wrappers_eigen_updategradweights",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/eigen/wrappers.zig",
+      "source_location": "L175",
+      "weight": 1.0,
+      "source": "eigen_wrappers",
+      "target": "eigen_wrappers_eigen_updategradweightsbatch",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/eigen/wrappers.zig",
+      "source_location": "L135",
+      "weight": 1.0,
+      "source": "eigen_wrappers",
+      "target": "eigen_wrappers_eigen_vectorinit",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/eigen/wrappers.zig",
+      "source_location": "L57",
+      "weight": 1.0,
+      "source": "eigen_wrappers",
+      "target": "eigen_wrappers_eigen_vectormatrixmul",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/eigen/wrappers.zig",
+      "source_location": "L74",
+      "weight": 1.0,
+      "source": "eigen_wrappers",
+      "target": "eigen_wrappers_eigen_vectormatrixmulbatch",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/eigen/wrappers.zig",
+      "source_location": "L99",
+      "weight": 1.0,
+      "source": "eigen_wrappers",
+      "target": "eigen_wrappers_eigen_vectormul",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/eigen/wrappers.zig",
+      "source_location": "L14",
+      "weight": 1.0,
+      "source": "eigen_wrappers",
+      "target": "eigen_wrappers_matrixvectormuladd",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/eigen/wrappers.zig",
+      "source_location": "L33",
+      "weight": 1.0,
+      "source": "eigen_wrappers",
+      "target": "eigen_wrappers_matrixvectormuladdbatch",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/eigen/wrappers.zig",
+      "source_location": "L121",
+      "weight": 1.0,
+      "source": "eigen_wrappers",
+      "target": "eigen_wrappers_setzero",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/eigen/wrappers.zig",
+      "source_location": "L203",
+      "weight": 1.0,
+      "source": "eigen_wrappers",
+      "target": "eigen_wrappers_updategradbiases",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/eigen/wrappers.zig",
+      "source_location": "L220",
+      "weight": 1.0,
+      "source": "eigen_wrappers",
+      "target": "eigen_wrappers_updategradbiasesbatch",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/eigen/wrappers.zig",
+      "source_location": "L158",
+      "weight": 1.0,
+      "source": "eigen_wrappers",
+      "target": "eigen_wrappers_updategradweights",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/eigen/wrappers.zig",
+      "source_location": "L178",
+      "weight": 1.0,
+      "source": "eigen_wrappers",
+      "target": "eigen_wrappers_updategradweightsbatch",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/eigen/wrappers.zig",
+      "source_location": "L138",
+      "weight": 1.0,
+      "source": "eigen_wrappers",
+      "target": "eigen_wrappers_vectorinit",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/eigen/wrappers.zig",
+      "source_location": "L60",
+      "weight": 1.0,
+      "source": "eigen_wrappers",
+      "target": "eigen_wrappers_vectormatrixmul",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/eigen/wrappers.zig",
+      "source_location": "L77",
+      "weight": 1.0,
+      "source": "eigen_wrappers",
+      "target": "eigen_wrappers_vectormatrixmulbatch",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/eigen/wrappers.zig",
+      "source_location": "L102",
+      "weight": 1.0,
+      "source": "eigen_wrappers",
+      "target": "eigen_wrappers_vectormul",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "src/eigen/wrappers.zig",
+      "source_location": "L15",
+      "weight": 1.0,
+      "source": "eigen_wrappers_matrixvectormuladd",
+      "target": "eigen_wrappers_eigen_matrixvectormuladd",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "src/eigen/wrappers.zig",
+      "source_location": "L38",
+      "weight": 1.0,
+      "source": "eigen_wrappers_matrixvectormuladdbatch",
+      "target": "eigen_wrappers_eigen_matrixvectormuladdbatch",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "src/eigen/wrappers.zig",
+      "source_location": "L61",
+      "weight": 1.0,
+      "source": "eigen_wrappers_vectormatrixmul",
+      "target": "eigen_wrappers_eigen_vectormatrixmul",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "src/eigen/wrappers.zig",
+      "source_location": "L81",
+      "weight": 1.0,
+      "source": "eigen_wrappers_vectormatrixmulbatch",
+      "target": "eigen_wrappers_eigen_vectormatrixmulbatch",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "src/eigen/wrappers.zig",
+      "source_location": "L103",
+      "weight": 1.0,
+      "source": "eigen_wrappers_vectormul",
+      "target": "eigen_wrappers_eigen_vectormul",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "src/eigen/wrappers.zig",
+      "source_location": "L122",
+      "weight": 1.0,
+      "source": "eigen_wrappers_setzero",
+      "target": "eigen_wrappers_eigen_setzero",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "src/eigen/wrappers.zig",
+      "source_location": "L139",
+      "weight": 1.0,
+      "source": "eigen_wrappers_vectorinit",
+      "target": "eigen_wrappers_eigen_vectorinit",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "src/eigen/wrappers.zig",
+      "source_location": "L159",
+      "weight": 1.0,
+      "source": "eigen_wrappers_updategradweights",
+      "target": "eigen_wrappers_eigen_updategradweights",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "src/eigen/wrappers.zig",
+      "source_location": "L182",
+      "weight": 1.0,
+      "source": "eigen_wrappers_updategradweightsbatch",
+      "target": "eigen_wrappers_eigen_updategradweightsbatch",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "src/eigen/wrappers.zig",
+      "source_location": "L204",
+      "weight": 1.0,
+      "source": "eigen_wrappers_updategradbiases",
+      "target": "eigen_wrappers_eigen_updategradbiases",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "src/eigen/wrappers.zig",
+      "source_location": "L224",
+      "weight": 1.0,
+      "source": "eigen_wrappers_updategradbiasesbatch",
+      "target": "eigen_wrappers_eigen_updategradbiasesbatch",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/io/binary.zig",
+      "source_location": "L22",
+      "weight": 1.0,
+      "source": "io_binary",
+      "target": "io_binary_dataheader",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/io/binary.zig",
+      "source_location": "L166",
+      "weight": 1.0,
+      "source": "io_binary",
+      "target": "io_binary_loaddata",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/io/binary.zig",
+      "source_location": "L49",
+      "weight": 1.0,
+      "source": "io_binary",
+      "target": "io_binary_loadweights",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/io/binary.zig",
+      "source_location": "L15",
+      "weight": 1.0,
+      "source": "io_binary",
+      "target": "io_binary_nnheader",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/io/binary.zig",
+      "source_location": "L125",
+      "weight": 1.0,
+      "source": "io_binary",
+      "target": "io_binary_savedata",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/io/binary.zig",
+      "source_location": "L30",
+      "weight": 1.0,
+      "source": "io_binary",
+      "target": "io_binary_saveweights",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/layers/mlp.zig",
+      "source_location": "L14",
+      "weight": 1.0,
+      "source": "layers_mlp",
+      "target": "layers_mlp_mlp",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/layers/mlp.zig",
+      "source_location": "L111",
+      "weight": 1.0,
+      "source": "layers_mlp_mlp",
+      "target": "layers_mlp_mlp_backward",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/layers/mlp.zig",
+      "source_location": "L69",
+      "weight": 1.0,
+      "source": "layers_mlp_mlp",
+      "target": "layers_mlp_mlp_deinit",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/layers/mlp.zig",
+      "source_location": "L79",
+      "weight": 1.0,
+      "source": "layers_mlp_mlp",
+      "target": "layers_mlp_mlp_forward",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/layers/mlp.zig",
+      "source_location": "L21",
+      "weight": 1.0,
+      "source": "layers_mlp_mlp",
+      "target": "layers_mlp_mlp_init",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/nnzig.zig",
+      "source_location": "L19",
+      "weight": 1.0,
+      "source": "src_nnzig",
+      "target": "src_nnzig_nn",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/nnzig.zig",
+      "source_location": "L466",
+      "weight": 1.0,
+      "source": "src_nnzig_nn",
+      "target": "src_nnzig_nn_backprop",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/nnzig.zig",
+      "source_location": "L229",
+      "weight": 1.0,
+      "source": "src_nnzig_nn",
+      "target": "src_nnzig_nn_computenormalization",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/nnzig.zig",
+      "source_location": "L164",
+      "weight": 1.0,
+      "source": "src_nnzig_nn",
+      "target": "src_nnzig_nn_deinit",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/nnzig.zig",
+      "source_location": "L323",
+      "weight": 1.0,
+      "source": "src_nnzig_nn",
+      "target": "src_nnzig_nn_denormalize",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/nnzig.zig",
+      "source_location": "L431",
+      "weight": 1.0,
+      "source": "src_nnzig_nn",
+      "target": "src_nnzig_nn_forward",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/nnzig.zig",
+      "source_location": "L37",
+      "weight": 1.0,
+      "source": "src_nnzig_nn",
+      "target": "src_nnzig_nn_init",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/nnzig.zig",
+      "source_location": "L697",
+      "weight": 1.0,
+      "source": "src_nnzig_nn",
+      "target": "src_nnzig_nn_loadweights",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/nnzig.zig",
+      "source_location": "L275",
+      "weight": 1.0,
+      "source": "src_nnzig_nn",
+      "target": "src_nnzig_nn_normalize",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/nnzig.zig",
+      "source_location": "L741",
+      "weight": 1.0,
+      "source": "src_nnzig_nn",
+      "target": "src_nnzig_nn_savelosses",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/nnzig.zig",
+      "source_location": "L692",
+      "weight": 1.0,
+      "source": "src_nnzig_nn",
+      "target": "src_nnzig_nn_saveweights",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/nnzig.zig",
+      "source_location": "L548",
+      "weight": 1.0,
+      "source": "src_nnzig_nn",
+      "target": "src_nnzig_nn_train",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/nnzig.zig",
+      "source_location": "L513",
+      "weight": 1.0,
+      "source": "src_nnzig_nn",
+      "target": "src_nnzig_nn_updatemv",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/nnzig.zig",
+      "source_location": "L528",
+      "weight": 1.0,
+      "source": "src_nnzig_nn",
+      "target": "src_nnzig_nn_updateweights",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/nnzig.zig",
+      "source_location": "L377",
+      "weight": 1.0,
+      "source": "src_nnzig_nn",
+      "target": "src_nnzig_nn_zerograd",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/nnzig.zig",
+      "source_location": "L404",
+      "weight": 1.0,
+      "source": "src_nnzig_nn",
+      "target": "src_nnzig_nn_zerolosses",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "src/nnzig.zig",
+      "source_location": "L158",
+      "weight": 1.0,
+      "source": "src_nnzig_nn_init",
+      "target": "src_nnzig_nn_zerolosses",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "src/nnzig.zig",
+      "source_location": "L473",
+      "weight": 1.0,
+      "source": "src_nnzig_nn_backprop",
+      "target": "src_nnzig_nn_zerograd",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "src/nnzig.zig",
+      "source_location": "L571",
+      "weight": 1.0,
+      "source": "src_nnzig_nn_train",
+      "target": "src_nnzig_nn_zerolosses",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "src/nnzig.zig",
+      "source_location": "L491",
+      "weight": 1.0,
+      "source": "src_nnzig_nn_backprop",
+      "target": "src_nnzig_nn_forward",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "src/nnzig.zig",
+      "source_location": "L635",
+      "weight": 1.0,
+      "source": "src_nnzig_nn_train",
+      "target": "src_nnzig_nn_forward",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "src/nnzig.zig",
+      "source_location": "L602",
+      "weight": 1.0,
+      "source": "src_nnzig_nn_train",
+      "target": "src_nnzig_nn_backprop",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "src/nnzig.zig",
+      "source_location": "L610",
+      "weight": 1.0,
+      "source": "src_nnzig_nn_train",
+      "target": "src_nnzig_nn_updatemv",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "src/nnzig.zig",
+      "source_location": "L612",
+      "weight": 1.0,
+      "source": "src_nnzig_nn_train",
+      "target": "src_nnzig_nn_updateweights",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "conceptually_related_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": ".github/workflows/docs.yml",
+      "source_location": null,
+      "weight": 1.0,
+      "source": "docs_workflow",
+      "target": "readme_nnzig"
+    },
+    {
+      "relation": "conceptually_related_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": ".github/workflows/test.yml",
+      "source_location": null,
+      "weight": 1.0,
+      "source": "test_workflow",
+      "target": "readme_nnzig"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": ".github/workflows/docs.yml",
+      "source_location": null,
+      "weight": 1.0,
+      "source": "docs_workflow",
+      "target": "github_pages"
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": ".github/workflows/docs.yml",
+      "source_location": null,
+      "weight": 1.0,
+      "source": "docs_workflow",
+      "target": "zig_compiler"
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": ".github/workflows/test.yml",
+      "source_location": null,
+      "weight": 1.0,
+      "source": "test_workflow",
+      "target": "zig_compiler"
+    }
+  ],
+  "hyperedges": [],
+  "built_at_commit": "81918b76ca8c8a2ec41d6e6678fe8bcc6d9e6e36"
+}
