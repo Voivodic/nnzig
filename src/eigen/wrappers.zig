@@ -328,3 +328,33 @@ test "[eigen] activateSigmoid" {
     try testing.expectApproxEqAbs(0.196612, df[3], 1e-4);
     try testing.expectApproxEqAbs(0.104994, df[4], 1e-4);
 }
+
+// --- Loss functions ---
+
+extern "c" fn eigen_mse(pred: [*]const T, out: [*]const T, dL: [*]T, loss: *T, n: usize) void;
+
+/// Computes the mean squared error `L = 0.5 * mean((pred - out)^2)` and writes the
+/// derivative `dL = (pred - out) / n` using Eigen. Returns the scalar loss.
+pub fn computeMSE(pred: []const T, out: []const T, dL: []T) T {
+    var loss: T = 0.0;
+    eigen_mse(pred.ptr, out.ptr, dL.ptr, &loss, pred.len);
+    return loss;
+}
+
+test "[eigen] computeMSE" {
+    // Known error: pred=3, out=1, n=4 -> diff=2, loss=0.5*mean(4)=2.0, dL=2/4=0.5
+    const pred = [_]T{ 3.0, 3.0, 3.0, 3.0 };
+    const out = [_]T{ 1.0, 1.0, 1.0, 1.0 };
+    var dL: [4]T = undefined;
+
+    const lossVal = computeMSE(&pred, &out, &dL);
+
+    try testing.expectApproxEqAbs(2.0, lossVal, 1e-4);
+    for (dL) |val| try testing.expectApproxEqAbs(0.5, val, 1e-4);
+
+    // Zero error: pred == out -> loss=0, dL=0
+    const lossZero = computeMSE(&pred, &pred, &dL);
+
+    try testing.expectApproxEqAbs(0.0, lossZero, 1e-6);
+    for (dL) |val| try testing.expectApproxEqAbs(0.0, val, 1e-6);
+}

@@ -48,7 +48,7 @@ fn createTree(
     eigen_wrapper.addImport("params", params);
     eigen_wrapper.addCSourceFiles(.{
         .root = b.path("src/eigen"),
-        .files = &.{ "linalg.cpp", "activations.cpp" },
+        .files = &.{ "linalg.cpp", "activations.cpp", "losses.cpp" },
         .flags = &.{ "-O3", "-fPIC", precision_flag },
     });
     eigen_wrapper.addIncludePath(eigen.path("./"));
@@ -71,6 +71,7 @@ fn createTree(
     });
     loss.addImport("params", params);
     loss.addImport("errors", errors);
+    loss.addImport("eigen", eigen_wrapper);
 
     // Norms module
     const norms = b.createModule(.{

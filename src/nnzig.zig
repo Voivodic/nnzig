@@ -491,7 +491,7 @@ pub const NN = struct {
             const pred: []T = try self.nn.forward(inputs[i * nIn .. (i + 1) * nIn], &params.nNeurons, self.weights, self.biases, &params.activations);
 
             // Compute the loss and its derivative
-            lossTotal += try loss.computeLoss(pred, outputs[i * nOut .. (i + 1) * nOut], dL, params.lossFunc) / nDataF;
+            lossTotal += loss.computeLoss(pred, outputs[i * nOut .. (i + 1) * nOut], dL, params.lossFunc) / nDataF;
 
             // Compute the gradient
             self.nn.backward(dL, &params.nNeurons, self.weights, self.biases, self.gradW, self.gradB);
@@ -633,7 +633,7 @@ pub const NN = struct {
             self.lossesValidation[epoch] = 0.0;
             for (0..nVal) |i| {
                 const pred: []T = try self.nn.forward(inputs[(nTrain + i) * nIn .. (nTrain + i + 1) * nIn], &params.nNeurons, self.weights, self.biases, &params.activations);
-                self.lossesValidation[epoch] += try loss.computeLoss(pred, outputs[(nTrain + i) * nOut .. (nTrain + i + 1) * nOut], dL, params.lossFunc) / nValF;
+                self.lossesValidation[epoch] += loss.computeLoss(pred, outputs[(nTrain + i) * nOut .. (nTrain + i + 1) * nOut], dL, params.lossFunc) / nValF;
             }
 
             // Print the current state
