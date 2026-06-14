@@ -5,14 +5,14 @@
 const std = @import("std");
 const params = @import("params");
 const err = @import("errors").normalizationError;
-const fType = params.floatType;
+const T = params.T;
 
 /// Computes Z-score normalization factors: `a` is the standard deviation and `b` is the mean
-fn computeMeanStd(norm: *const Norm, inputs: []const fType, outputs: []const fType) void {
+fn computeMeanStd(norm: *const Norm, inputs: []const T, outputs: []const T) void {
     const nIn = params.nNeurons[0];
     const nOut = params.nNeurons[params.nNeurons.len - 1];
     const nData: usize = inputs.len / nIn;
-    const N: fType = @as(fType, @floatFromInt(nData));
+    const N: T = @as(T, @floatFromInt(nData));
 
     // Compute means
     for (0..nData) |i| {
@@ -38,7 +38,7 @@ fn computeMeanStd(norm: *const Norm, inputs: []const fType, outputs: []const fTy
 }
 
 /// Normalizes a chunk of data in-place using the stored factors: x' = (x - b) / a
-fn normalizeChunk(norm: *const Norm, inputs: []fType, outputs: []fType, startData: usize, endData: usize) void {
+fn normalizeChunk(norm: *const Norm, inputs: []T, outputs: []T, startData: usize, endData: usize) void {
     const nIn = params.nNeurons[0];
     const nOut = params.nNeurons[params.nNeurons.len - 1];
 
@@ -54,7 +54,7 @@ fn normalizeChunk(norm: *const Norm, inputs: []fType, outputs: []fType, startDat
 }
 
 /// Denormalizes a chunk of data in-place using the stored factors: x = x' * a + b
-fn denormalizeChunk(norm: *const Norm, inputs: []fType, outputs: []fType, startData: usize, endData: usize) void {
+fn denormalizeChunk(norm: *const Norm, inputs: []T, outputs: []T, startData: usize, endData: usize) void {
     const nIn = params.nNeurons[0];
     const nOut = params.nNeurons[params.nNeurons.len - 1];
 
@@ -72,10 +72,10 @@ fn denormalizeChunk(norm: *const Norm, inputs: []fType, outputs: []fType, startD
 /// Main structure to handle the normalization and denormalization
 pub const Norm = struct {
     allocator: std.mem.Allocator,
-    aIn: []fType = &.{},
-    bIn: []fType = &.{},
-    aOut: []fType = &.{},
-    bOut: []fType = &.{},
+    aIn: []T = &.{},
+    bIn: []T = &.{},
+    aOut: []T = &.{},
+    bOut: []T = &.{},
 
     /// Initializes the structure computing the mean and std of the inputs and outputs
     pub fn init(allocator: std.mem.Allocator) !Norm {
@@ -89,7 +89,7 @@ pub const Norm = struct {
         const nOutputs = params.nNeurons[params.nNeurons.len - 1];
 
         // Alloc the slices for the mean and std of inputs and outputs
-        if (norm.allocator.alloc(fType, nInputs)) |slice| {
+        if (norm.allocator.alloc(T, nInputs)) |slice| {
             norm.aIn = slice;
         } else |_| {
             std.log.err("Problem in the allocation of the mean of the inputs!\n", .{});
@@ -97,7 +97,7 @@ pub const Norm = struct {
         }
 
         // Allocate the slice for the std of the input
-        if (norm.allocator.alloc(fType, nInputs)) |slice| {
+        if (norm.allocator.alloc(T, nInputs)) |slice| {
             norm.bIn = slice;
         } else |_| {
             std.log.err("Problem in the allocation of the std of the inputs!\n", .{});
@@ -111,7 +111,7 @@ pub const Norm = struct {
         }
 
         // Allocate the slice for the mean of the outputs
-        if (norm.allocator.alloc(fType, nOutputs)) |slice| {
+        if (norm.allocator.alloc(T, nOutputs)) |slice| {
             norm.aOut = slice;
         } else |_| {
             std.log.err("Problem in the allocation of the mean of the outputs!\n", .{});
@@ -119,7 +119,7 @@ pub const Norm = struct {
         }
 
         // Allocate the slice for the std of the outputs
-        if (norm.allocator.alloc(fType, nOutputs)) |slice| {
+        if (norm.allocator.alloc(T, nOutputs)) |slice| {
             norm.bOut = slice;
         } else |_| {
             std.log.err("Problem in the allocation of the std of the outputs!\n", .{});
@@ -154,10 +154,10 @@ pub const Norm = struct {
         try std.testing.expectEqual(@as(usize, nOut), norm.aOut.len);
         try std.testing.expectEqual(@as(usize, nOut), norm.bOut.len);
 
-        for (norm.aIn) |val| try std.testing.expectEqual(@as(fType, 0.0), val);
-        for (norm.bIn) |val| try std.testing.expectEqual(@as(fType, 0.0), val);
-        for (norm.aOut) |val| try std.testing.expectEqual(@as(fType, 0.0), val);
-        for (norm.bOut) |val| try std.testing.expectEqual(@as(fType, 0.0), val);
+        for (norm.aIn) |val| try std.testing.expectEqual(@as(T, 0.0), val);
+        for (norm.bIn) |val| try std.testing.expectEqual(@as(T, 0.0), val);
+        for (norm.aOut) |val| try std.testing.expectEqual(@as(T, 0.0), val);
+        for (norm.bOut) |val| try std.testing.expectEqual(@as(T, 0.0), val);
     }
 
     /// Frees all memory allocated in the structure
@@ -169,7 +169,7 @@ pub const Norm = struct {
     }
 
     /// Computes the normalization factors
-    pub fn computeNormalization(self: *const Norm, inputs: []const fType, outputs: []const fType) !void {
+    pub fn computeNormalization(self: *const Norm, inputs: []const T, outputs: []const T) !void {
         const nIn = params.nNeurons[0];
         const nOut = params.nNeurons[params.nNeurons.len - 1];
 
@@ -200,8 +200,8 @@ pub const Norm = struct {
         var norm = try Norm.init(allocator);
         defer norm.deinit();
 
-        var inputs = [_]fType{ 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0 };
-        var outputs = [_]fType{ 2.0, 4.0, 6.0, 8.0, 10.0, 12.0, 14.0, 16.0, 18.0, 20.0 };
+        var inputs = [_]T{ 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0 };
+        var outputs = [_]T{ 2.0, 4.0, 6.0, 8.0, 10.0, 12.0, 14.0, 16.0, 18.0, 20.0 };
 
         try norm.computeNormalization(&inputs, &outputs);
 
@@ -210,7 +210,7 @@ pub const Norm = struct {
     }
 
     /// Normalizes the inputs and outputs given
-    pub fn normalize(self: *const Norm, inputs: []fType, outputs: []fType) !void {
+    pub fn normalize(self: *const Norm, inputs: []T, outputs: []T) !void {
         const nIn = params.nNeurons[0];
         const nOut = params.nNeurons[params.nNeurons.len - 1];
 
@@ -270,14 +270,14 @@ pub const Norm = struct {
         const nOut: usize = params.nNeurons[params.nNeurons.len - 1];
         const nData: usize = 5;
 
-        var inputs = [_]fType{ 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0 };
-        var outputs = [_]fType{ 2.0, 4.0, 6.0, 8.0, 10.0, 12.0, 14.0, 16.0, 18.0, 20.0 };
+        var inputs = [_]T{ 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0 };
+        var outputs = [_]T{ 2.0, 4.0, 6.0, 8.0, 10.0, 12.0, 14.0, 16.0, 18.0, 20.0 };
 
         try norm.computeNormalization(&inputs, &outputs);
         try norm.normalize(&inputs, &outputs);
 
-        var sumIn: fType = 0;
-        var sumOut: fType = 0;
+        var sumIn: T = 0;
+        var sumOut: T = 0;
         for (0..nData) |i| {
             for (0..nIn) |j| {
                 sumIn += inputs[i * nIn + j];
@@ -286,16 +286,19 @@ pub const Norm = struct {
                 sumOut += outputs[i * nOut + j];
             }
         }
-        const meanIn = sumIn / @as(fType, @floatFromInt(nData * nIn));
-        const meanOut = sumOut / @as(fType, @floatFromInt(nData * nOut));
+        const meanIn = sumIn / @as(T, @floatFromInt(nData * nIn));
+        const meanOut = sumOut / @as(T, @floatFromInt(nData * nOut));
 
-        const tol: fType = 1e-4;
-        try std.testing.expectApproxEqAbs(@as(fType, 0.0), meanIn, tol);
-        try std.testing.expectApproxEqAbs(@as(fType, 0.0), meanOut, tol);
+        const tol: T = switch (T) {
+            f16 => 0.1,
+            else => 1e-4,
+        };
+        try std.testing.expectApproxEqAbs(@as(T, 0.0), meanIn, tol);
+        try std.testing.expectApproxEqAbs(@as(T, 0.0), meanOut, tol);
     }
 
     /// Denormalize the inputs and outputs
-    pub fn denormalize(self: *const Norm, inputs: []fType, outputs: []fType) !void {
+    pub fn denormalize(self: *const Norm, inputs: []T, outputs: []T) !void {
         const nIn = params.nNeurons[0];
         const nOut = params.nNeurons[params.nNeurons.len - 1];
 
@@ -351,8 +354,8 @@ pub const Norm = struct {
         var norm = try Norm.init(allocator);
         defer norm.deinit();
 
-        var inputs = [_]fType{ 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0 };
-        var outputs = [_]fType{ 2.0, 4.0, 6.0, 8.0, 10.0, 12.0, 14.0, 16.0, 18.0, 20.0 };
+        var inputs = [_]T{ 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0 };
+        var outputs = [_]T{ 2.0, 4.0, 6.0, 8.0, 10.0, 12.0, 14.0, 16.0, 18.0, 20.0 };
 
         const origIn = inputs;
         const origOut = outputs;
@@ -361,7 +364,10 @@ pub const Norm = struct {
         try norm.normalize(&inputs, &outputs);
         try norm.denormalize(&inputs, &outputs);
 
-        const tol: fType = 1e-4;
+        const tol: T = switch (T) {
+            f16 => 0.1,
+            else => 1e-4,
+        };
         for (&inputs, &origIn) |*val, *orig| {
             try std.testing.expectApproxEqAbs(orig.*, val.*, tol);
         }
@@ -388,11 +394,11 @@ pub const Norm = struct {
         var xoshiro256 = std.Random.Xoshiro256.init(42);
         const rand = std.Random.Xoshiro256.random(&xoshiro256);
 
-        var inputs: [nData * nIn]fType = undefined;
-        var outputs: [nData * nOut]fType = undefined;
+        var inputs: [nData * nIn]T = undefined;
+        var outputs: [nData * nOut]T = undefined;
 
-        for (&inputs) |*val| val.* = std.Random.float(rand, fType) * 10.0;
-        for (&outputs) |*val| val.* = std.Random.float(rand, fType) * 10.0;
+        for (&inputs) |*val| val.* = @floatCast(std.Random.float(rand, f32) * 10.0);
+        for (&outputs) |*val| val.* = @floatCast(std.Random.float(rand, f32) * 10.0);
 
         const origIn = inputs;
         const origOut = outputs;
@@ -401,7 +407,10 @@ pub const Norm = struct {
         try norm.normalize(&inputs, &outputs);
         try norm.denormalize(&inputs, &outputs);
 
-        const tol: fType = 1e-4;
+        const tol: T = switch (T) {
+            f16 => 0.1,
+            else => 1e-4,
+        };
         for (&inputs, &origIn) |*val, *orig| {
             try std.testing.expectApproxEqAbs(orig.*, val.*, tol);
         }

@@ -4,6 +4,12 @@
 const std = @import("std");
 const paramsFile = @import("paramsFile");
 
+/// Set the precision of the floats used
+pub const T: type = if (@hasField(@TypeOf(paramsFile), "precision"))
+    convertIntToType(paramsFile.precision)
+else
+    f32;
+
 // Check if the number of neurons was given
 const nLayers = blk: {
     if (@hasField(@TypeOf(paramsFile), "nNeurons")) {
@@ -36,17 +42,16 @@ pub const norm = enum(u8) {
 // --- Define the base parameters ---
 
 const baseParams = struct {
-    precision: usize = 32,
     numThreads: usize = 1,
     lossFunc: []const u8 = "MSE",
     normalization: []const u8 = "meanStd",
     seed: u64 = 12345,
-    rTrain: f32 = 0.7,
-    rVal: f32 = 0.2,
-    eps: f32 = 1e-8,
-    beta1: f32 = 0.9,
-    beta2: f32 = 0.999,
-    lr: f32 = 0.01,
+    rTrain: T = 0.7,
+    rVal: T = 0.2,
+    eps: T = 1e-8,
+    beta1: T = 0.9,
+    beta2: T = 0.999,
+    lr: T = 0.01,
     nEpochs: usize = 500,
     batchSize: usize = 50,
     printEvery: usize = 0,
@@ -215,28 +220,25 @@ pub const numThreads: usize = blk: {
     break :blk config.numThreads;
 };
 
-/// Set the precision of the floats used
-pub const floatType: type = convertIntToType(config.precision);
-
 /// Set the seed used for the pseudo random number generators
 pub const seed: u64 = config.seed;
 
 /// Set how all data will be splitted into
-pub const rTrain: f32 = blk: {
+pub const rTrain: T = blk: {
     if (config.rTrain < 0.0 or config.rTrain > 1.0) {
         @compileError("rTrain is the fraction of data to use for training. It must be between 0.0 and 1.0!");
     }
     break :blk config.rTrain;
 };
 /// Set the fraction of data to use for validation
-pub const rVal: f32 = blk: {
+pub const rVal: T = blk: {
     if (config.rVal < 0.0 or config.rVal > 1.0) {
         @compileError("rVal is the fraction of data to use for validation. It must be between 0.0 and 1.0!");
     }
     break :blk config.rVal;
 };
 /// Set the fraction of data to use for testing
-pub const rTest: f32 = blk: {
+pub const rTest: T = blk: {
     if (1.0 - rTrain - rVal < 0.0) {
         @compileError("rTrain + rVal is the fraction of data to use for testing. It must be between 0.0 and 1.0!");
     }
@@ -244,27 +246,27 @@ pub const rTest: f32 = blk: {
 };
 
 /// Set the parameters used by the adam optimizator
-pub const eps: f32 = blk: {
+pub const eps: T = blk: {
     if (config.eps <= 0.0) {
-        break :blk baseParams.eps;
+        break :blk 1e-4;
     }
     break :blk config.eps;
 };
-pub const beta1: f32 = blk: {
+pub const beta1: T = blk: {
     if (config.beta1 < 0.0 or config.beta1 > 1.0) {
-        break :blk baseParams.beta1;
+        break :blk 0.9;
     }
     break :blk config.beta1;
 };
-pub const beta2: f32 = blk: {
+pub const beta2: T = blk: {
     if (config.beta2 < 0.0 or config.beta2 > 1.0) {
-        break :blk baseParams.beta2;
+        break :blk 0.999;
     }
     break :blk config.beta2;
 };
-pub const lr: f32 = blk: {
+pub const lr: T = blk: {
     if (config.lr <= 0.0) {
-        break :blk baseParams.lr;
+        break :blk 0.01;
     }
     break :blk config.lr;
 };

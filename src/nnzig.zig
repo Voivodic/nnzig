@@ -13,7 +13,7 @@ const io = @import("io");
 const norms = @import("norms");
 const err = @import("errors").nnError;
 const testing = std.testing;
-const fType = params.floatType;
+const T = params.T;
 
 /// Create the main structure for the NN
 pub const NN = struct {
@@ -22,16 +22,16 @@ pub const NN = struct {
     nn: mlp.MLP,
     norm: norms.Norm,
     rand: std.Random,
-    weights: []fType = &.{},
-    biases: []fType = &.{},
-    gradW: []fType = &.{},
-    gradB: []fType = &.{},
-    mW: []fType = &.{},
-    vW: []fType = &.{},
-    mB: []fType = &.{},
-    vB: []fType = &.{},
-    lossesTraining: []fType = &.{},
-    lossesValidation: []fType = &.{},
+    weights: []T = &.{},
+    biases: []T = &.{},
+    gradW: []T = &.{},
+    gradB: []T = &.{},
+    mW: []T = &.{},
+    vW: []T = &.{},
+    mB: []T = &.{},
+    vB: []T = &.{},
+    lossesTraining: []T = &.{},
+    lossesValidation: []T = &.{},
 
     /// Initializes the neural network, allocating memory for weights, biases, gradients, and Adam optimizer moments
     pub fn init(allocator: std.mem.Allocator, ioContext: std.Io) !NN {
@@ -59,7 +59,7 @@ pub const NN = struct {
         }
 
         // Alloc memory for the weights
-        if (allocator.alloc(fType, nWeights)) |slice| {
+        if (allocator.alloc(T, nWeights)) |slice| {
             nn.weights = slice;
         } else |_| {
             std.log.err("Failure when trying to allocate memory for the weights!\n", .{});
@@ -67,7 +67,7 @@ pub const NN = struct {
         }
 
         // Alloc memory for the gradients of the weights
-        if (allocator.alloc(fType, nWeights)) |slice| {
+        if (allocator.alloc(T, nWeights)) |slice| {
             nn.gradW = slice;
         } else |_| {
             std.log.err("Failure when trying to allocate memory for the gradient of the weights!\n", .{});
@@ -75,7 +75,7 @@ pub const NN = struct {
         }
 
         // Alloc memory for the wt of the weights used in adam
-        if (allocator.alloc(fType, nWeights)) |slice| {
+        if (allocator.alloc(T, nWeights)) |slice| {
             nn.mW = slice;
         } else |_| {
             std.log.err("Failure when trying to allocate memory for the mt of the weights!\n", .{});
@@ -83,7 +83,7 @@ pub const NN = struct {
         }
 
         // Alloc memory for the vt of the weights used in adam
-        if (allocator.alloc(fType, nWeights)) |slice| {
+        if (allocator.alloc(T, nWeights)) |slice| {
             nn.vW = slice;
         } else |_| {
             std.log.err("Failure when trying to allocate memory for the vt of the weights!\n", .{});
@@ -91,11 +91,11 @@ pub const NN = struct {
         }
 
         // Set mW and vW to zero
-        eigen.setZero(fType, nn.mW);
-        eigen.setZero(fType, nn.vW);
+        eigen.setZero(nn.mW);
+        eigen.setZero(nn.vW);
 
         // Alloc memory for the biases
-        if (allocator.alloc(fType, nBiases)) |slice| {
+        if (allocator.alloc(T, nBiases)) |slice| {
             nn.biases = slice;
         } else |_| {
             std.log.err("Failure when trying to allocate memory for the biases!\n", .{});
@@ -103,7 +103,7 @@ pub const NN = struct {
         }
 
         // Alloc memory for the gradients of the biases
-        if (allocator.alloc(fType, nBiases)) |slice| {
+        if (allocator.alloc(T, nBiases)) |slice| {
             nn.gradB = slice;
         } else |_| {
             std.log.err("Failure when trying to allocate memory for the gradient of the biases!\n", .{});
@@ -111,7 +111,7 @@ pub const NN = struct {
         }
 
         // Alloc memory for the wt of the biases used in adam
-        if (allocator.alloc(fType, nBiases)) |slice| {
+        if (allocator.alloc(T, nBiases)) |slice| {
             nn.mB = slice;
         } else |_| {
             std.log.err("Failure when trying to allocate memory for the mt of the biases!\n", .{});
@@ -119,7 +119,7 @@ pub const NN = struct {
         }
 
         // Alloc memory for the vt of the biases used in adam
-        if (allocator.alloc(fType, nBiases)) |slice| {
+        if (allocator.alloc(T, nBiases)) |slice| {
             nn.vB = slice;
         } else |_| {
             std.log.err("Failure when trying to allocate memory for the vt of the biases!\n", .{});
@@ -127,19 +127,19 @@ pub const NN = struct {
         }
 
         // Set mb and vb to zero
-        eigen.setZero(fType, nn.mB);
-        eigen.setZero(fType, nn.vB);
+        eigen.setZero(nn.mB);
+        eigen.setZero(nn.vB);
 
         // Set the parameters to normal random numbers
         for (nn.weights) |*weight| {
-            weight.* = std.Random.floatNorm(nn.rand, fType);
+            weight.* = @floatCast(std.Random.floatNorm(nn.rand, f32));
         }
         for (nn.biases) |*bias| {
-            bias.* = std.Random.floatNorm(nn.rand, fType);
+            bias.* = @floatCast(std.Random.floatNorm(nn.rand, f32));
         }
 
         // Create the slice for the losses of the training
-        if (allocator.alloc(fType, params.nEpochs)) |slice| {
+        if (allocator.alloc(T, params.nEpochs)) |slice| {
             nn.lossesTraining = slice;
         } else |_| {
             std.log.err("Error while allocating the slice for the losses of the training!\n", .{});
@@ -147,7 +147,7 @@ pub const NN = struct {
         }
 
         // Create the slice for the losses of the validation
-        if (allocator.alloc(fType, params.nEpochs)) |slice| {
+        if (allocator.alloc(T, params.nEpochs)) |slice| {
             nn.lossesValidation = slice;
         } else |_| {
             std.log.err("Error while allocating the slice for the losses of the validation!\n", .{});
@@ -216,17 +216,17 @@ pub const NN = struct {
         try testing.expectEqual(nBiases, nn.mB.len);
         try testing.expectEqual(nBiases, nn.vB.len);
 
-        for (nn.mW) |val| try testing.expectEqual(@as(fType, 0.0), val);
-        for (nn.vW) |val| try testing.expectEqual(@as(fType, 0.0), val);
-        for (nn.mB) |val| try testing.expectEqual(@as(fType, 0.0), val);
-        for (nn.vB) |val| try testing.expectEqual(@as(fType, 0.0), val);
+        for (nn.mW) |val| try testing.expectEqual(@as(T, 0.0), val);
+        for (nn.vW) |val| try testing.expectEqual(@as(T, 0.0), val);
+        for (nn.mB) |val| try testing.expectEqual(@as(T, 0.0), val);
+        for (nn.vB) |val| try testing.expectEqual(@as(T, 0.0), val);
 
         try testing.expectEqual(@as(usize, params.nEpochs), nn.lossesTraining.len);
         try testing.expectEqual(@as(usize, params.nEpochs), nn.lossesValidation.len);
     }
 
     /// Computes Z-score normalization factors (mean and standard deviation) for the given inputs and outputs
-    pub fn computeNormalization(self: *const NN, inputs: []const fType, outputs: []const fType) !void {
+    pub fn computeNormalization(self: *const NN, inputs: []const T, outputs: []const T) !void {
         try self.norm.computeNormalization(inputs, outputs);
     }
 
@@ -246,8 +246,8 @@ pub const NN = struct {
         const nOut: usize = params.nNeurons[params.nNeurons.len - 1];
         const nData: usize = 10;
 
-        var inputs = try allocator.alloc(fType, nData * nIn);
-        var outputs = try allocator.alloc(fType, nData * nOut);
+        var inputs = try allocator.alloc(T, nData * nIn);
+        var outputs = try allocator.alloc(T, nData * nOut);
         defer {
             allocator.free(inputs);
             allocator.free(outputs);
@@ -272,7 +272,7 @@ pub const NN = struct {
     }
 
     /// Normalizes the given inputs and outputs in-place using the previously computed normalization factors
-    pub fn normalize(self: *const NN, inputs: []fType, outputs: []fType) !void {
+    pub fn normalize(self: *const NN, inputs: []T, outputs: []T) !void {
         try self.norm.normalize(inputs, outputs);
     }
 
@@ -292,8 +292,8 @@ pub const NN = struct {
         const nOut: usize = params.nNeurons[params.nNeurons.len - 1];
         const nData: usize = 10;
 
-        var inputs = try allocator.alloc(fType, nData * nIn);
-        var outputs = try allocator.alloc(fType, nData * nOut);
+        var inputs = try allocator.alloc(T, nData * nIn);
+        var outputs = try allocator.alloc(T, nData * nOut);
         defer {
             allocator.free(inputs);
             allocator.free(outputs);
@@ -309,18 +309,18 @@ pub const NN = struct {
         try nn.computeNormalization(inputs, outputs);
         try nn.normalize(inputs, outputs);
 
-        var sumIn: fType = 0;
+        var sumIn: T = 0;
         for (0..nData) |i| {
             for (0..nIn) |j| {
                 sumIn += inputs[i * nIn + j];
             }
         }
-        const meanIn = sumIn / @as(fType, @floatFromInt(nData * nIn));
+        const meanIn = sumIn / @as(T, @floatFromInt(nData * nIn));
         try testing.expect(@abs(meanIn) < 0.5);
     }
 
     /// Reverses the normalization, restoring data to its original scale
-    pub fn denormalize(self: *const NN, inputs: []fType, outputs: []fType) !void {
+    pub fn denormalize(self: *const NN, inputs: []T, outputs: []T) !void {
         try self.norm.denormalize(inputs, outputs);
     }
 
@@ -340,8 +340,8 @@ pub const NN = struct {
         const nOut: usize = params.nNeurons[params.nNeurons.len - 1];
         const nData: usize = 10;
 
-        var inputs = try allocator.alloc(fType, nData * nIn);
-        var outputs = try allocator.alloc(fType, nData * nOut);
+        var inputs = try allocator.alloc(T, nData * nIn);
+        var outputs = try allocator.alloc(T, nData * nOut);
         defer {
             allocator.free(inputs);
             allocator.free(outputs);
@@ -358,10 +358,13 @@ pub const NN = struct {
         try nn.normalize(inputs, outputs);
         try nn.denormalize(inputs, outputs);
 
-        const origIn = [_]fType{ 1, 2, 2, 4, 3, 6, 4, 8, 5, 10, 6, 12, 7, 14, 8, 16, 9, 18, 10, 20 };
-        const origOut = [_]fType{ 3, 4, 6, 8, 9, 12, 12, 16, 15, 20, 18, 24, 21, 28, 24, 32, 27, 36, 30, 40 };
+        const origIn = [_]T{ 1, 2, 2, 4, 3, 6, 4, 8, 5, 10, 6, 12, 7, 14, 8, 16, 9, 18, 10, 20 };
+        const origOut = [_]T{ 3, 4, 6, 8, 9, 12, 12, 16, 15, 20, 18, 24, 21, 28, 24, 32, 27, 36, 30, 40 };
 
-        const tol: fType = 1e-4;
+        const tol: T = switch (T) {
+            f16 => 0.1,
+            else => 1e-4,
+        };
         for (0..nData * nIn) |i| {
             try testing.expectApproxEqAbs(origIn[i], inputs[i], tol);
         }
@@ -372,8 +375,8 @@ pub const NN = struct {
 
     /// Resets all weight and bias gradients to zero
     pub fn zeroGrad(self: *const NN) void {
-        eigen.setZero(fType, self.gradW);
-        eigen.setZero(fType, self.gradB);
+        eigen.setZero(self.gradW);
+        eigen.setZero(self.gradB);
     }
 
     test "[nnzig] zeroGrad" {
@@ -393,14 +396,14 @@ pub const NN = struct {
 
         nn.zeroGrad();
 
-        for (nn.gradW) |val| try testing.expectEqual(@as(fType, 0.0), val);
-        for (nn.gradB) |val| try testing.expectEqual(@as(fType, 0.0), val);
+        for (nn.gradW) |val| try testing.expectEqual(@as(T, 0.0), val);
+        for (nn.gradB) |val| try testing.expectEqual(@as(T, 0.0), val);
     }
 
     /// Resets all training and validation loss arrays to zero
     pub fn zeroLosses(self: *const NN) void {
-        eigen.setZero(fType, self.lossesTraining);
-        eigen.setZero(fType, self.lossesValidation);
+        eigen.setZero(self.lossesTraining);
+        eigen.setZero(self.lossesValidation);
     }
 
     test "[nnzig] zeroLosses" {
@@ -420,12 +423,12 @@ pub const NN = struct {
 
         nn.zeroLosses();
 
-        for (nn.lossesTraining) |val| try testing.expectEqual(@as(fType, 0.0), val);
-        for (nn.lossesValidation) |val| try testing.expectEqual(@as(fType, 0.0), val);
+        for (nn.lossesTraining) |val| try testing.expectEqual(@as(T, 0.0), val);
+        for (nn.lossesValidation) |val| try testing.expectEqual(@as(T, 0.0), val);
     }
 
     /// Runs a forward pass through the network for the given input and returns the output slice
-    pub fn forward(self: *const NN, input: []const fType) ![]fType {
+    pub fn forward(self: *const NN, input: []const T) ![]T {
         const nIn: usize = params.nNeurons[0];
 
         // Check the size of the input
@@ -452,7 +455,7 @@ pub const NN = struct {
 
         const nOut: usize = params.nNeurons[params.nNeurons.len - 1];
 
-        var input = [_]fType{ 1.0, 2.0 };
+        var input = [_]T{ 1.0, 2.0 };
         const output = try nn.forward(&input);
 
         try testing.expectEqual(nOut, output.len);
@@ -460,18 +463,18 @@ pub const NN = struct {
     }
 
     /// Performs backpropagation over the given data and returns the average loss
-    fn backProp(self: *const NN, inputs: []const fType, outputs: []const fType) !fType {
+    fn backProp(self: *const NN, inputs: []const T, outputs: []const T) !T {
         // Get the data size
         const nIn: usize = params.nNeurons[0];
         const nOut: usize = params.nNeurons[params.nNeurons.len - 1];
-        const nDataF: fType = @as(fType, @floatFromInt(inputs.len / nIn));
+        const nDataF: T = @as(T, @floatFromInt(inputs.len / nIn));
         const nData: usize = @as(usize, @intFromFloat(nDataF));
 
         self.zeroGrad();
 
         // Slice to keep the derivatives of the loss
-        var dL: []fType = undefined;
-        if (self.allocator.alloc(fType, nOut)) |slice| {
+        var dL: []T = undefined;
+        if (self.allocator.alloc(T, nOut)) |slice| {
             dL = slice;
         } else |_| {
             std.log.err("Problem to allocate the array for the derivatives of the loss!\n", .{});
@@ -480,12 +483,12 @@ pub const NN = struct {
         defer self.allocator.free(dL);
 
         // Save the value of the total loss
-        var lossTotal: fType = 0.0;
+        var lossTotal: T = 0.0;
 
         // Run over all inputs and outputs
         for (0..nData) |i| {
             // Compute the forward pass
-            const pred: []fType = try self.nn.forward(inputs[i * nIn .. (i + 1) * nIn], &params.nNeurons, self.weights, self.biases, &params.activations);
+            const pred: []T = try self.nn.forward(inputs[i * nIn .. (i + 1) * nIn], &params.nNeurons, self.weights, self.biases, &params.activations);
 
             // Compute the loss and its derivative
             lossTotal += try loss.computeLoss(pred, outputs[i * nOut .. (i + 1) * nOut], dL, params.lossFunc) / nDataF;
@@ -524,11 +527,11 @@ pub const NN = struct {
     /// Applies the bias-corrected Adam update rule to adjust weights and biases
     fn updateWeights(self: *const NN, t: usize) void {
         // Transform t to float
-        const tFloat: fType = @as(fType, @floatFromInt(t));
+        const tFloat: T = @as(T, @floatFromInt(t));
 
         // Compute the normalization for mt and vt
-        const normM: fType = 1.0 - std.math.pow(fType, params.beta1, tFloat);
-        const normV: fType = 1.0 - std.math.pow(fType, params.beta2, tFloat);
+        const normM: T = @floatCast(1.0 - std.math.pow(f32, @as(f32, params.beta1), @as(f32, tFloat)));
+        const normV: T = @floatCast(1.0 - std.math.pow(f32, @as(f32, params.beta2), @as(f32, tFloat)));
 
         // Update the weights
         for (self.weights, self.mW, self.vW) |*w, *mw, *vw| {
@@ -542,7 +545,7 @@ pub const NN = struct {
     }
 
     /// Trains the neural network using mini-batch gradient descent with the Adam optimizer. Splits data into training and validation sets, and records loss per epoch.
-    pub fn train(self: *const NN, inputs: []const fType, outputs: []const fType) !void {
+    pub fn train(self: *const NN, inputs: []const T, outputs: []const T) !void {
         const nIn: usize = params.nNeurons[0];
         const nOut: usize = params.nNeurons[params.nNeurons.len - 1];
 
@@ -568,8 +571,8 @@ pub const NN = struct {
         self.zeroLosses();
 
         // Alloc the dL array used in the computation of the loss of the validation
-        var dL: []fType = &.{};
-        if (self.allocator.alloc(fType, nOut)) |slice| {
+        var dL: []T = &.{};
+        if (self.allocator.alloc(T, nOut)) |slice| {
             dL = slice;
         } else |_| {
             std.log.err("Error while allocating the slice for dL!", .{});
@@ -581,17 +584,17 @@ pub const NN = struct {
         const nData: usize = inputs.len / nIn;
 
         // Compute the size of training and validation
-        const nTrain: usize = @as(usize, @intFromFloat(@as(fType, @floatFromInt(nData)) * params.rTrain));
-        const nValF: fType = @as(fType, @floatFromInt(nData)) * params.rVal;
+        const nTrain: usize = @as(usize, @intFromFloat(@as(T, @floatFromInt(nData)) * params.rTrain));
+        const nValF: T = @as(T, @floatFromInt(nData)) * params.rVal;
         const nVal: usize = @as(usize, @intFromFloat(nValF));
 
         // Compute the number of batches
         const nBatches: usize = nTrain / params.batchSize;
-        const nBatchesF: fType = @as(fType, @floatFromInt(nBatches));
+        const nBatchesF: T = @as(T, @floatFromInt(nBatches));
 
         // Run over all epochs
         for (0..params.nEpochs) |epoch| {
-            var lossEpoch: fType = 0.0;
+            var lossEpoch: T = 0.0;
 
             // Run over the batches
             for (0..nBatches) |batch| {
@@ -629,7 +632,7 @@ pub const NN = struct {
             // Save the loss of the validation of this epoch
             self.lossesValidation[epoch] = 0.0;
             for (0..nVal) |i| {
-                const pred: []fType = try self.nn.forward(inputs[(nTrain + i) * nIn .. (nTrain + i + 1) * nIn], &params.nNeurons, self.weights, self.biases, &params.activations);
+                const pred: []T = try self.nn.forward(inputs[(nTrain + i) * nIn .. (nTrain + i + 1) * nIn], &params.nNeurons, self.weights, self.biases, &params.activations);
                 self.lossesValidation[epoch] += try loss.computeLoss(pred, outputs[(nTrain + i) * nOut .. (nTrain + i + 1) * nOut], dL, params.lossFunc) / nValF;
             }
 
@@ -659,8 +662,8 @@ pub const NN = struct {
         const nIn: usize = params.nNeurons[0];
         const nOut: usize = params.nNeurons[params.nNeurons.len - 1];
 
-        var inputs = try allocator.alloc(fType, nData * nIn);
-        var outputs = try allocator.alloc(fType, nData * nOut);
+        var inputs = try allocator.alloc(T, nData * nIn);
+        var outputs = try allocator.alloc(T, nData * nOut);
         defer {
             allocator.free(inputs);
             allocator.free(outputs);
@@ -668,10 +671,12 @@ pub const NN = struct {
 
         for (0..nData) |i| {
             for (0..nIn) |j| {
-                inputs[i * nIn + j] = std.Random.floatNorm(rand, fType);
+                inputs[i * nIn + j] = @floatCast(std.Random.floatNorm(rand, f32));
             }
-            outputs[i * nOut] = 2.0 + 1.2 * inputs[i * nIn] - std.math.pow(fType, inputs[i * nIn + 1], 2) + @exp(-3.0 * inputs[i * nIn] - 2.0 * inputs[i * nIn + 1]);
-            outputs[i * nOut + 1] = 1.4 + 3.0 * inputs[i * nIn] - std.math.pow(fType, inputs[i * nIn + 1], 2) + @exp(-2.0 * inputs[i * nIn] - 3.0 * inputs[i * nIn + 1]);
+            const x0: f32 = @as(f32, inputs[i * nIn]);
+            const x1: f32 = @as(f32, inputs[i * nIn + 1]);
+            outputs[i * nOut] = @floatCast(2.0 + 1.2 * x0 - std.math.pow(f32, x1, 2) + @exp(-3.0 * x0 - 2.0 * x1));
+            outputs[i * nOut + 1] = @floatCast(1.4 + 3.0 * x0 - std.math.pow(f32, x1, 2) + @exp(-2.0 * x0 - 3.0 * x1));
         }
 
         try nn.computeNormalization(inputs, outputs);
@@ -764,8 +769,8 @@ pub const NN = struct {
         try nn.saveLosses(path);
 
         // Load the losses from the same file
-        var lossT: [params.nEpochs]fType = undefined;
-        var lossV: [params.nEpochs]fType = undefined;
+        var lossT: [params.nEpochs]T = undefined;
+        var lossV: [params.nEpochs]T = undefined;
         try io.loadData(ioContext, path, &lossT, &lossV);
 
         // Check the losses

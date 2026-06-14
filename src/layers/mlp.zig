@@ -8,14 +8,14 @@ const eigen = @import("eigen");
 const act = @import("act");
 const params = @import("params");
 const err = @import("errors").nnError;
-const fType = params.floatType;
+const T = params.T;
 
 /// Define the structure for the MLP
 pub const MLP = struct {
     allocator: std.mem.Allocator,
-    y: []fType = &.{},
-    dy: []fType = &.{},
-    V: []fType = &.{},
+    y: []T = &.{},
+    dy: []T = &.{},
+    V: []T = &.{},
 
     /// Initializes the MLP, allocating memory for hidden layer activations, their derivatives, and a scratch vector
     pub fn init(allocator: std.mem.Allocator, nNeurons: []const usize) !MLP {
@@ -31,7 +31,7 @@ pub const MLP = struct {
         }
 
         // Alloc space for the hidden values
-        if (allocator.alloc(fType, nHidden)) |slice| {
+        if (allocator.alloc(T, nHidden)) |slice| {
             mlp.y = slice;
         } else |_| {
             std.log.err("Failure when trying to allocate memory for y!\n", .{});
@@ -39,7 +39,7 @@ pub const MLP = struct {
         }
 
         // Alloc space for the derivative of hidden values
-        if (allocator.alloc(fType, nHidden)) |slice| {
+        if (allocator.alloc(T, nHidden)) |slice| {
             mlp.dy = slice;
         } else |_| {
             std.log.err("Failure when trying to allocate memory for dy!\n", .{});
@@ -55,7 +55,7 @@ pub const MLP = struct {
         }
 
         // Alloc memory for the V vector
-        if (allocator.alloc(fType, vSize)) |slice| {
+        if (allocator.alloc(T, vSize)) |slice| {
             mlp.V = slice;
         } else |_| {
             std.log.err("Failure when trying to allocate memory for V!\n", .{});
@@ -76,7 +76,7 @@ pub const MLP = struct {
     }
 
     /// Performs a forward pass through all layers, returning the output slice
-    pub fn forward(self: *const MLP, input: []const fType, nNeurons: []const usize, weights: []const fType, biases: []const fType, activations: []const params.activation) ![]fType {
+    pub fn forward(self: *const MLP, input: []const T, nNeurons: []const usize, weights: []const T, biases: []const T, activations: []const params.activation) ![]T {
         // Save the input in first hidden values
         for (input, 0..input.len) |*in, i| {
             self.y[i] = in.*;
@@ -92,7 +92,7 @@ pub const MLP = struct {
             const nout = nNeurons[i + 1];
 
             // Compute the matrix vector multiplication then add the result to a third vector
-            eigen.matrixVectorMulAdd(fType, weights[nprod..(nprod + nin * nout)], self.y[nsum..(nsum + nin)], biases[nBias..(nBias + nout)], self.y[(nsum + nin)..(nsum + nin + nout)]);
+            eigen.matrixVectorMulAdd(weights[nprod..(nprod + nin * nout)], self.y[nsum..(nsum + nin)], biases[nBias..(nBias + nout)], self.y[(nsum + nin)..(nsum + nin + nout)]);
 
             // Apply the activation function
             try act.activateElements(self.y[(nsum + nin)..(nsum + nin + nout)], self.dy[(nsum + nin)..(nsum + nin + nout)], activations[i]);
@@ -108,7 +108,7 @@ pub const MLP = struct {
     }
 
     /// Performs backpropagation from the loss gradient, computing weight and bias gradients for all layers
-    pub fn backward(self: *const MLP, dL: []const fType, nNeurons: []const usize, weights: []const fType, biases: []const fType, gradW: []fType, gradB: []fType) void {
+    pub fn backward(self: *const MLP, dL: []const T, nNeurons: []const usize, weights: []const T, biases: []const T, gradW: []T, gradB: []T) void {
         // Counters used to iterate over the weights and biases
         var layer: usize = nNeurons.len - 1;
         var nwIni: usize = weights.len - nNeurons[layer] * nNeurons[layer - 1];
@@ -119,24 +119,24 @@ pub const MLP = struct {
         var nyEnd: usize = self.y.len;
 
         // Compute the initial value for the vector V
-        eigen.vectorInit(fType, dL, self.V);
+        eigen.vectorInit(dL, self.V);
 
         // Iterate from the last to the first layer
         while (layer > 0) : (layer -= 1) {
             // Multiply the propagated vector V by the derivative of the activation function
-            eigen.vectorMul(fType, self.V[0..(nNeurons[layer])], self.dy[nyIni..nyEnd]);
+            eigen.vectorMul(self.V[0..(nNeurons[layer])], self.dy[nyIni..nyEnd]);
 
             // Update the gradient for the weights
-            eigen.updateGradWeights(fType, self.V[0..nNeurons[layer]], self.y[(nyIni - nNeurons[layer - 1])..nyIni], gradW[nwIni..nwEnd]);
+            eigen.updateGradWeights(self.V[0..nNeurons[layer]], self.y[(nyIni - nNeurons[layer - 1])..nyIni], gradW[nwIni..nwEnd]);
 
             // Update the gradient for the biases
-            eigen.updateGradBiases(fType, self.V[0..nNeurons[layer]], gradB[nbIni..nbEnd]);
+            eigen.updateGradBiases(self.V[0..nNeurons[layer]], gradB[nbIni..nbEnd]);
 
             // Do not run this part in the last iteration
             if (layer > 1) {
 
                 // Update the M matrix using the current weight matrix
-                eigen.vectorMatrixMul(fType, self.V[0..(nNeurons[layer])], weights[nwIni..nwEnd]);
+                eigen.vectorMatrixMul(self.V[0..(nNeurons[layer])], weights[nwIni..nwEnd]);
 
                 // Update the counters
                 nyEnd = nyIni;
@@ -196,12 +196,12 @@ pub const MLP = struct {
             nBiases += params.nNeurons[i];
         }
 
-        var weights: [nWeights]fType = undefined;
-        var biases: [nBiases]fType = undefined;
+        var weights: [nWeights]T = undefined;
+        var biases: [nBiases]T = undefined;
         for (&weights) |*w| w.* = 0.01;
         for (&biases) |*b| b.* = 0.0;
 
-        var input: [nIn]fType = undefined;
+        var input: [nIn]T = undefined;
         for (&input) |*val| val.* = 1.0;
 
         const output = try mlp_inst.forward(&input, &params.nNeurons, &weights, &biases, &params.activations);
@@ -231,24 +231,24 @@ pub const MLP = struct {
             nBiases += params.nNeurons[i];
         }
 
-        var weights: [nWeights]fType = undefined;
-        var biases: [nBiases]fType = undefined;
-        var gradW: [nWeights]fType = undefined;
-        var gradB: [nBiases]fType = undefined;
+        var weights: [nWeights]T = undefined;
+        var biases: [nBiases]T = undefined;
+        var gradW: [nWeights]T = undefined;
+        var gradB: [nBiases]T = undefined;
 
         var xoshiro256 = std.Random.Xoshiro256.init(42);
         const rand = std.Random.Xoshiro256.random(&xoshiro256);
-        for (&weights) |*w| w.* = std.Random.floatNorm(rand, fType);
+        for (&weights) |*w| w.* = @floatCast(std.Random.floatNorm(rand, f32));
         for (&biases) |*b| b.* = 0.0;
         for (&gradW) |*g| g.* = 0.0;
         for (&gradB) |*g| g.* = 0.0;
 
-        var input: [nIn]fType = undefined;
+        var input: [nIn]T = undefined;
         for (&input) |*val| val.* = 1.0;
 
         _ = try mlp_inst.forward(&input, &params.nNeurons, &weights, &biases, &params.activations);
 
-        var dL: [nOut]fType = undefined;
+        var dL: [nOut]T = undefined;
         for (&dL) |*d| d.* = 1.0;
 
         mlp_inst.backward(&dL, &params.nNeurons, &weights, &biases, &gradW, &gradB);

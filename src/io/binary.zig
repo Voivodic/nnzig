@@ -9,18 +9,18 @@ const params = @import("params");
 const errors = @import("errors");
 const err = errors.ioError;
 const testing = std.testing;
-const fType = params.floatType;
+const T = params.T;
 
 /// Header structure for neural network binary files, storing precision and layer topology
 const NNHeader = struct {
-    precision: u64 = @sizeOf(params.floatType),
+    precision: u64 = @sizeOf(T),
     nLayers: u64 = @as(u64, params.nNeurons.len),
     nNeurons: [params.nNeurons.len]u64 = @as([params.nNeurons.len]u64, params.nNeurons),
 };
 
 /// Header structure for generic data binary files, storing precision, count, and dimension
 const DataHeader = struct {
-    precision: u64 = @sizeOf(params.floatType),
+    precision: u64 = @sizeOf(T),
     nData: u64 = 0,
     dimIn: u64 = 0,
     dimOut: u64 = 0,
@@ -62,8 +62,8 @@ pub fn loadWeights(fileName: []const u8, nn: *const nnzig.NN) !void {
     try reader.readSliceAll(std.mem.asBytes(&header));
 
     // Check the header values
-    if (header.precision != @sizeOf(params.floatType)) {
-        std.log.err("Precision mismatch! Expected {} bits, got {} bits!", .{ @sizeOf(params.floatType), header.precision });
+    if (header.precision != @sizeOf(T)) {
+        std.log.err("Precision mismatch! Expected {} bits, got {} bits!", .{ @sizeOf(T), header.precision });
         return err.precisionMismatch;
     }
     if (header.nLayers != params.nNeurons.len) {
@@ -122,7 +122,7 @@ test "[io] save/load-Weights" {
 }
 
 /// Save the data points to a binary file
-pub fn saveData(io: std.Io, fileName: []const u8, dataIn: []const fType, dataOut: []const fType, dimIn: u64, dimOut: u64) !void {
+pub fn saveData(io: std.Io, fileName: []const u8, dataIn: []const T, dataOut: []const T, dimIn: u64, dimOut: u64) !void {
     // Open the file in fileName
     const cwd = std.Io.Dir.cwd();
     const file = try cwd.createFile(io, fileName, .{});
@@ -148,7 +148,7 @@ pub fn saveData(io: std.Io, fileName: []const u8, dataIn: []const fType, dataOut
 
     // Create the header with standard values
     const header = DataHeader{
-        .precision = @sizeOf(fType),
+        .precision = @sizeOf(T),
         .nData = @as(u64, dataIn.len) / dimIn,
         .dimIn = dimIn,
         .dimOut = dimOut,
@@ -163,7 +163,7 @@ pub fn saveData(io: std.Io, fileName: []const u8, dataIn: []const fType, dataOut
 }
 
 /// Load the data points from a binary file
-pub fn loadData(io: std.Io, fileName: []const u8, dataIn: []fType, dataOut: []fType) !void {
+pub fn loadData(io: std.Io, fileName: []const u8, dataIn: []T, dataOut: []T) !void {
     // Open the file in fileName
     const cwd = std.Io.Dir.cwd();
     const file = try cwd.openFile(io, fileName, .{});
@@ -210,13 +210,13 @@ test "[io] save/load-Data" {
     // Create some data points
     const nData: usize = 10;
     const nDim: usize = 10;
-    var dataIn: [nData * nDim]fType = undefined;
-    var dataOut: [nData * nDim]fType = undefined;
-    var dataIn2: [nData * nDim]fType = undefined;
-    var dataOut2: [nData * nDim]fType = undefined;
+    var dataIn: [nData * nDim]T = undefined;
+    var dataOut: [nData * nDim]T = undefined;
+    var dataIn2: [nData * nDim]T = undefined;
+    var dataOut2: [nData * nDim]T = undefined;
     for (0..nDim * nData) |i| {
-        dataIn[i] = std.Random.floatNorm(rand, fType);
-        dataOut[i] = std.Random.floatNorm(rand, fType);
+        dataIn[i] = @floatCast(std.Random.floatNorm(rand, f32));
+        dataOut[i] = @floatCast(std.Random.floatNorm(rand, f32));
     }
 
     // Save the data points to a file

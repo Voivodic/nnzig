@@ -5,17 +5,17 @@ const std = @import("std");
 const params = @import("params");
 const errors = @import("errors");
 const err = errors.activationError;
-const fType = params.floatType;
+const T = params.T;
 
 /// Identity activation: sets all derivatives to 1 (no transformation applied)
-fn none(df: []fType) void {
+fn none(df: []T) void {
     for (df) |*d| {
         d.* = 1.0;
     }
 }
 
 /// ReLU activation: applies max(0, x) element-wise and computes its derivative
-fn relu(slice: []fType, df: []fType) void {
+fn relu(slice: []T, df: []T) void {
     for (slice, df) |*elem, *d| {
         if (elem.* < 0.0) {
             elem.* = 0.0;
@@ -27,7 +27,7 @@ fn relu(slice: []fType, df: []fType) void {
 }
 
 /// Hyperbolic tangent activation applied element-wise with its derivative
-fn tanh(slice: []fType, df: []fType) void {
+fn tanh(slice: []T, df: []T) void {
     for (slice, df) |*elem, *d| {
         const exp = @exp(elem.*);
         const invexp = 1.0 / exp;
@@ -38,7 +38,7 @@ fn tanh(slice: []fType, df: []fType) void {
 }
 
 /// Sigmoid activation: applies 1/(1+e^(-x)) element-wise with its derivative
-fn sigmoid(slice: []fType, df: []fType) void {
+fn sigmoid(slice: []T, df: []T) void {
     for (slice, df) |*elem, *d| {
         const sigma = 1.0 / (1.0 + @exp(-elem.*));
 
@@ -48,7 +48,7 @@ fn sigmoid(slice: []fType, df: []fType) void {
 }
 
 /// Apply the activation function to each element of the slice and compute its gradient
-pub fn activateElements(input: []fType, df: []fType, act: params.activation) !void {
+pub fn activateElements(input: []T, df: []T, act: params.activation) !void {
     // Compute the chunck size
     const chunkSize: usize = (input.len + params.numThreads - 1) / params.numThreads;
 
@@ -108,54 +108,54 @@ pub fn activateElements(input: []fType, df: []fType, act: params.activation) !vo
 }
 
 test "[act] activateElements none" {
-    var input = [_]fType{ -2.0, -1.0, 0.0, 1.0, 2.0 };
-    var df: [5]fType = undefined;
+    var input = [_]T{ -2.0, -1.0, 0.0, 1.0, 2.0 };
+    var df: [5]T = undefined;
 
     try activateElements(&input, &df, params.activation.none);
 
     const testing = std.testing;
     for (input) |val| try testing.expect(std.math.isFinite(val));
-    for (df) |val| try testing.expectEqual(@as(fType, 1.0), val);
+    for (df) |val| try testing.expectEqual(@as(T, 1.0), val);
 }
 
 test "[act] activateElements relu" {
-    var input = [_]fType{ -2.0, -1.0, 0.0, 1.0, 2.0 };
-    var df: [5]fType = undefined;
+    var input = [_]T{ -2.0, -1.0, 0.0, 1.0, 2.0 };
+    var df: [5]T = undefined;
 
     try activateElements(&input, &df, params.activation.relu);
 
     const testing = std.testing;
-    try testing.expectEqual(@as(fType, 0.0), input[0]);
-    try testing.expectEqual(@as(fType, 0.0), input[1]);
-    try testing.expectEqual(@as(fType, 0.0), input[2]);
-    try testing.expectEqual(@as(fType, 1.0), input[3]);
-    try testing.expectEqual(@as(fType, 2.0), input[4]);
+    try testing.expectEqual(@as(T, 0.0), input[0]);
+    try testing.expectEqual(@as(T, 0.0), input[1]);
+    try testing.expectEqual(@as(T, 0.0), input[2]);
+    try testing.expectEqual(@as(T, 1.0), input[3]);
+    try testing.expectEqual(@as(T, 2.0), input[4]);
 
-    try testing.expectEqual(@as(fType, 0.0), df[0]);
-    try testing.expectEqual(@as(fType, 0.0), df[1]);
-    try testing.expectEqual(@as(fType, 1.0), df[2]);
-    try testing.expectEqual(@as(fType, 1.0), df[3]);
-    try testing.expectEqual(@as(fType, 1.0), df[4]);
+    try testing.expectEqual(@as(T, 0.0), df[0]);
+    try testing.expectEqual(@as(T, 0.0), df[1]);
+    try testing.expectEqual(@as(T, 1.0), df[2]);
+    try testing.expectEqual(@as(T, 1.0), df[3]);
+    try testing.expectEqual(@as(T, 1.0), df[4]);
 }
 
 test "[act] activateElements tanh" {
-    var input = [_]fType{ 0.0 };
-    var df: [1]fType = undefined;
+    var input = [_]T{ 0.0 };
+    var df: [1]T = undefined;
 
     try activateElements(&input, &df, params.activation.tanh);
 
     const testing = std.testing;
-    try testing.expectApproxEqAbs(@as(fType, 0.0), input[0], 1e-4);
+    try testing.expectApproxEqAbs(@as(T, 0.0), input[0], 1e-4);
     try testing.expect(df[0] > 0);
 }
 
 test "[act] activateElements sigmoid" {
-    var input = [_]fType{ 0.0 };
-    var df: [1]fType = undefined;
+    var input = [_]T{ 0.0 };
+    var df: [1]T = undefined;
 
     try activateElements(&input, &df, params.activation.sigmoid);
 
     const testing = std.testing;
-    try testing.expectApproxEqAbs(@as(fType, 0.5), input[0], 1e-4);
-    try testing.expectApproxEqAbs(@as(fType, 0.25), df[0], 1e-4);
+    try testing.expectApproxEqAbs(@as(T, 0.5), input[0], 1e-4);
+    try testing.expectApproxEqAbs(@as(T, 0.25), df[0], 1e-4);
 }

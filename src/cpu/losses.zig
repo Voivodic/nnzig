@@ -5,30 +5,30 @@ const std = @import("std");
 const params = @import("params");
 const errors = @import("errors");
 const err = errors.lossError;
-const fType = params.floatType;
+const T = params.T;
 
 /// Computes the mean squared error loss and its derivatives: L = 0.5 * mean((pred - out)^2)
-fn MSE(pred: []const fType, out: []const fType, dL: []fType, value: *fType) void {
-    var loss: fType = 0.0;
+fn MSE(pred: []const T, out: []const T, dL: []T, value: *T) void {
+    var loss: T = 0.0;
 
     // Compute the loss and its derivative
     for (pred, out, dL) |*p, *o, *dl| {
         dl.* = (p.* - o.*);
         loss += 0.5 * (dl.*) * (dl.*);
-        dl.* = dl.* / @as(fType, @floatFromInt(out.len));
+        dl.* = dl.* / @as(T, @floatFromInt(out.len));
     }
 
-    value.* = loss / @as(fType, @floatFromInt(out.len));
+    value.* = loss / @as(T, @floatFromInt(out.len));
 }
 
 /// Function that computes the loss and its derivatives for a given choice of loss function
-pub fn computeLoss(pred: []const fType, out: []const fType, dL: []fType, lossFunc: params.loss) !fType {
+pub fn computeLoss(pred: []const T, out: []const T, dL: []T, lossFunc: params.loss) !T {
     // Compute the chunck size
     const chunkSize: usize = (pred.len + params.numThreads - 1) / params.numThreads;
 
     // Define the array of threads
     var threads: [params.numThreads]std.Thread = undefined;
-    var lossThread: [params.numThreads]fType = undefined;
+    var lossThread: [params.numThreads]T = undefined;
     for (&lossThread) |*lt| {
         lt.* = 0.0;
     }
@@ -57,7 +57,7 @@ pub fn computeLoss(pred: []const fType, out: []const fType, dL: []fType, lossFun
     }
 
     // Compute the total final loss
-    var totalLoss: fType = 0.0;
+    var totalLoss: T = 0.0;
     for (&lossThread) |*lt| {
         totalLoss += lt.*;
     }
@@ -69,9 +69,9 @@ test "[loss] computeLoss MSE zero error" {
     const testing = std.testing;
     const nOut: usize = params.nNeurons[params.nNeurons.len - 1];
 
-    var pred: [nOut]fType = undefined;
-    var out: [nOut]fType = undefined;
-    var dL: [nOut]fType = undefined;
+    var pred: [nOut]T = undefined;
+    var out: [nOut]T = undefined;
+    var dL: [nOut]T = undefined;
 
     for (&pred, &out) |*p, *o| {
         p.* = 1.0;
@@ -80,17 +80,17 @@ test "[loss] computeLoss MSE zero error" {
 
     const lossVal = try computeLoss(&pred, &out, &dL, params.loss.MSE);
 
-    try testing.expectApproxEqAbs(@as(fType, 0.0), lossVal, 1e-6);
-    for (dL) |val| try testing.expectApproxEqAbs(@as(fType, 0.0), val, 1e-6);
+    try testing.expectApproxEqAbs(@as(T, 0.0), lossVal, 1e-6);
+    for (dL) |val| try testing.expectApproxEqAbs(@as(T, 0.0), val, 1e-6);
 }
 
 test "[loss] computeLoss MSE known error" {
     const testing = std.testing;
     const nOut: usize = params.nNeurons[params.nNeurons.len - 1];
 
-    var pred: [nOut]fType = undefined;
-    var out: [nOut]fType = undefined;
-    var dL: [nOut]fType = undefined;
+    var pred: [nOut]T = undefined;
+    var out: [nOut]T = undefined;
+    var dL: [nOut]T = undefined;
 
     for (&pred, &out) |*p, *o| {
         p.* = 3.0;
@@ -98,8 +98,8 @@ test "[loss] computeLoss MSE known error" {
     }
 
     const lossVal = try computeLoss(&pred, &out, &dL, params.loss.MSE);
-    const expectedLoss: fType = 0.5 * 4.0;
+    const expectedLoss: T = 0.5 * 4.0;
 
     try testing.expectApproxEqAbs(expectedLoss, lossVal, 1e-4);
-    for (dL) |val| try testing.expectApproxEqAbs(@as(fType, 1.0), val, 1e-4);
+    for (dL) |val| try testing.expectApproxEqAbs(@as(T, 1.0), val, 1e-4);
 }
