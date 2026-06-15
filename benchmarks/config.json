@@ -1,7 +1,8 @@
 {
     "dataset": {
         "file": "dataset_benchmark.bin",
-        "num_points": 100
+        "num_points": 100,
+        "seed": 12345
     },
     "outputs": {
         "losses_zig": "losses_zig.bin",
@@ -17,7 +18,7 @@
         "normalization": "meanStd"
     },
     "training": {
-        "seed": 12345,
+        "seed": 13,
         "rTrain": 0.7,
         "rVal": 0.2,
         "eps": 1e-8,

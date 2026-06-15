@@ -120,6 +120,11 @@ def validate_config(config):
         "dataset.num_points must be a positive integer.",
     )
     _check(dataset["file"], "dataset.file must be a non-empty string.")
+    _check(
+        isinstance(dataset.get("seed"), int) and dataset["seed"] >= 0,
+        "dataset.seed must be a non-negative integer (controls only the "
+        "data generation RNG, independent of training.seed).",
+    )
 
     # --- Training splits ---
     r_train = training["rTrain"]
