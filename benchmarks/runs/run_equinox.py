@@ -4,6 +4,7 @@ import jax.numpy as jnp
 import jax.random as jrandom
 import numpy as np
 import optax
+import os
 import struct
 
 from config import load_config
@@ -76,6 +77,7 @@ def write_losses_binary(filename, train_losses, val_losses, precision_bits):
     header_bytes = struct.pack(
         header_format, precision_bytes, len(train_losses), 1, 1
     )
+    os.makedirs(os.path.dirname(filename) or ".", exist_ok=True)
     with open(filename, "wb") as f:
         f.write(header_bytes)
         f.write(train_losses.astype(np_dtype).tobytes())

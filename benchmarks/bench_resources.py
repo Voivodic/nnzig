@@ -193,6 +193,12 @@ def main():
     outputs = load_config(CONFIG, validate=False)["outputs"]
 
     try:
+        # Ensure output directories exist (the nnzig binary can't create
+        # benchmarks/losses/ itself; the Python scripts do their own
+        # makedirs, but this covers all of them upfront).
+        for sub in ("losses", "plots", "resources"):
+            (BENCH / sub).mkdir(parents=True, exist_ok=True)
+
         # Resolve pytorch/equinox app paths once so per-rep invocations skip
         # nix's flake-eval overhead (~100-500ms each).
         print("[bench] resolving nix app paths ...")
@@ -242,6 +248,7 @@ def main():
                 ],
             }
             out = BENCH / outputs["resources_" + lib]
+            out.parent.mkdir(parents=True, exist_ok=True)
             with open(out, "w") as f:
                 json.dump(data, f, indent=2)
             print("[bench] wrote {}".format(out.name))

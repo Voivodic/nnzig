@@ -59,7 +59,7 @@ pub fn main(init: std.process.Init) !void {
 
 The public API lives in `src/nnzig.zig`: `init`/`deinit`, `forward`, `train`,
 `computeNormalization`/`normalize`/`denormalize`, `save/loadWeights`, and
-`saveLosses`. A complete end-to-end example is in `benchmarks/run_nnzig.zig`.
+`saveLosses`. A complete end-to-end example is in `benchmarks/runs/run_nnzig.zig`.
 
 ## Configuration
 

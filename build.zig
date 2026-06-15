@@ -214,7 +214,7 @@ pub fn build(b: *std.Build) void {
     // --- Benchmark step (uses benchmarks/params.zon) ---
 
     const benchmark = b.createModule(.{
-        .root_source_file = b.path("benchmarks/run_nnzig.zig"),
+        .root_source_file = b.path("benchmarks/runs/run_nnzig.zig"),
         .target = target,
         .optimize = optimize,
     });

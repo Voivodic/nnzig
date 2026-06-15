@@ -5,14 +5,14 @@
         "seed": 12345
     },
     "outputs": {
-        "losses_zig": "losses_zig.bin",
-        "losses_pytorch": "losses_pytorch.bin",
-        "losses_equinox": "losses_equinox.bin",
-        "losses_plot": "losses_plot.png",
-        "resources_nnzig": "resources_nnzig.json",
-        "resources_pytorch": "resources_pytorch.json",
-        "resources_equinox": "resources_equinox.json",
-        "resources_plot": "resources_plot.png"
+        "losses_zig": "losses/losses_zig.bin",
+        "losses_pytorch": "losses/losses_pytorch.bin",
+        "losses_equinox": "losses/losses_equinox.bin",
+        "losses_plot": "plots/losses_plot.png",
+        "resources_nnzig": "resources/resources_nnzig.json",
+        "resources_pytorch": "resources/resources_pytorch.json",
+        "resources_equinox": "resources/resources_equinox.json",
+        "resources_plot": "plots/resources_plot.png"
     },
     "network": {
         "precision": 32,

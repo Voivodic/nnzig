@@ -97,11 +97,11 @@ def main():
 
             print("[multi-seed] nnzig (zig build benchmark) ...")
             run(["zig", "build", "benchmark", "--summary", "all"])
-            z_tr, z_va = read_losses(BENCH / "losses_zig.bin")
+            z_tr, z_va = read_losses(BENCH / "losses" / "losses_zig.bin")
 
             print("[multi-seed] pytorch (nix run) ...")
             run(["nix", "run", "./benchmarks#run-pytorch", "--no-pure-eval"])
-            p_tr, p_va = read_losses(BENCH / "losses_pytorch.bin")
+            p_tr, p_va = read_losses(BENCH / "losses" / "losses_pytorch.bin")
 
             results.append((seed, z_tr[-1], p_tr[-1], z_va[-1], p_va[-1]))
 

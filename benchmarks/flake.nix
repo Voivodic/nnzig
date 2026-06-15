@@ -17,11 +17,13 @@
 
         # ${self} is the store copy of this flake's directory (benchmarks/),
         # which holds the scripts together with their sibling modules
-        # (config.py, config.json). Launching the interpreter on a script that
-        # lives there puts that directory on sys.path, so `from config import`
-        # resolves. All file I/O (config.json/params.zon/dataset/losses) is
-        # resolved relative to the working directory, so the wrapper cds into
-        # the benchmarks directory first (the store is read-only).
+        # (config.py, config.json). The run_ scripts live in runs/ (a
+        # subdirectory), so PYTHONPATH must include ${src} for
+        # `from config import` to resolve — Python only puts the script's own
+        # directory (runs/) on sys.path. All file I/O
+        # (config.json/params.zon/dataset/losses) is resolved relative to the
+        # working directory, so the wrapper cds into the benchmarks directory
+        # first (the store is read-only).
         src = self;
 
         # Build a flake app that runs `script` with `env`. It cds into the
@@ -34,6 +36,7 @@
                 if [ ! -f config.json ] && [ -d benchmarks ]; then
                     cd benchmarks
                 fi
+                export PYTHONPATH="${src}"
                 exec ${env}/bin/python ${src}/${script} "$@"
             ''}/bin/${name}";
         };
@@ -45,8 +48,8 @@
 
         apps.${system} = {
             generate-data = mkApp "generate-data" pythonEnv "generate_data.py";
-            run-pytorch = mkApp "run-pytorch" pythonTorchEnv "run_pytorch.py";
-            run-equinox = mkApp "run-equinox" pythonEquinoxEnv "run_equinox.py";
+            run-pytorch = mkApp "run-pytorch" pythonTorchEnv "runs/run_pytorch.py";
+            run-equinox = mkApp "run-equinox" pythonEquinoxEnv "runs/run_equinox.py";
             plot-losses = mkApp "plot-losses" pythonPlotEnv "plot_losses.py";
             plot-resources = mkApp "plot-resources" pythonPlotEnv "plot_resources.py";
             default = self.apps.${system}.generate-data;

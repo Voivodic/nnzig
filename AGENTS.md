@@ -47,7 +47,7 @@ Module **import names differ from filenames** (defined in the `Tree` in `build.z
 
 This codebase targets the 0.16 I/O model, not the legacy one:
 
-- Entry points: `pub fn main(init: std.process.Init) !void` — take `init.io` (the `std.Io` context) and `init.gpa` (the allocator). See `benchmarks/run_nnzig.zig`.
+- Entry points: `pub fn main(init: std.process.Init) !void` — take `init.io` (the `std.Io` context) and `init.gpa` (the allocator). See `benchmarks/runs/run_nnzig.zig`.
 - Tests obtain the I/O context from `std.testing.io`, not a constructed `std.io`.
 - File operations go through `std.Io.Dir` (e.g., `std.Io.Dir.cwd()`, `cwd.deleteFile(ioContext, path)`).
 

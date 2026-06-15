@@ -35,7 +35,7 @@ pub fn main(init: std.process.Init) !void {
     try nn.train(dataIn, dataOut);
 
     // Save the losses
-    const lossesFileName = "benchmarks/losses_zig.bin";
+    const lossesFileName = "benchmarks/losses/losses_zig.bin";
     try nn.saveLosses(lossesFileName);
 
     std.log.info("Done!", .{});

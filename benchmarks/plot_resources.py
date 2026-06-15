@@ -1,5 +1,6 @@
 import json
 import numpy as np
+import os
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
@@ -74,6 +75,7 @@ if __name__ == "__main__":
     fig.tight_layout()
 
     output_file = outputs["resources_plot"]
+    os.makedirs(os.path.dirname(output_file) or ".", exist_ok=True)
     fig.savefig(output_file, dpi=150)
     plt.close(fig)
     print("[info] Saved plot to '" + output_file + "'")
