@@ -13,6 +13,7 @@
         pythonEnv = pkgs.python314.withPackages (ps: [ ps.numpy ]);
         pythonPlotEnv = pkgs.python314.withPackages (ps: [ ps.numpy ps.matplotlib ]);
         pythonTorchEnv = pkgs.python314.withPackages (ps: [ ps.numpy ps.torch ]);
+        pythonEquinoxEnv = pkgs.python314.withPackages (ps: [ ps.numpy ps.equinox ps.optax ]);
 
         # ${self} is the store copy of this flake's directory (benchmarks/),
         # which holds the scripts together with their sibling modules
@@ -45,6 +46,7 @@
         apps.${system} = {
             generate-data = mkApp "generate-data" pythonEnv "generate_data.py";
             run-pytorch = mkApp "run-pytorch" pythonTorchEnv "run_pytorch.py";
+            run-equinox = mkApp "run-equinox" pythonEquinoxEnv "run_equinox.py";
             plot-losses = mkApp "plot-losses" pythonPlotEnv "plot_losses.py";
             default = self.apps.${system}.generate-data;
         };

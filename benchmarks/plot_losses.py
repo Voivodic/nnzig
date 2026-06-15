@@ -46,13 +46,18 @@ if __name__ == "__main__":
     print("[info] Loading losses...")
 
     pt_train, pt_val = read_losses_binary(outputs["losses_pytorch"])
+    eq_train, eq_val = read_losses_binary(outputs["losses_equinox"])
     zig_train, zig_val = read_losses_binary(outputs["losses_zig"])
 
-    if not (len(pt_train) == len(zig_train) == len(pt_val) == len(zig_val)):
+    if not (len(pt_train) == len(eq_train) == len(zig_train)
+            == len(pt_val) == len(eq_val) == len(zig_val)):
         raise ValueError(
             "Loss arrays have mismatched lengths: pytorch train/val = {}/{}, "
-            "zig train/val = {}/{}. Both runs must use the same nEpochs.".format(
-                len(pt_train), len(pt_val), len(zig_train), len(zig_val)
+            "equinox train/val = {}/{}, zig train/val = {}/{}. All runs must "
+            "use the same nEpochs.".format(
+                len(pt_train), len(pt_val),
+                len(eq_train), len(eq_val),
+                len(zig_train), len(zig_val),
             )
         )
 
@@ -61,6 +66,7 @@ if __name__ == "__main__":
     fig, axes = plt.subplots(1, 2, figsize=(14, 5))
 
     axes[0].plot(epochs, pt_train, label="PyTorch", alpha=0.8)
+    axes[0].plot(epochs, eq_train, label="Equinox", alpha=0.8)
     axes[0].plot(epochs, zig_train, label="nnzig", alpha=0.8)
     axes[0].set_xlabel("Epoch")
     axes[0].set_ylabel("Loss")
@@ -70,6 +76,7 @@ if __name__ == "__main__":
     axes[0].grid(True, alpha=0.3)
 
     axes[1].plot(epochs, pt_val, label="PyTorch", alpha=0.8)
+    axes[1].plot(epochs, eq_val, label="Equinox", alpha=0.8)
     axes[1].plot(epochs, zig_val, label="nnzig", alpha=0.8)
     axes[1].set_xlabel("Epoch")
     axes[1].set_ylabel("Loss")
