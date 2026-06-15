@@ -11,6 +11,9 @@ from config import load_config
 # same colors across both figures (C0=PyTorch, C1=Equinox, C2=nnzig).
 _LIBS = ("pytorch", "equinox", "nnzig")
 _LABELS = {"pytorch": "PyTorch", "equinox": "Equinox", "nnzig": "nnzig"}
+# Libraries compared against nnzig in the ratio panels.
+_RATIO_LIBS = ("pytorch", "equinox")
+_REF = "nnzig"
 
 
 def _mean_std(samples):
@@ -19,6 +22,47 @@ def _mean_std(samples):
     mean = float(np.mean(arr))
     std = float(np.std(arr, ddof=1)) if len(arr) > 1 else 0.0
     return mean, std
+
+
+def _stats_arrays(samples, scale=1.0):
+    """Per-N (means, stds) arrays from a list of sample lists."""
+    means, stds = [], []
+    for s in samples:
+        m, sd = _mean_std(s)
+        means.append(m * scale)
+        stds.append(sd * scale)
+    return np.array(means), np.array(stds)
+
+
+def _draw_main(ax, data, n_arr, n_values, field, ylabel, title, scale=1.0):
+    """Log-scale main panel: mean line + std band for every library."""
+    means_by_lib = {}
+    for lib in _LIBS:
+        means, stds = _stats_arrays(data[lib][field], scale=scale)
+        means_by_lib[lib] = means
+        ax.plot(n_arr, means, label=_LABELS[lib], alpha=0.8)
+        ax.fill_between(n_arr, means - stds, means + stds, alpha=0.2)
+    ax.set_yscale("log")
+    ax.set_ylabel(ylabel)
+    ax.set_title(title)
+    ax.set_xticks(n_values)
+    ax.legend()
+    ax.grid(True, alpha=0.3, which="both")
+    return means_by_lib
+
+
+def _draw_ratio(ax, means_by_lib, n_arr, n_values):
+    """Linear ratio panel: (lib - nnzig) / nnzig * 100 for PyTorch/Equinox."""
+    ref = means_by_lib[_REF]
+    for lib in _RATIO_LIBS:
+        pct = (means_by_lib[lib] - ref) / ref * 100.0
+        ax.plot(n_arr, pct, label=_LABELS[lib], alpha=0.8,
+                marker="o", markersize=3)
+    ax.axhline(0, color="black", linewidth=0.5, alpha=0.5)
+    ax.set_xlabel("N")
+    ax.set_ylabel("vs {} (%)".format(_LABELS[_REF]))
+    ax.set_xticks(n_values)
+    ax.grid(True, alpha=0.3)
 
 
 if __name__ == "__main__":
@@ -42,40 +86,29 @@ if __name__ == "__main__":
             )
     n_arr = np.array(n_values, dtype=float)
 
-    fig, axes = plt.subplots(1, 2, figsize=(14, 5))
+    # 2x2 grid: top row = main (log) panels, bottom row = ratio (linear)
+    # panels at 1/3 height, sharing each column's x-axis with no vertical
+    # gap (hspace=0). sharex="col" hides the x tick labels on the top row.
+    fig, axes = plt.subplots(
+        2, 2, figsize=(14, 6.5), sharex="col",
+        gridspec_kw={"height_ratios": [3, 1], "hspace": 0.0, "wspace": 0.15},
+    )
+    (ax_time, ax_mem), (ax_time_r, ax_mem_r) = axes
 
-    # --- Time panel ---
-    for lib in _LIBS:
-        stats = [_mean_std(t) for t in data[lib]["time_seconds"]]
-        means = np.array([m for m, _ in stats])
-        stds = np.array([s for _, s in stats])
-        axes[0].plot(n_arr, means, label=_LABELS[lib], alpha=0.8)
-        axes[0].fill_between(n_arr, means - stds, means + stds, alpha=0.2)
-    axes[0].set_xlabel("N")
-    axes[0].set_ylabel("Time (seconds)")
-    axes[0].set_title("Training Time")
-    axes[0].set_xticks(n_values)
-    axes[0].legend()
-    axes[0].grid(True, alpha=0.3)
+    time_means = _draw_main(
+        ax_time, data, n_arr, n_values,
+        "time_seconds", "Time (seconds)", "Training Time",
+    )
+    mem_means = _draw_main(
+        ax_mem, data, n_arr, n_values,
+        "max_rss_kbytes", "Memory (MB)", "Peak Memory", scale=1.0 / 1024.0,
+    )
 
-    # --- Memory panel (kbytes -> MB) ---
-    for lib in _LIBS:
-        stats = [_mean_std(r) for r in data[lib]["max_rss_kbytes"]]
-        means = np.array([m / 1024.0 for m, _ in stats])
-        stds = np.array([s / 1024.0 for _, s in stats])
-        axes[1].plot(n_arr, means, label=_LABELS[lib], alpha=0.8)
-        axes[1].fill_between(n_arr, means - stds, means + stds, alpha=0.2)
-    axes[1].set_xlabel("N")
-    axes[1].set_ylabel("Memory (MB)")
-    axes[1].set_title("Peak Memory")
-    axes[1].set_xticks(n_values)
-    axes[1].legend()
-    axes[1].grid(True, alpha=0.3)
-
-    fig.tight_layout()
+    _draw_ratio(ax_time_r, time_means, n_arr, n_values)
+    _draw_ratio(ax_mem_r, mem_means, n_arr, n_values)
 
     output_file = outputs["resources_plot"]
     os.makedirs(os.path.dirname(output_file) or ".", exist_ok=True)
-    fig.savefig(output_file, dpi=150)
+    fig.savefig(output_file, dpi=150, bbox_inches="tight")
     plt.close(fig)
     print("[info] Saved plot to '" + output_file + "'")
