@@ -862,9 +862,58 @@ pub const NN = struct {
     }
 
     /// Load data points from a binary file
-    // pub fn loadData(self: *const NN, fileName: []const u8) {
-    //     try io.loadData(self.ioContext, fileName, self.dataIn, self.dataOut);
-    // }
+    pub fn loadData(self: *const NN, fileName: []const u8) !struct { []T, []T } {
+        const result = try io.loadData(self.allocator, self.ioContext, fileName);
+
+        return result;
+    }
+
+    // Test the saving and loading of the data
+    test "[nnzig] save/load-Data" {
+        // Create the IO context
+        const path = "test.bin";
+        const ioContext = std.testing.io;
+
+        // Create the allocator
+        var gpa = std.heap.DebugAllocator(.{}){};
+        const allocator = gpa.allocator();
+        defer {
+            const deinit_status = gpa.deinit();
+            if (deinit_status == .leak) std.log.err("Leak!\n", .{});
+        }
+
+        // Initialize the neural network
+        const nn = try NN.init(allocator, ioContext);
+        defer nn.deinit();
+
+        // Create some data points
+        const nData: usize = 10;
+        const nDim: usize = 4;
+        var dataIn: [nData * nDim]T = undefined;
+        var dataOut: [nData * nDim]T = undefined;
+        for (0..nDim * nData) |i| {
+            dataIn[i] = @as(T, @floatFromInt(i + 1));
+            dataOut[i] = @as(T, @floatFromInt(3 * (i + 1)));
+        }
+
+        // Save the data points to a file
+        try nn.saveData(path, &dataIn, &dataOut);
+
+        // Load the weights from the same file
+        const result = try nn.loadData(path);
+        defer allocator.free(result[0]);
+        defer allocator.free(result[1]);
+
+        // Check the data
+        for (0..nDim * nData) |i| {
+            try testing.expectEqual(dataIn[i], result[0][i]);
+            try testing.expectEqual(dataOut[i], result[1][i]);
+        }
+
+        // Delete the test file
+        const cwd = std.Io.Dir.cwd();
+        try cwd.deleteFile(ioContext, path);
+    }
 
     /// Save the losses to a file
     pub fn saveLosses(self: *const NN, fileName: []const u8) !void {
@@ -898,13 +947,13 @@ pub const NN = struct {
         try nn.saveLosses(path);
 
         // Load the losses from the same file
-        var lossT: [params.nEpochs]T = undefined;
-        var lossV: [params.nEpochs]T = undefined;
-        try io.loadData(ioContext, path, &lossT, &lossV);
+        const result = try io.loadData(allocator, ioContext, path);
+        defer allocator.free(result[0]);
+        defer allocator.free(result[1]);
 
         // Check the losses
-        try testing.expectEqual(nn.lossesTraining[0], lossT[0]);
-        try testing.expectEqual(nn.lossesValidation[0], lossV[0]);
+        try testing.expectEqual(nn.lossesTraining[0], result[0][0]);
+        try testing.expectEqual(nn.lossesValidation[0], result[1][0]);
 
         // Delete the test file
         const cwd = std.Io.Dir.cwd();

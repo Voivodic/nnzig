@@ -163,7 +163,7 @@ pub fn saveData(io: std.Io, fileName: []const u8, dataIn: []const T, dataOut: []
 }
 
 /// Load the data points from a binary file
-pub fn loadData(io: std.Io, fileName: []const u8, dataIn: []T, dataOut: []T) !void {
+pub fn loadData(allocator: std.mem.Allocator, io: std.Io, fileName: []const u8) !struct { []T, []T } {
     // Open the file in fileName
     const cwd = std.Io.Dir.cwd();
     const file = try cwd.openFile(io, fileName, .{});
@@ -178,23 +178,16 @@ pub fn loadData(io: std.Io, fileName: []const u8, dataIn: []T, dataOut: []T) !vo
     var header: DataHeader = undefined;
     try reader.readSliceAll(std.mem.asBytes(&header));
 
-    // Check the header values
-    if (header.precision != @sizeOf(@TypeOf(dataIn[0])) or header.precision != @sizeOf(@TypeOf(dataOut[0]))) {
-        std.log.err("Precision mismatch! Expected {} bits, got {} bits!", .{ @sizeOf(@TypeOf(dataIn[0])), header.precision });
-        return err.precisionMismatch;
-    }
-    if (header.nData * header.dimIn != dataIn.len) {
-        std.log.err("Number of data points * dimension mismatch! Expected {}, got {}!", .{ header.nData * header.dimIn, dataIn.len });
-        return err.invalidNData;
-    }
-    if (header.nData * header.dimOut != dataOut.len) {
-        std.log.err("Number of data points * dimension mismatch! Expected {}, got {}!", .{ header.nData * header.dimOut, dataOut.len });
-        return err.invalidNData;
-    }
+    // Alloc the dataIn and dataOut arrays
+    const dataIn = try allocator.alloc(T, header.nData * header.dimIn);
+    const dataOut = try allocator.alloc(T, header.nData * header.dimOut);
 
     // Read the data from the file
     try reader.readSliceAll(std.mem.sliceAsBytes(dataIn));
     try reader.readSliceAll(std.mem.sliceAsBytes(dataOut));
+
+    // Return the data
+    return .{ dataIn, dataOut };
 }
 
 // Test the saving and loading of the data 
@@ -203,17 +196,23 @@ test "[io] save/load-Data" {
     const path = "test.bin";
     const io = std.testing.io;
 
+    // Create the allocator
+    var gpa = std.heap.DebugAllocator(.{}){};
+    const allocator = gpa.allocator();
+    defer {
+        const deinit_status = gpa.deinit();
+        if (deinit_status == .leak) std.log.err("Leak!\n", .{});
+    }
+
     // Set the random generator
     var xoshiro256 = std.Random.Xoshiro256.init(12345);
     const rand = std.Random.Xoshiro256.random(&xoshiro256);
 
     // Create some data points
     const nData: usize = 10;
-    const nDim: usize = 10;
+    const nDim: usize = 4;
     var dataIn: [nData * nDim]T = undefined;
     var dataOut: [nData * nDim]T = undefined;
-    var dataIn2: [nData * nDim]T = undefined;
-    var dataOut2: [nData * nDim]T = undefined;
     for (0..nDim * nData) |i| {
         dataIn[i] = @floatCast(std.Random.floatNorm(rand, f32));
         dataOut[i] = @floatCast(std.Random.floatNorm(rand, f32));
@@ -223,12 +222,14 @@ test "[io] save/load-Data" {
     try saveData(io, path, &dataIn, &dataOut, nDim, nDim);
 
     // Load the weights from the same file
-    _ = try loadData(io, path, &dataIn2, &dataOut2);
+    const result = try loadData(allocator, io, path);
+    defer allocator.free(result[0]);
+    defer allocator.free(result[1]);
 
     // Check the data
     for (0..nDim) |i| {
-        try testing.expectEqual(dataIn[i], dataIn2[i]);
-        try testing.expectEqual(dataOut[i], dataOut2[i]);
+        try testing.expectEqual(dataIn[i], result[0][i]);
+        try testing.expectEqual(dataOut[i], result[1][i]);
     }
 
     // Delete the test file

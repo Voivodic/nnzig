@@ -17,24 +17,23 @@ pub fn main(init: std.process.Init) !void {
 
     // Set the parameters of the dataset
     const fileName = "benchmarks/dataset_benchmark.bin";
-    const nData: usize = 100;
-    const dimIn: usize = 2;
-    const dimOut: usize = 2;
 
     // Load the dataset
     std.log.info("Loading dataset...", .{});
-    var dataIn: [nData * dimIn]f32 = undefined;
-    var dataOut: [nData * dimOut]f32 = undefined;
-    try io.loadData(ioContext, fileName, &dataIn, &dataOut);
+    const results = try nn.loadData(fileName);
+    const dataIn = results[0];
+    defer allocator.free(dataIn);
+    const dataOut = results[1];
+    defer allocator.free(dataOut);
 
     // Normalize the dataset
     std.log.info("Computing normalization...", .{});
-    try nn.computeNormalization(&dataIn, &dataOut);
-    try nn.normalize(&dataIn, &dataOut);
+    try nn.computeNormalization(dataIn, dataOut);
+    try nn.normalize(dataIn, dataOut);
 
     // Train the network
     std.log.info("Training network...", .{});
-    try nn.train(&dataIn, &dataOut);
+    try nn.train(dataIn, dataOut);
 
     // Save the losses
     const lossesFileName = "benchmarks/losses_zig.bin";
