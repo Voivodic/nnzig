@@ -465,6 +465,76 @@ pub const NN = struct {
         for (output) |val| try testing.expect(std.math.isFinite(val));
     }
 
+    test "[nnzig] gradient check vs finite differences (output layer)" {
+        var gpa = std.heap.DebugAllocator(.{}){};
+        const allocator = gpa.allocator();
+        defer {
+            const deinit_status = gpa.deinit();
+            if (deinit_status == .leak) std.log.err("Leak!\n", .{});
+        }
+
+        const ioContext = std.testing.io;
+        var nn = try NN.init(allocator, ioContext);
+        defer nn.deinit();
+
+        // Single fixed sample: backProp then yields the per-sample gradient
+        // (no batch averaging to reason about).
+        var inputs = [_]T{ 0.5, -0.3 };
+        var outputs = [_]T{ 1.0, 0.0 };
+        var dL = [_]T{ 0.0, 0.0 };
+
+        _ = try nn.backProp(&inputs, &outputs);
+
+        const eps: T = 1e-3;
+        const nOut: usize = params.nNeurons[params.nNeurons.len - 1];
+        const first_out_w: usize = nn.weights.len - nOut * params.nNeurons[params.nNeurons.len - 2];
+        const first_out_b: usize = nn.biases.len - nOut;
+
+        // Output layer uses the "none" activation, so perturbing its weights/
+        // biases does not cross any ReLU kink -> finite differences are clean.
+        const ow = nn.weights[first_out_w];
+        const aw = nn.gradW[first_out_w];
+        nn.weights[first_out_w] = ow + eps;
+        const lp_w = loss.computeLoss(try nn.forward(&inputs), &outputs, &dL, params.lossFunc);
+        nn.weights[first_out_w] = ow - eps;
+        const lm_w = loss.computeLoss(try nn.forward(&inputs), &outputs, &dL, params.lossFunc);
+        nn.weights[first_out_w] = ow;
+        const fd_w: T = (lp_w - lm_w) / (2 * eps);
+
+        const ob = nn.biases[first_out_b];
+        const ab = nn.gradB[first_out_b];
+        nn.biases[first_out_b] = ob + eps;
+        const lp_b = loss.computeLoss(try nn.forward(&inputs), &outputs, &dL, params.lossFunc);
+        nn.biases[first_out_b] = ob - eps;
+        const lm_b = loss.computeLoss(try nn.forward(&inputs), &outputs, &dL, params.lossFunc);
+        nn.biases[first_out_b] = ob;
+        const fd_b: T = (lp_b - lm_b) / (2 * eps);
+
+        std.log.info("gradCheck OUT: w analytic={} fd={} | b analytic={} fd={}", .{ aw, fd_w, ab, fd_b });
+
+        try testing.expectApproxEqAbs(aw, fd_w, @abs(fd_w) * 1e-2 + 1e-4);
+        try testing.expectApproxEqAbs(ab, fd_b, @abs(fd_b) * 1e-2 + 1e-4);
+    }
+
+    test "[nnzig] floatNorm init variance" {
+        var xoshiro = std.Random.Xoshiro256.init(42);
+        const rand = std.Random.Xoshiro256.random(&xoshiro);
+        var sum: f64 = 0;
+        var sumsq: f64 = 0;
+        const n: usize = 200000;
+        for (0..n) |_| {
+            const v: f64 = @floatCast(std.Random.floatNorm(rand, f32));
+            sum += v;
+            sumsq += v * v;
+        }
+        const nf: f64 = @floatFromInt(n);
+        const mean = sum / nf;
+        const variance = sumsq / nf - mean * mean;
+        std.log.info("floatNorm: mean={d:.4} variance={d:.4}", .{ mean, variance });
+        try testing.expect(@abs(mean) < 0.05);
+        try testing.expect(@abs(variance - 1.0) < 0.05);
+    }
+
     /// Performs backpropagation over the given data and returns the average loss
     fn backProp(self: *const NN, inputs: []const T, outputs: []const T) !T {
         // Get the data size
@@ -785,6 +855,16 @@ pub const NN = struct {
         const cwd = std.Io.Dir.cwd();
         try cwd.deleteFile(ioContext, path);
     }
+
+    /// Save data points to a binary file
+    pub fn saveData(self: *const NN, fileName: []const u8, dataIn: []const T, dataOut: []const T) !void {
+        try io.saveData(self.ioContext, fileName, dataIn, dataOut, params.nNeurons[0], params.nNeurons[params.nNeurons.len - 1]);
+    }
+
+    /// Load data points from a binary file
+    // pub fn loadData(self: *const NN, fileName: []const u8) {
+    //     try io.loadData(self.ioContext, fileName, self.dataIn, self.dataOut);
+    // }
 
     /// Save the losses to a file
     pub fn saveLosses(self: *const NN, fileName: []const u8) !void {

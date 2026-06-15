@@ -71,6 +71,23 @@ test "[eigen] vectorMatrixMul" {
     try testing.expectApproxEqAbs(11.0, v[1], 0.001);
 }
 
+test "[eigen] vectorMatrixMul rectangular (grow 2 -> 4)" {
+    // Mirrors backprop delta propagation: V is sized to the largest layer (4)
+    // but passed as a slice of the current layer size (2); the kernel must
+    // write b_cols=4 elements back into the SAME buffer without corrupting the
+    // input it is still reading. column-major (2x4): matB = [[1,3,5,7],[2,4,6,8]]
+    var v = [_]T{ 1.0, 2.0, 99.0, 99.0 };
+    const matrix = [_]T{ 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0 };
+
+    vectorMatrixMul(v[0..2], matrix[0..]);
+
+    // result[j] = sum_i v[i]*matB(i,j) = [1+4, 3+8, 5+12, 7+16] = [5, 11, 17, 23]
+    try testing.expectApproxEqAbs(@as(T, 5.0), v[0], 1e-3);
+    try testing.expectApproxEqAbs(@as(T, 11.0), v[1], 1e-3);
+    try testing.expectApproxEqAbs(@as(T, 17.0), v[2], 1e-3);
+    try testing.expectApproxEqAbs(@as(T, 23.0), v[3], 1e-3);
+}
+
 extern "c" fn eigen_vectorMatrixMulBatch(A: [*]const T, result: [*]T, B: [*]const T, b_rows: usize, b_cols: usize, batch_size: usize) void;
 
 /// Computes `result = vectors^T * matrix` for a batch of row vectors using Eigen
