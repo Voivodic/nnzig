@@ -32,6 +32,9 @@ pub const NN = struct {
     vB: []T = &.{},
     lossesTraining: []T = &.{},
     lossesValidation: []T = &.{},
+    step: usize = 0,
+    beta1_t: T = params.beta1,
+    beta2_t: T = params.beta2,
 
     /// Initializes the neural network, allocating memory for weights, biases, gradients, and Adam optimizer moments
     pub fn init(allocator: std.mem.Allocator, ioContext: std.Io) !NN {
@@ -509,43 +512,40 @@ pub const NN = struct {
         return lossTotal;
     }
 
-    /// Updates the first and second moment estimates (m and v) for the Adam optimizer
-    fn updateMV(self: *const NN) void {
+    /// Applies the bias-corrected Adam update rule to adjust weights and biases
+    fn updateWeights(self: *NN) void {
+        // Compute the normalization for mt and vt
+        const normM: T = @floatCast(1.0 - self.beta1_t);
+        const normV: T = @floatCast(1.0 - self.beta2_t);
+
         // Update the weights
-        for (self.gradW, self.mW, self.vW) |*dw, *mw, *vw| {
+        for (self.weights, self.gradW, self.mW, self.vW) |*w, *dw, *mw, *vw| {
+            // Update the moments
             mw.* = params.beta1 * mw.* + (1.0 - params.beta1) * dw.*;
             vw.* = params.beta2 * vw.* + (1.0 - params.beta2) * (dw.*) * (dw.*);
-        }
 
-        // Update the bias
-        for (self.gradB, self.mB, self.vB) |*db, *mb, *vb| {
-            mb.* = params.beta1 * mb.* + (1.0 - params.beta1) * db.*;
-            vb.* = params.beta2 * vb.* + (1.0 - params.beta2) * (db.*) * (db.*);
-        }
-    }
-
-    /// Applies the bias-corrected Adam update rule to adjust weights and biases
-    fn updateWeights(self: *const NN, t: usize) void {
-        // Transform t to float
-        const tFloat: T = @as(T, @floatFromInt(t));
-
-        // Compute the normalization for mt and vt
-        const normM: T = @floatCast(1.0 - std.math.pow(f32, @as(f32, params.beta1), @as(f32, tFloat)));
-        const normV: T = @floatCast(1.0 - std.math.pow(f32, @as(f32, params.beta2), @as(f32, tFloat)));
-
-        // Update the weights
-        for (self.weights, self.mW, self.vW) |*w, *mw, *vw| {
+            // Update the weights
             w.* -= ((mw.*) / normM) * params.lr / (@sqrt(vw.* / normV) + params.eps);
         }
 
         // Update the bias
-        for (self.biases, self.mB, self.vB) |*b, *mb, *vb| {
+        for (self.biases, self.gradB, self.mB, self.vB) |*b, *db, *mb, *vb| {
+            // Update the moments
+            mb.* = params.beta1 * mb.* + (1.0 - params.beta1) * db.*;
+            vb.* = params.beta2 * vb.* + (1.0 - params.beta2) * (db.*) * (db.*);
+
+            // Update the bias
             b.* -= ((mb.*) / normM) * params.lr / (@sqrt(vb.* / normV) + params.eps);
         }
+
+        // Update the state of the Adam optimizer
+        self.step += 1;
+        self.beta1_t *= params.beta1;
+        self.beta2_t *= params.beta2;
     }
 
     /// Trains the neural network using mini-batch gradient descent with the Adam optimizer. Splits data into training and validation sets, and records loss per epoch.
-    pub fn train(self: *const NN, inputs: []const T, outputs: []const T) !void {
+    pub fn train(self: *NN, inputs: []const T, outputs: []const T) !void {
         const nIn: usize = params.nNeurons[0];
         const nOut: usize = params.nNeurons[params.nNeurons.len - 1];
 
@@ -649,10 +649,8 @@ pub const NN = struct {
                     return err.backProp;
                 }
 
-                // Compute mt and vt used by adam optimizer
-                self.updateMV();
-
-                self.updateWeights(epoch + 1);
+                // Update the weights
+                self.updateWeights();
             }
 
             // Handle the remainder batch
@@ -673,10 +671,8 @@ pub const NN = struct {
                     return err.backProp;
                 }
 
-                // Compute mt and vt used by adam optimizer
-                self.updateMV();
-
-                self.updateWeights(epoch + 1);
+                // Update the weights
+                self.updateWeights();
             }
 
             // Save the training loss of this epoch
