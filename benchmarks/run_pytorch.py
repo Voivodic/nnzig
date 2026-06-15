@@ -54,9 +54,9 @@ class MLP(torch.nn.Module):
 
 if __name__ == "__main__":
     print("[info] Initializing NN...")
-    nThreads = 1
-    torch.set_num_threads(nThreads)
-    torch.set_num_interop_threads(nThreads)
+    # nThreads = 1
+    # torch.set_num_threads(nThreads)
+    # torch.set_num_interop_threads(nThreads)
 
     seed = 12345
     torch.manual_seed(seed)
