@@ -592,14 +592,57 @@ pub const NN = struct {
         const nBatches: usize = nTrain / params.batchSize;
         const nBatchesF: T = @as(T, @floatFromInt(nBatches));
 
+        // Alloc the array of indexes used to shuffle the training data each epoch.
+        // Only training indices [0, nTrain) are shuffled so that the validation set
+        // stays fixed and comparable across epochs.
+        var indexes: []usize = &.{};
+        if (self.allocator.alloc(usize, nTrain)) |slice| {
+            indexes = slice;
+        } else |_| {
+            std.log.err("Error while allocating the slice for the indexes!\n", .{});
+            return err.backProp;
+        }
+        defer self.allocator.free(indexes);
+        for (0..nTrain) |i| indexes[i] = i;
+
+        // Alloc the batch buffers once and reuse them for every batch. Gathering the
+        // shuffled samples into contiguous buffers keeps backProp cache-friendly.
+        var inputsBatch: []T = &.{};
+        if (self.allocator.alloc(T, params.batchSize * nIn)) |slice| {
+            inputsBatch = slice;
+        } else |_| {
+            std.log.err("Error while allocating the slice for inputsBatch!\n", .{});
+            return err.backProp;
+        }
+        defer self.allocator.free(inputsBatch);
+
+        var outputsBatch: []T = &.{};
+        if (self.allocator.alloc(T, params.batchSize * nOut)) |slice| {
+            outputsBatch = slice;
+        } else |_| {
+            std.log.err("Error while allocating the slice for outputsBatch!\n", .{});
+            return err.backProp;
+        }
+        defer self.allocator.free(outputsBatch);
+
         // Run over all epochs
         for (0..params.nEpochs) |epoch| {
             var lossEpoch: T = 0.0;
 
+            // Shuffle the training data at the beginning of each epoch
+            self.rand.shuffle(usize, indexes);
+
             // Run over the batches
             for (0..nBatches) |batch| {
+                // Gather the shuffled samples into the contiguous batch buffers
+                for (0..params.batchSize) |i| {
+                    const idx = indexes[batch * params.batchSize + i];
+                    @memcpy(inputsBatch[i * nIn .. (i + 1) * nIn], inputs[idx * nIn .. (idx + 1) * nIn]);
+                    @memcpy(outputsBatch[i * nOut .. (i + 1) * nOut], outputs[idx * nOut .. (idx + 1) * nOut]);
+                }
+
                 // Compute the gradients
-                if (self.backProp(inputs[batch * params.batchSize * nIn .. (batch + 1) * params.batchSize * nIn], outputs[batch * params.batchSize * nOut .. (batch + 1) * params.batchSize * nOut])) |lossE| {
+                if (self.backProp(inputsBatch, outputsBatch)) |lossE| {
                     lossEpoch += lossE / nBatchesF;
                 } else |_| {
                     std.log.err("Problem when trying to backprop in epoch {} and batch {}!\n", .{ epoch, batch });
@@ -611,9 +654,19 @@ pub const NN = struct {
 
                 self.updateWeights(epoch + 1);
             }
-            if (nTrain % params.batchSize != 0) {
+
+            // Handle the remainder batch
+            const nRem: usize = nTrain % params.batchSize;
+            if (nRem != 0) {
+                // Gather the remaining shuffled samples into the batch buffers
+                for (0..nRem) |i| {
+                    const idx = indexes[nBatches * params.batchSize + i];
+                    @memcpy(inputsBatch[i * nIn .. (i + 1) * nIn], inputs[idx * nIn .. (idx + 1) * nIn]);
+                    @memcpy(outputsBatch[i * nOut .. (i + 1) * nOut], outputs[idx * nOut .. (idx + 1) * nOut]);
+                }
+
                 // Compute the gradients
-                if (self.backProp(inputs[nBatches * params.batchSize * nIn ..], outputs[nBatches * params.batchSize * nOut ..])) |lossE| {
+                if (self.backProp(inputsBatch[0 .. nRem * nIn], outputsBatch[0 .. nRem * nOut])) |lossE| {
                     lossEpoch += lossE / nBatchesF;
                 } else |_| {
                     std.log.err("Problem when trying to backprop in epoch {} and batch {}!\n", .{ epoch, nBatches });
