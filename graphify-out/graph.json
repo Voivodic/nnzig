@@ -267,7 +267,7 @@
       "label": "activateElements()",
       "file_type": "code",
       "source_file": "src/cpu/activations.zig",
-      "source_location": "L16",
+      "source_location": "L17",
       "_origin": "ast",
       "id": "cpu_activations_activateelements",
       "community": 7,
@@ -287,7 +287,7 @@
       "label": "computeLoss()",
       "file_type": "code",
       "source_file": "src/cpu/losses.zig",
-      "source_location": "L15",
+      "source_location": "L16",
       "_origin": "ast",
       "id": "cpu_losses_computeloss",
       "community": 11,
@@ -327,7 +327,7 @@
       "label": ".deinit()",
       "file_type": "code",
       "source_file": "src/cpu/normalizations.zig",
-      "source_location": "L106",
+      "source_location": "L77",
       "_origin": "ast",
       "id": "cpu_normalizations_norm_deinit",
       "community": 3,
@@ -337,7 +337,7 @@
       "label": ".computeNormalization()",
       "file_type": "code",
       "source_file": "src/cpu/normalizations.zig",
-      "source_location": "L114",
+      "source_location": "L115",
       "_origin": "ast",
       "id": "cpu_normalizations_norm_computenormalization",
       "community": 3,
@@ -347,7 +347,7 @@
       "label": ".normalize()",
       "file_type": "code",
       "source_file": "src/cpu/normalizations.zig",
-      "source_location": "L155",
+      "source_location": "L171",
       "_origin": "ast",
       "id": "cpu_normalizations_norm_normalize",
       "community": 3,
@@ -357,7 +357,7 @@
       "label": ".denormalize()",
       "file_type": "code",
       "source_file": "src/cpu/normalizations.zig",
-      "source_location": "L218",
+      "source_location": "L257",
       "_origin": "ast",
       "id": "cpu_normalizations_norm_denormalize",
       "community": 3,
@@ -627,7 +627,7 @@
       "label": "eigen_denormalize()",
       "file_type": "code",
       "source_file": "src/eigen/normalizations.cpp",
-      "source_location": "L66",
+      "source_location": "L67",
       "_origin": "ast",
       "id": "eigen_normalizations_eigen_denormalize",
       "community": 20,
@@ -1297,7 +1297,7 @@
       "label": ".saveWeights()",
       "file_type": "code",
       "source_file": "src/nnzig.zig",
-      "source_location": "L692",
+      "source_location": "L745",
       "_origin": "ast",
       "id": "src_nnzig_nn_saveweights",
       "community": 1,
@@ -1307,7 +1307,7 @@
       "label": ".loadWeights()",
       "file_type": "code",
       "source_file": "src/nnzig.zig",
-      "source_location": "L697",
+      "source_location": "L750",
       "_origin": "ast",
       "id": "src_nnzig_nn_loadweights",
       "community": 1,
@@ -1317,7 +1317,7 @@
       "label": ".saveLosses()",
       "file_type": "code",
       "source_file": "src/nnzig.zig",
-      "source_location": "L741",
+      "source_location": "L794",
       "_origin": "ast",
       "id": "src_nnzig_nn_savelosses",
       "community": 1,
@@ -1803,9 +1803,9 @@
       "source_file": "src/cpu/normalizations.zig",
       "source_location": "L15",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "cpu_normalizations",
-      "target": "cpu_normalizations_norm",
-      "confidence_score": 1.0
+      "target": "cpu_normalizations_norm"
     },
     {
       "relation": "method",
@@ -1813,9 +1813,9 @@
       "source_file": "src/cpu/normalizations.zig",
       "source_location": "L114",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "cpu_normalizations_norm",
-      "target": "cpu_normalizations_norm_computenormalization",
-      "confidence_score": 1.0
+      "target": "cpu_normalizations_norm_computenormalization"
     },
     {
       "relation": "method",
@@ -1823,9 +1823,9 @@
       "source_file": "src/cpu/normalizations.zig",
       "source_location": "L106",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "cpu_normalizations_norm",
-      "target": "cpu_normalizations_norm_deinit",
-      "confidence_score": 1.0
+      "target": "cpu_normalizations_norm_deinit"
     },
     {
       "relation": "method",
@@ -1833,9 +1833,9 @@
       "source_file": "src/cpu/normalizations.zig",
       "source_location": "L218",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "cpu_normalizations_norm",
-      "target": "cpu_normalizations_norm_denormalize",
-      "confidence_score": 1.0
+      "target": "cpu_normalizations_norm_denormalize"
     },
     {
       "relation": "method",
@@ -1843,9 +1843,9 @@
       "source_file": "src/cpu/normalizations.zig",
       "source_location": "L23",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "cpu_normalizations_norm",
-      "target": "cpu_normalizations_norm_init",
-      "confidence_score": 1.0
+      "target": "cpu_normalizations_norm_init"
     },
     {
       "relation": "method",
@@ -1853,9 +1853,9 @@
       "source_file": "src/cpu/normalizations.zig",
       "source_location": "L155",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "cpu_normalizations_norm",
-      "target": "cpu_normalizations_norm_normalize",
-      "confidence_score": 1.0
+      "target": "cpu_normalizations_norm_normalize"
     },
     {
       "relation": "contains",
@@ -2199,9 +2199,9 @@
       "source_file": "src/eigen/normalizations.cpp",
       "source_location": "L25",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "eigen_normalizations",
-      "target": "eigen_normalizations_eigen_computemeanstd",
-      "confidence_score": 1.0
+      "target": "eigen_normalizations_eigen_computemeanstd"
     },
     {
       "relation": "contains",
@@ -2209,9 +2209,9 @@
       "source_file": "src/eigen/normalizations.cpp",
       "source_location": "L66",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "eigen_normalizations",
-      "target": "eigen_normalizations_eigen_denormalize",
-      "confidence_score": 1.0
+      "target": "eigen_normalizations_eigen_denormalize"
     },
     {
       "relation": "contains",
@@ -2219,9 +2219,9 @@
       "source_file": "src/eigen/normalizations.cpp",
       "source_location": "L47",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "eigen_normalizations",
-      "target": "eigen_normalizations_eigen_normalize",
-      "confidence_score": 1.0
+      "target": "eigen_normalizations_eigen_normalize"
     },
     {
       "relation": "references",
@@ -2230,9 +2230,9 @@
       "source_location": "L25",
       "weight": 1.0,
       "context": "parameter_type",
+      "confidence_score": 1.0,
       "source": "eigen_normalizations_eigen_computemeanstd",
-      "target": "src_eigen_normalizations_cpp_f_type",
-      "confidence_score": 1.0
+      "target": "src_eigen_normalizations_cpp_f_type"
     },
     {
       "relation": "references",
@@ -2241,9 +2241,9 @@
       "source_location": "L66",
       "weight": 1.0,
       "context": "parameter_type",
+      "confidence_score": 1.0,
       "source": "eigen_normalizations_eigen_denormalize",
-      "target": "src_eigen_normalizations_cpp_f_type",
-      "confidence_score": 1.0
+      "target": "src_eigen_normalizations_cpp_f_type"
     },
     {
       "relation": "references",
@@ -2252,9 +2252,9 @@
       "source_location": "L47",
       "weight": 1.0,
       "context": "parameter_type",
+      "confidence_score": 1.0,
       "source": "eigen_normalizations_eigen_normalize",
-      "target": "src_eigen_normalizations_cpp_f_type",
-      "confidence_score": 1.0
+      "target": "src_eigen_normalizations_cpp_f_type"
     },
     {
       "relation": "contains",
@@ -2302,9 +2302,9 @@
       "source_file": "src/eigen/wrappers.zig",
       "source_location": "L370",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "eigen_wrappers",
-      "target": "eigen_wrappers_computemeanstd",
-      "confidence_score": 1.0
+      "target": "eigen_wrappers_computemeanstd"
     },
     {
       "relation": "contains",
@@ -2322,9 +2322,9 @@
       "source_file": "src/eigen/wrappers.zig",
       "source_location": "L428",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "eigen_wrappers",
-      "target": "eigen_wrappers_denormalize",
-      "confidence_score": 1.0
+      "target": "eigen_wrappers_denormalize"
     },
     {
       "relation": "contains",
@@ -2332,9 +2332,9 @@
       "source_file": "src/eigen/wrappers.zig",
       "source_location": "L364",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "eigen_wrappers",
-      "target": "eigen_wrappers_eigen_computemeanstd",
-      "confidence_score": 1.0
+      "target": "eigen_wrappers_eigen_computemeanstd"
     },
     {
       "relation": "contains",
@@ -2342,9 +2342,9 @@
       "source_file": "src/eigen/wrappers.zig",
       "source_location": "L366",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "eigen_wrappers",
-      "target": "eigen_wrappers_eigen_denormalize",
-      "confidence_score": 1.0
+      "target": "eigen_wrappers_eigen_denormalize"
     },
     {
       "relation": "contains",
@@ -2392,9 +2392,9 @@
       "source_file": "src/eigen/wrappers.zig",
       "source_location": "L365",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "eigen_wrappers",
-      "target": "eigen_wrappers_eigen_normalize",
-      "confidence_score": 1.0
+      "target": "eigen_wrappers_eigen_normalize"
     },
     {
       "relation": "contains",
@@ -2542,9 +2542,9 @@
       "source_file": "src/eigen/wrappers.zig",
       "source_location": "L399",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "eigen_wrappers",
-      "target": "eigen_wrappers_normalize",
-      "confidence_score": 1.0
+      "target": "eigen_wrappers_normalize"
     },
     {
       "relation": "contains",
@@ -2802,9 +2802,9 @@
       "source_file": "src/eigen/wrappers.zig",
       "source_location": "L373",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "eigen_wrappers_computemeanstd",
-      "target": "eigen_wrappers_eigen_computemeanstd",
-      "confidence_score": 1.0
+      "target": "eigen_wrappers_eigen_computemeanstd"
     },
     {
       "relation": "calls",
@@ -2812,9 +2812,9 @@
       "source_file": "src/eigen/wrappers.zig",
       "source_location": "L402",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "eigen_wrappers_normalize",
-      "target": "eigen_wrappers_eigen_normalize",
-      "confidence_score": 1.0
+      "target": "eigen_wrappers_eigen_normalize"
     },
     {
       "relation": "calls",
@@ -2822,9 +2822,9 @@
       "source_file": "src/eigen/wrappers.zig",
       "source_location": "L431",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "eigen_wrappers_denormalize",
-      "target": "eigen_wrappers_eigen_denormalize",
-      "confidence_score": 1.0
+      "target": "eigen_wrappers_eigen_denormalize"
     },
     {
       "relation": "contains",
@@ -3398,5 +3398,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "e5fd8b6e23bf0d80cf1ceca8e5fa1fe214937bdf"
+  "built_at_commit": "6c86cd9f0e0db8bb594a36965ff80b6760d780a9"
 }
