@@ -1,6 +1,5 @@
 const std = @import("std");
 const nnzig = @import("nnzig");
-const io = @import("io");
 const params = @import("params");
 
 pub fn main(init: std.process.Init) !void {
