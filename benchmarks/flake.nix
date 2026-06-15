@@ -48,6 +48,7 @@
             run-pytorch = mkApp "run-pytorch" pythonTorchEnv "run_pytorch.py";
             run-equinox = mkApp "run-equinox" pythonEquinoxEnv "run_equinox.py";
             plot-losses = mkApp "plot-losses" pythonPlotEnv "plot_losses.py";
+            plot-resources = mkApp "plot-resources" pythonPlotEnv "plot_resources.py";
             default = self.apps.${system}.generate-data;
         };
     };

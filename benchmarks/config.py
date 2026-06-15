@@ -169,7 +169,9 @@ def validate_config(config):
     )
 
     # --- Outputs ---
-    for key in ("losses_zig", "losses_pytorch", "losses_equinox", "losses_plot"):
+    for key in ("losses_zig", "losses_pytorch", "losses_equinox", "losses_plot",
+                "resources_nnzig", "resources_pytorch", "resources_equinox",
+                "resources_plot"):
         _check(outputs.get(key), "outputs.{} must be a non-empty string.".format(key))
 
 

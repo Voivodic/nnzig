@@ -8,7 +8,11 @@
         "losses_zig": "losses_zig.bin",
         "losses_pytorch": "losses_pytorch.bin",
         "losses_equinox": "losses_equinox.bin",
-        "losses_plot": "losses_plot.png"
+        "losses_plot": "losses_plot.png",
+        "resources_nnzig": "resources_nnzig.json",
+        "resources_pytorch": "resources_pytorch.json",
+        "resources_equinox": "resources_equinox.json",
+        "resources_plot": "resources_plot.png"
     },
     "network": {
         "precision": 32,
