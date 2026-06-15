@@ -3,7 +3,6 @@ zig-out/
 zig-pkg/
 benchmarks/losses_*
 benchmarks/dataset_benchmark.bin
-benchmarks/params.zon
 benchmarks/__pycache__/
 graphify-out/*
 !graphify-out/graph.html
