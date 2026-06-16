@@ -516,6 +516,111 @@ pub const NN = struct {
         try testing.expectApproxEqAbs(ab, fd_b, @abs(fd_b) * 1e-2 + 1e-4);
     }
 
+    test "[nnzig] gradient descent consistency (all layers)" {
+        // If gradW/gradB are the TRUE gradient of the mean batch loss, then a
+        // small step w -= alpha*grad must reduce the loss by ~= alpha*||grad||^2.
+        // This validates EVERY layer's backward pass (including the hidden-layer
+        // delta propagation that the output-layer FD test above skips).
+        var gpa = std.heap.DebugAllocator(.{}){};
+        const allocator = gpa.allocator();
+        defer {
+            const deinit_status = gpa.deinit();
+            if (deinit_status == .leak) std.log.err("Leak!\n", .{});
+        }
+
+        const ioContext = std.testing.io;
+        var nn = try NN.init(allocator, ioContext);
+        defer nn.deinit();
+
+        const nIn: usize = params.nNeurons[0];
+        const nOut: usize = params.nNeurons[params.nNeurons.len - 1];
+        const nBatch: usize = 4;
+
+        var inputs = [_]T{ 0.5, -0.3, 0.8, 0.2, -0.6, 0.9, 0.1, -0.7 };
+        var outputs = [_]T{ 1.0, 0.0, 0.2, 0.7, -0.5, 0.4, 0.9, -0.2 };
+        var dL = [_]T{ 0.0, 0.0 };
+        _ = &dL;
+
+        const loss0 = try nn.backProp(&inputs, &outputs);
+
+        // squared gradient norm (mean gradient, since backProp averages)
+        var g2: T = 0.0;
+        for (nn.gradW) |g| g2 += g * g;
+        for (nn.gradB) |g| g2 += g * g;
+
+        const alpha: T = 1e-4;
+        for (nn.weights, nn.gradW) |*w, g| w.* -= alpha * g;
+        for (nn.biases, nn.gradB) |*b, g| b.* -= alpha * g;
+
+        // recompute mean batch loss
+        var loss1: T = 0.0;
+        for (0..nBatch) |i| {
+            const pred = try nn.forward(inputs[i * nIn .. (i + 1) * nIn]);
+            loss1 += loss.computeLoss(pred, outputs[i * nOut .. (i + 1) * nOut], &dL, params.lossFunc) / @as(T, @floatFromInt(nBatch));
+        }
+
+        const predicted_drop: T = alpha * g2;
+        const actual_drop: T = loss0 - loss1;
+
+        // ratio should be ~1.0 (within a few %); second-order error is O(alpha^2).
+        try testing.expectApproxEqAbs(actual_drop, predicted_drop, @abs(predicted_drop) * 5e-2 + 1e-9);
+    }
+
+    test "[nnzig] gradient check vs finite differences (hidden layer 2)" {
+        // Direct FD check on a SECOND-hidden-layer weight (4->4), which crosses
+        // one ReLU. Picks a weight whose pre-activation is comfortably > 0 so
+        // the small perturbation does not flip the ReLU sign.
+        var gpa = std.heap.DebugAllocator(.{}){};
+        const allocator = gpa.allocator();
+        defer {
+            const deinit_status = gpa.deinit();
+            if (deinit_status == .leak) std.log.err("Leak!\n", .{});
+        }
+
+        const ioContext = std.testing.io;
+        var nn = try NN.init(allocator, ioContext);
+        defer nn.deinit();
+
+        var inputs = [_]T{ 0.5, -0.3 };
+        var outputs = [_]T{ 1.0, 0.0 };
+        var dL = [_]T{ 0.0, 0.0 };
+
+        _ = try nn.backProp(&inputs, &outputs);
+
+        // layer 2 weights start at index nNeurons[1]*nNeurons[2]... actually
+        // layer1 = [0..8], layer2 = [8..24]. Probe several layer-2 weights and
+        // pick the first whose FD is kink-free (central diff matches itself
+        // under half-step -> monotone region).
+        const eps: T = 1e-4;
+        const layer2_start: usize = params.nNeurons[1] * params.nNeurons[2];
+        const layer2_end: usize = layer2_start + params.nNeurons[2] * params.nNeurons[3];
+        var checked: usize = 0;
+        var max_rel_err: T = 0.0;
+        for (layer2_start..layer2_end) |wi| {
+            const ow = nn.weights[wi];
+            const aw = nn.gradW[wi];
+            nn.weights[wi] = ow + eps;
+            const lp = loss.computeLoss(try nn.forward(&inputs), &outputs, &dL, params.lossFunc);
+            nn.weights[wi] = ow - eps;
+            const lm = loss.computeLoss(try nn.forward(&inputs), &outputs, &dL, params.lossFunc);
+            nn.weights[wi] = ow + eps / 2;
+            const lp2 = loss.computeLoss(try nn.forward(&inputs), &outputs, &dL, params.lossFunc);
+            nn.weights[wi] = ow - eps / 2;
+            const lm2 = loss.computeLoss(try nn.forward(&inputs), &outputs, &dL, params.lossFunc);
+            nn.weights[wi] = ow;
+            const fd: T = (lp - lm) / (2 * eps);
+            const fd2: T = (lp2 - lm2) / eps;
+            // if the two FD estimates disagree, we are near a ReLU kink -> skip
+            if (@abs(fd - fd2) > @abs(fd) * 1e-2 + 1e-6) continue;
+            const rel = @abs(aw - fd) / (@abs(fd) + 1e-6);
+            if (rel > max_rel_err) max_rel_err = rel;
+            checked += 1;
+        }
+
+        try testing.expect(checked > 0);
+        try testing.expect(max_rel_err < 1e-2);
+    }
+
     test "[nnzig] floatNorm init variance" {
         var xoshiro = std.Random.Xoshiro256.init(42);
         const rand = std.Random.Xoshiro256.random(&xoshiro);

@@ -123,8 +123,8 @@ pub const MLP = struct {
 
         // Iterate from the last to the first layer
         while (layer > 0) : (layer -= 1) {
-            // Multiply the propagated vector V by the derivative of the activation function
-            eigen.vectorMul(self.V[0..(nNeurons[layer])], self.dy[nyIni..nyEnd]);
+            // Multiply the propagated vector V by the derivative of the activation function.
+            eigen.vectorMul(self.dy[nyIni..nyEnd], self.V[0..(nNeurons[layer])]);
 
             // Update the gradient for the weights
             eigen.updateGradWeights(self.V[0..nNeurons[layer]], self.y[(nyIni - nNeurons[layer - 1])..nyIni], gradW[nwIni..nwEnd]);
