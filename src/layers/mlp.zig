@@ -12,6 +12,83 @@ const params = @import("params");
 const err = @import("errors").nnError;
 const T = params.T;
 
+/// Recommended weight-initialization gain for an activation function, following
+/// PyTorch's `calculate_gain`. Used by `initWeights` to scale the chosen
+/// initializer (Kaiming for ReLU, Xavier for tanh/sigmoid/linear):
+///   - relu         -> sqrt(2) (He: std = sqrt(2/fan_in))
+///   - tanh         -> 5/3     (Glorot tanh recommendation)
+///   - sigmoid/none -> 1       (Glorot linear)
+fn initGain(a: params.activation) T {
+    return switch (a) {
+        .none, .sigmoid => 1.0,
+        .tanh => 5.0 / 3.0,
+        .relu => @sqrt(2.0),
+    };
+}
+
+test "[mlp] initGain" {
+    try std.testing.expectApproxEqAbs(@as(T, 1.0), initGain(.none), 1e-6);
+    try std.testing.expectApproxEqAbs(@as(T, 1.0), initGain(.sigmoid), 1e-6);
+    try std.testing.expectApproxEqAbs(@as(T, 5.0 / 3.0), initGain(.tanh), 1e-6);
+    try std.testing.expectApproxEqAbs(@sqrt(@as(T, 2.0)), initGain(.relu), 1e-6);
+}
+
+/// Initializes the weight matrix of one layer (`vec`, length `fan_in * fan_out`),
+/// picking the initializer by the layer's activation function (read from the
+/// `params` module at the call site):
+///   - relu              -> Kaiming/He     N(0, (gain/sqrt(fan_in))^2)
+///   - tanh/sigmoid/none -> Xavier/Glorot  N(0, (gain*sqrt(2/(fan_in+fan_out)))^2)
+/// The `gain` is taken from `initGain`. The per-algorithm backends live in the
+/// `eigen` module (`eigen.initKaiming` / `eigen.initXavier`). `seed` should
+/// differ per layer so each layer draws from an independent, reproducible PRNG.
+/// This is the single entry point for weight initialization; biases are zeroed
+/// separately (see `MLP.init`).
+fn initWeights(vec: []T, fan_in: usize, fan_out: usize, activation: params.activation, seed: u64) void {
+    const gain = initGain(activation);
+    switch (activation) {
+        .relu => eigen.initKaiming(vec, fan_in, fan_out, gain, seed),
+        .none, .tanh, .sigmoid => eigen.initXavier(vec, fan_in, fan_out, gain, seed),
+    }
+}
+
+test "[mlp] initWeights picks Kaiming vs Xavier by activation" {
+    // Statistical fingerprint: Kaiming scales with fan_in only, Xavier with
+    // fan_in+fan_out, so for asymmetric (fan_in, fan_out) the variances differ
+    // measurably and prove the dispatch is correct.
+    const fan_in = 200;
+    const fan_out = 50;
+
+    var kaiming: [fan_in * fan_out]T = undefined;
+    var xavier: [fan_in * fan_out]T = undefined;
+    // ReLU -> Kaiming (gain=sqrt2 -> var=2/fan_in=0.01)
+    initWeights(kaiming[0..], fan_in, fan_out, .relu, 3);
+    // tanh -> Xavier (gain=5/3 -> var=(25/9)*2/250 ~ 0.0222)
+    initWeights(xavier[0..], fan_in, fan_out, .tanh, 3);
+
+    var sum_k: f64 = 0;
+    var sum_x: f64 = 0;
+    for (kaiming) |val| sum_k += @floatCast(val);
+    for (xavier) |val| sum_x += @floatCast(val);
+
+    var var_k: f64 = 0;
+    var var_x: f64 = 0;
+    for (kaiming) |val| {
+        const d: f64 = @as(f64, @floatCast(val)) - sum_k / @as(f64, @floatFromInt(kaiming.len));
+        var_k += d * d;
+    }
+    for (xavier) |val| {
+        const d: f64 = @as(f64, @floatCast(val)) - sum_x / @as(f64, @floatFromInt(xavier.len));
+        var_x += d * d;
+    }
+    var_k /= @as(f64, @floatFromInt(kaiming.len));
+    var_x /= @as(f64, @floatFromInt(xavier.len));
+
+    // Kaiming target 0.01 vs Xavier target ~0.0222: clearly different.
+    try std.testing.expect(@abs(var_k - 0.01) < 0.004);
+    try std.testing.expect(@abs(var_x - (25.0 / 9.0) * 2.0 / 250.0) < 0.008);
+    try std.testing.expect(var_x > var_k);
+}
+
 /// Define the structure for the MLP
 pub const MLP = struct {
     allocator: std.mem.Allocator,
@@ -157,9 +234,30 @@ pub const MLP = struct {
         eigen.setZero(mlp.mB);
         eigen.setZero(mlp.vB);
 
-        // Set the parameters to normal random numbers (done by the Eigen backend)
-        eigen.initNormal(mlp.weights, params.seed);
-        eigen.initNormal(mlp.biases, params.seed);
+        // Initialize each layer's weights with a variance-scaled normal
+        // distribution chosen by the layer's activation function:
+        // ReLU layers use Kaiming/He (std = sqrt(2/fan_in)), while
+        // tanh/sigmoid/none layers use Xavier/Glorot (std = sqrt(2/(fan_in+fan_out))).
+        // This keeps the variance of forward activations roughly constant across
+        // layers, unlike plain N(0,1) whose pre-activation variance grows with
+        // fan_in. Each layer is seeded from a distinct, base-seed-derived value
+        // so the per-layer PRNG streams are independent yet fully reproducible.
+        {
+            var nprod: usize = 0;
+            for (0..(params.nNeurons.len - 1)) |i| {
+                const nin = params.nNeurons[i];
+                const nout = params.nNeurons[i + 1];
+                const seed = params.seed +% (i + 1);
+                initWeights(mlp.weights[nprod .. nprod + nin * nout], nin, nout, params.activations[i], seed);
+                nprod += nin * nout;
+            }
+        }
+
+        // Initialize biases to zero. A non-zero random bias would add unit-
+        // variance noise to every pre-activation, re-introducing exactly the
+        // fan_in-proportional blow-up the variance-scaled weights prevent.
+        // Zero biases is the standard choice for ReLU/tanh networks.
+        eigen.setZero(mlp.biases);
 
         return mlp;
     }

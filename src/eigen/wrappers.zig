@@ -521,6 +521,82 @@ test "[eigen] initNormal" {
     try testing.expect(@abs(variance - 1.0) < 0.1);
 }
 
+extern "c" fn eigen_initKaiming(data: [*]T, fan_in: *const usize, fan_out: *const usize, gain: *const T, seed: *const u64) void;
+extern "c" fn eigen_initXavier(data: [*]T, fan_in: *const usize, fan_out: *const usize, gain: *const T, seed: *const u64) void;
+
+/// Fills `vec` (length `fan_in * fan_out`) with Kaiming/He values: i.i.d.
+/// `N(0, (gain / sqrt(fan_in))^2)`. Best for ReLU layers. `fan_out` is accepted
+/// for signature symmetry with `initXavier` but unused (He forward mode).
+pub fn initKaiming(vec: []T, fan_in: usize, fan_out: usize, gain: T, seed: u64) void {
+    eigen_initKaiming(vec.ptr, &fan_in, &fan_out, &gain, &seed);
+}
+
+/// Fills `vec` (length `fan_in * fan_out`) with Xavier/Glorot values: i.i.d.
+/// `N(0, (gain * sqrt(2 / (fan_in + fan_out)))^2)`. Best for tanh/sigmoid/linear
+/// layers; scales by the harmonic mean of fan_in and fan_out.
+pub fn initXavier(vec: []T, fan_in: usize, fan_out: usize, gain: T, seed: u64) void {
+    eigen_initXavier(vec.ptr, &fan_in, &fan_out, &gain, &seed);
+}
+
+test "[eigen] initKaiming (He variance scaling)" {
+    // fan_in=100, gain=sqrt(2) -> target std = sqrt(2/100), target var = 2/100 = 0.02.
+    const fan_in = 100;
+    const fan_out = 60;
+    const gain: T = @sqrt(2.0);
+    var buf: [fan_in * fan_out]T = undefined;
+
+    initKaiming(buf[0..], fan_in, fan_out, gain, 7);
+
+    var sum: f64 = 0;
+    var sumsq: f64 = 0;
+    for (buf) |val| {
+        const v: f64 = @floatCast(val);
+        sum += v;
+        sumsq += v * v;
+    }
+    const n: f64 = @floatFromInt(buf.len);
+    const mean = sum / n;
+    const variance = sumsq / n - mean * mean;
+    const target_var: f64 = 2.0 / @as(f64, @floatFromInt(fan_in));
+
+    try testing.expect(@abs(mean) < 0.05);
+    try testing.expect(@abs(variance - target_var) < 0.02);
+
+    // Reproducibility: same seed -> identical buffer
+    var buf2: [fan_in * fan_out]T = undefined;
+    initKaiming(buf2[0..], fan_in, fan_out, gain, 7);
+    for (buf, buf2) |a, b| try testing.expectEqual(a, b);
+}
+
+test "[eigen] initXavier (Glorot variance scaling)" {
+    // fan_in=100, fan_out=60, gain=1 -> target var = 2/(100+60) = 2/160 = 0.0125.
+    const fan_in = 100;
+    const fan_out = 60;
+    const gain: T = 1.0;
+    var buf: [fan_in * fan_out]T = undefined;
+
+    initXavier(buf[0..], fan_in, fan_out, gain, 11);
+
+    var sum: f64 = 0;
+    var sumsq: f64 = 0;
+    for (buf) |val| {
+        const v: f64 = @floatCast(val);
+        sum += v;
+        sumsq += v * v;
+    }
+    const n: f64 = @floatFromInt(buf.len);
+    const mean = sum / n;
+    const variance = sumsq / n - mean * mean;
+    const target_var: f64 = 2.0 / (@as(f64, @floatFromInt(fan_in)) + @as(f64, @floatFromInt(fan_out)));
+
+    try testing.expect(@abs(mean) < 0.05);
+    try testing.expect(@abs(variance - target_var) < 0.01);
+
+    // Sanity: Glorot var != He var for this (fan_in, fan_out), confirming the
+    // two backends really apply different scalings.
+    try testing.expect(target_var < 2.0 / @as(f64, @floatFromInt(fan_in)));
+}
+
 // --- Adam optimizer step ---
 
 extern "c" fn eigen_adamUpdate(w: [*]T, grad: [*]const T, m: [*]T, v: [*]T, size: *const usize, beta1: *const T, beta2: *const T, lr: *const T, eps: *const T, normM: *const T, normV: *const T) void;
