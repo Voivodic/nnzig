@@ -100,6 +100,7 @@ fn createTree(
     });
     mlp.addImport("eigen", eigen_wrapper);
     mlp.addImport("act", activation);
+    mlp.addImport("loss", loss);
     mlp.addImport("errors", errors);
     mlp.addImport("params", params);
 

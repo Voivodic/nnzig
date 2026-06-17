@@ -1,10 +1,11 @@
 //! Main module of the nnzig library. Provides the `NN` structure which serves as the
 //! primary interface for creating, training, saving, and loading neural networks.
 //! Training uses mini-batch gradient descent with the Adam optimizer.
+//! The `NN` struct delegates all layer-specific computation to the `MLP` layer,
+//! acting as a thin orchestrator that can be extended with other layer types.
 
 // Import the modules used
 const std = @import("std");
-const act = @import("act");
 const loss = @import("loss");
 const eigen = @import("eigen");
 const mlp = @import("mlp");
@@ -22,124 +23,22 @@ pub const NN = struct {
     nn: mlp.MLP,
     norm: norms.Norm,
     rand: std.Random,
-    weights: []T = &.{},
-    biases: []T = &.{},
-    gradW: []T = &.{},
-    gradB: []T = &.{},
-    mW: []T = &.{},
-    vW: []T = &.{},
-    mB: []T = &.{},
-    vB: []T = &.{},
     lossesTraining: []T = &.{},
     lossesValidation: []T = &.{},
-    step: usize = 0,
-    beta1_t: T = params.beta1,
-    beta2_t: T = params.beta2,
 
-    /// Initializes the neural network, allocating memory for weights, biases, gradients, and Adam optimizer moments
+    /// Initializes the neural network, allocating memory for the MLP layer, normalization data, and loss arrays
     pub fn init(allocator: std.mem.Allocator, ioContext: std.Io) !NN {
         // Initialize the random generator
         var xoshiro256 = std.Random.Xoshiro256.init(params.seed);
 
-        // Create the NN
+        // Create the NN — the MLP layer owns all weights, biases, gradients, and Adam moments
         var nn = NN{
             .allocator = allocator,
             .ioContext = ioContext,
-            .nn = try mlp.MLP.init(
-                allocator,
-                &params.nNeurons,
-            ),
+            .nn = try mlp.MLP.init(allocator, std.Random.Xoshiro256.random(&xoshiro256)),
             .norm = try norms.Norm.init(allocator),
             .rand = std.Random.Xoshiro256.random(&xoshiro256),
         };
-
-        // Compute the total number of weights and biases
-        var nWeights: usize = 0;
-        var nBiases: usize = 0;
-        for (1..params.nNeurons.len) |i| {
-            nBiases += params.nNeurons[i];
-            nWeights += params.nNeurons[i] * params.nNeurons[i - 1];
-        }
-
-        // Alloc memory for the weights
-        if (allocator.alloc(T, nWeights)) |slice| {
-            nn.weights = slice;
-        } else |_| {
-            std.log.err("Failure when trying to allocate memory for the weights!\n", .{});
-            return err.allocationOfWeights;
-        }
-
-        // Alloc memory for the gradients of the weights
-        if (allocator.alloc(T, nWeights)) |slice| {
-            nn.gradW = slice;
-        } else |_| {
-            std.log.err("Failure when trying to allocate memory for the gradient of the weights!\n", .{});
-            return err.allocationOfWeights;
-        }
-
-        // Alloc memory for the wt of the weights used in adam
-        if (allocator.alloc(T, nWeights)) |slice| {
-            nn.mW = slice;
-        } else |_| {
-            std.log.err("Failure when trying to allocate memory for the mt of the weights!\n", .{});
-            return err.allocationOfWeights;
-        }
-
-        // Alloc memory for the vt of the weights used in adam
-        if (allocator.alloc(T, nWeights)) |slice| {
-            nn.vW = slice;
-        } else |_| {
-            std.log.err("Failure when trying to allocate memory for the vt of the weights!\n", .{});
-            return err.allocationOfWeights;
-        }
-
-        // Set mW and vW to zero
-        eigen.setZero(nn.mW);
-        eigen.setZero(nn.vW);
-
-        // Alloc memory for the biases
-        if (allocator.alloc(T, nBiases)) |slice| {
-            nn.biases = slice;
-        } else |_| {
-            std.log.err("Failure when trying to allocate memory for the biases!\n", .{});
-            return err.allocationOfBiases;
-        }
-
-        // Alloc memory for the gradients of the biases
-        if (allocator.alloc(T, nBiases)) |slice| {
-            nn.gradB = slice;
-        } else |_| {
-            std.log.err("Failure when trying to allocate memory for the gradient of the biases!\n", .{});
-            return err.allocationOfBiases;
-        }
-
-        // Alloc memory for the wt of the biases used in adam
-        if (allocator.alloc(T, nBiases)) |slice| {
-            nn.mB = slice;
-        } else |_| {
-            std.log.err("Failure when trying to allocate memory for the mt of the biases!\n", .{});
-            return err.allocationOfBiases;
-        }
-
-        // Alloc memory for the vt of the biases used in adam
-        if (allocator.alloc(T, nBiases)) |slice| {
-            nn.vB = slice;
-        } else |_| {
-            std.log.err("Failure when trying to allocate memory for the vt of the biases!\n", .{});
-            return err.allocationOfBiases;
-        }
-
-        // Set mb and vb to zero
-        eigen.setZero(nn.mB);
-        eigen.setZero(nn.vB);
-
-        // Set the parameters to normal random numbers
-        for (nn.weights) |*weight| {
-            weight.* = @floatCast(std.Random.floatNorm(nn.rand, f32));
-        }
-        for (nn.biases) |*bias| {
-            bias.* = @floatCast(std.Random.floatNorm(nn.rand, f32));
-        }
 
         // Create the slice for the losses of the training
         if (allocator.alloc(T, params.nEpochs)) |slice| {
@@ -163,22 +62,10 @@ pub const NN = struct {
         return nn;
     }
 
-    /// Frees all memory allocated by `init`, including weights, biases, gradients, Adam moments, normalization data, and loss arrays
+    /// Frees all memory allocated by `init`, including the MLP layer, normalization data, and loss arrays
     pub fn deinit(self: *const NN) void {
-        // Deinit the NN
+        // Deinit the MLP layer (frees weights, biases, gradients, Adam moments, activations)
         self.nn.deinit();
-
-        // Deinit the slices used to optimize the weights by adam
-        self.allocator.free(self.weights);
-        self.allocator.free(self.gradW);
-        self.allocator.free(self.mW);
-        self.allocator.free(self.vW);
-
-        // Deinit the slices used to optimize the biases by adam
-        self.allocator.free(self.biases);
-        self.allocator.free(self.gradB);
-        self.allocator.free(self.mB);
-        self.allocator.free(self.vB);
 
         // Free the memory used in the normalization
         self.norm.deinit();
@@ -188,44 +75,6 @@ pub const NN = struct {
             self.allocator.free(self.lossesTraining);
             self.allocator.free(self.lossesValidation);
         }
-    }
-
-    test "[nnzig] init and deinit" {
-        var gpa = std.heap.DebugAllocator(.{}){};
-        const allocator = gpa.allocator();
-        defer {
-            const deinit_status = gpa.deinit();
-            if (deinit_status == .leak) std.log.err("Leak!\n", .{});
-        }
-
-        const ioContext = std.testing.io;
-
-        var nn = try NN.init(allocator, ioContext);
-        defer nn.deinit();
-
-        var nWeights: usize = 0;
-        var nBiases: usize = 0;
-        for (1..params.nNeurons.len) |i| {
-            nWeights += params.nNeurons[i] * params.nNeurons[i - 1];
-            nBiases += params.nNeurons[i];
-        }
-
-        try testing.expectEqual(nWeights, nn.weights.len);
-        try testing.expectEqual(nWeights, nn.gradW.len);
-        try testing.expectEqual(nWeights, nn.mW.len);
-        try testing.expectEqual(nWeights, nn.vW.len);
-        try testing.expectEqual(nBiases, nn.biases.len);
-        try testing.expectEqual(nBiases, nn.gradB.len);
-        try testing.expectEqual(nBiases, nn.mB.len);
-        try testing.expectEqual(nBiases, nn.vB.len);
-
-        for (nn.mW) |val| try testing.expectEqual(@as(T, 0.0), val);
-        for (nn.vW) |val| try testing.expectEqual(@as(T, 0.0), val);
-        for (nn.mB) |val| try testing.expectEqual(@as(T, 0.0), val);
-        for (nn.vB) |val| try testing.expectEqual(@as(T, 0.0), val);
-
-        try testing.expectEqual(@as(usize, params.nEpochs), nn.lossesTraining.len);
-        try testing.expectEqual(@as(usize, params.nEpochs), nn.lossesValidation.len);
     }
 
     /// Computes Z-score normalization factors (mean and standard deviation) for the given inputs and outputs
@@ -376,33 +225,6 @@ pub const NN = struct {
         }
     }
 
-    /// Resets all weight and bias gradients to zero
-    pub fn zeroGrad(self: *const NN) void {
-        eigen.setZero(self.gradW);
-        eigen.setZero(self.gradB);
-    }
-
-    test "[nnzig] zeroGrad" {
-        var gpa = std.heap.DebugAllocator(.{}){};
-        const allocator = gpa.allocator();
-        defer {
-            const deinit_status = gpa.deinit();
-            if (deinit_status == .leak) std.log.err("Leak!\n", .{});
-        }
-
-        const ioContext = std.testing.io;
-        var nn = try NN.init(allocator, ioContext);
-        defer nn.deinit();
-
-        @memset(nn.gradW, 3.14);
-        @memset(nn.gradB, 2.71);
-
-        nn.zeroGrad();
-
-        for (nn.gradW) |val| try testing.expectEqual(@as(T, 0.0), val);
-        for (nn.gradB) |val| try testing.expectEqual(@as(T, 0.0), val);
-    }
-
     /// Resets all training and validation loss arrays to zero
     pub fn zeroLosses(self: *const NN) void {
         eigen.setZero(self.lossesTraining);
@@ -441,7 +263,7 @@ pub const NN = struct {
         }
 
         // Pass the input trough the NN
-        return self.nn.forward(input, &params.nNeurons, self.weights, self.biases, &params.activations);
+        return self.nn.forward(input);
     }
 
     test "[nnzig] forward" {
@@ -477,37 +299,37 @@ pub const NN = struct {
         var nn = try NN.init(allocator, ioContext);
         defer nn.deinit();
 
-        // Single fixed sample: backProp then yields the per-sample gradient
+        // Single fixed sample: updateGrads then yields the per-sample gradient
         // (no batch averaging to reason about).
         var inputs = [_]T{ 0.5, -0.3 };
         var outputs = [_]T{ 1.0, 0.0 };
         var dL = [_]T{ 0.0, 0.0 };
 
-        _ = try nn.backProp(&inputs, &outputs);
+        _ = try nn.nn.updateGrads(&inputs, &outputs);
 
         const eps: T = 1e-3;
         const nOut: usize = params.nNeurons[params.nNeurons.len - 1];
-        const first_out_w: usize = nn.weights.len - nOut * params.nNeurons[params.nNeurons.len - 2];
-        const first_out_b: usize = nn.biases.len - nOut;
+        const first_out_w: usize = nn.nn.weights.len - nOut * params.nNeurons[params.nNeurons.len - 2];
+        const first_out_b: usize = nn.nn.biases.len - nOut;
 
         // Output layer uses the "none" activation, so perturbing its weights/
         // biases does not cross any ReLU kink -> finite differences are clean.
-        const ow = nn.weights[first_out_w];
-        const aw = nn.gradW[first_out_w];
-        nn.weights[first_out_w] = ow + eps;
+        const ow = nn.nn.weights[first_out_w];
+        const aw = nn.nn.gradW[first_out_w];
+        nn.nn.weights[first_out_w] = ow + eps;
         const lp_w = loss.computeLoss(try nn.forward(&inputs), &outputs, &dL, params.lossFunc);
-        nn.weights[first_out_w] = ow - eps;
+        nn.nn.weights[first_out_w] = ow - eps;
         const lm_w = loss.computeLoss(try nn.forward(&inputs), &outputs, &dL, params.lossFunc);
-        nn.weights[first_out_w] = ow;
+        nn.nn.weights[first_out_w] = ow;
         const fd_w: T = (lp_w - lm_w) / (2 * eps);
 
-        const ob = nn.biases[first_out_b];
-        const ab = nn.gradB[first_out_b];
-        nn.biases[first_out_b] = ob + eps;
+        const ob = nn.nn.biases[first_out_b];
+        const ab = nn.nn.gradB[first_out_b];
+        nn.nn.biases[first_out_b] = ob + eps;
         const lp_b = loss.computeLoss(try nn.forward(&inputs), &outputs, &dL, params.lossFunc);
-        nn.biases[first_out_b] = ob - eps;
+        nn.nn.biases[first_out_b] = ob - eps;
         const lm_b = loss.computeLoss(try nn.forward(&inputs), &outputs, &dL, params.lossFunc);
-        nn.biases[first_out_b] = ob;
+        nn.nn.biases[first_out_b] = ob;
         const fd_b: T = (lp_b - lm_b) / (2 * eps);
 
         std.log.info("gradCheck OUT: w analytic={} fd={} | b analytic={} fd={}", .{ aw, fd_w, ab, fd_b });
@@ -541,16 +363,16 @@ pub const NN = struct {
         var dL = [_]T{ 0.0, 0.0 };
         _ = &dL;
 
-        const loss0 = try nn.backProp(&inputs, &outputs);
+        const loss0 = try nn.nn.updateGrads(&inputs, &outputs);
 
-        // squared gradient norm (mean gradient, since backProp averages)
+        // squared gradient norm (mean gradient, since updateGrads averages)
         var g2: T = 0.0;
-        for (nn.gradW) |g| g2 += g * g;
-        for (nn.gradB) |g| g2 += g * g;
+        for (nn.nn.gradW) |g| g2 += g * g;
+        for (nn.nn.gradB) |g| g2 += g * g;
 
         const alpha: T = 1e-4;
-        for (nn.weights, nn.gradW) |*w, g| w.* -= alpha * g;
-        for (nn.biases, nn.gradB) |*b, g| b.* -= alpha * g;
+        for (nn.nn.weights, nn.nn.gradW) |*w, g| w.* -= alpha * g;
+        for (nn.nn.biases, nn.nn.gradB) |*b, g| b.* -= alpha * g;
 
         // recompute mean batch loss
         var loss1: T = 0.0;
@@ -585,7 +407,7 @@ pub const NN = struct {
         var outputs = [_]T{ 1.0, 0.0 };
         var dL = [_]T{ 0.0, 0.0 };
 
-        _ = try nn.backProp(&inputs, &outputs);
+        _ = try nn.nn.updateGrads(&inputs, &outputs);
 
         // layer 2 weights start at index nNeurons[1]*nNeurons[2]... actually
         // layer1 = [0..8], layer2 = [8..24]. Probe several layer-2 weights and
@@ -597,17 +419,17 @@ pub const NN = struct {
         var checked: usize = 0;
         var max_rel_err: T = 0.0;
         for (layer2_start..layer2_end) |wi| {
-            const ow = nn.weights[wi];
-            const aw = nn.gradW[wi];
-            nn.weights[wi] = ow + eps;
+            const ow = nn.nn.weights[wi];
+            const aw = nn.nn.gradW[wi];
+            nn.nn.weights[wi] = ow + eps;
             const lp = loss.computeLoss(try nn.forward(&inputs), &outputs, &dL, params.lossFunc);
-            nn.weights[wi] = ow - eps;
+            nn.nn.weights[wi] = ow - eps;
             const lm = loss.computeLoss(try nn.forward(&inputs), &outputs, &dL, params.lossFunc);
-            nn.weights[wi] = ow + eps / 2;
+            nn.nn.weights[wi] = ow + eps / 2;
             const lp2 = loss.computeLoss(try nn.forward(&inputs), &outputs, &dL, params.lossFunc);
-            nn.weights[wi] = ow - eps / 2;
+            nn.nn.weights[wi] = ow - eps / 2;
             const lm2 = loss.computeLoss(try nn.forward(&inputs), &outputs, &dL, params.lossFunc);
-            nn.weights[wi] = ow;
+            nn.nn.weights[wi] = ow;
             const fd: T = (lp - lm) / (2 * eps);
             const fd2: T = (lp2 - lm2) / eps;
             // if the two FD estimates disagree, we are near a ReLU kink -> skip
@@ -638,85 +460,6 @@ pub const NN = struct {
         std.log.info("floatNorm: mean={d:.4} variance={d:.4}", .{ mean, variance });
         try testing.expect(@abs(mean) < 0.05);
         try testing.expect(@abs(variance - 1.0) < 0.05);
-    }
-
-    /// Performs backpropagation over the given data and returns the average loss
-    fn backProp(self: *const NN, inputs: []const T, outputs: []const T) !T {
-        // Get the data size
-        const nIn: usize = params.nNeurons[0];
-        const nOut: usize = params.nNeurons[params.nNeurons.len - 1];
-        const nDataF: T = @as(T, @floatFromInt(inputs.len / nIn));
-        const nData: usize = @as(usize, @intFromFloat(nDataF));
-
-        self.zeroGrad();
-
-        // Slice to keep the derivatives of the loss
-        var dL: []T = undefined;
-        if (self.allocator.alloc(T, nOut)) |slice| {
-            dL = slice;
-        } else |_| {
-            std.log.err("Problem to allocate the array for the derivatives of the loss!\n", .{});
-            return err.backProp;
-        }
-        defer self.allocator.free(dL);
-
-        // Save the value of the total loss
-        var lossTotal: T = 0.0;
-
-        // Run over all inputs and outputs
-        for (0..nData) |i| {
-            // Compute the forward pass
-            const pred: []T = try self.nn.forward(inputs[i * nIn .. (i + 1) * nIn], &params.nNeurons, self.weights, self.biases, &params.activations);
-
-            // Compute the loss and its derivative
-            lossTotal += loss.computeLoss(pred, outputs[i * nOut .. (i + 1) * nOut], dL, params.lossFunc) / nDataF;
-
-            // Compute the gradient
-            self.nn.backward(dL, &params.nNeurons, self.weights, self.biases, self.gradW, self.gradB);
-        }
-
-        // Normalize the gradients
-        for (self.gradW) |*dw| {
-            dw.* /= nDataF;
-        }
-        for (self.gradB) |*db| {
-            db.* /= nDataF;
-        }
-
-        // Return the total loss computed
-        return lossTotal;
-    }
-
-    /// Applies the bias-corrected Adam update rule to adjust weights and biases
-    fn updateWeights(self: *NN) void {
-        // Compute the normalization for mt and vt
-        const normM: T = @floatCast(1.0 - self.beta1_t);
-        const normV: T = @floatCast(1.0 - self.beta2_t);
-
-        // Update the weights
-        for (self.weights, self.gradW, self.mW, self.vW) |*w, *dw, *mw, *vw| {
-            // Update the moments
-            mw.* = params.beta1 * mw.* + (1.0 - params.beta1) * dw.*;
-            vw.* = params.beta2 * vw.* + (1.0 - params.beta2) * (dw.*) * (dw.*);
-
-            // Update the weights
-            w.* -= ((mw.*) / normM) * params.lr / (@sqrt(vw.* / normV) + params.eps);
-        }
-
-        // Update the bias
-        for (self.biases, self.gradB, self.mB, self.vB) |*b, *db, *mb, *vb| {
-            // Update the moments
-            mb.* = params.beta1 * mb.* + (1.0 - params.beta1) * db.*;
-            vb.* = params.beta2 * vb.* + (1.0 - params.beta2) * (db.*) * (db.*);
-
-            // Update the bias
-            b.* -= ((mb.*) / normM) * params.lr / (@sqrt(vb.* / normV) + params.eps);
-        }
-
-        // Update the state of the Adam optimizer
-        self.step += 1;
-        self.beta1_t *= params.beta1;
-        self.beta2_t *= params.beta2;
     }
 
     /// Trains the neural network using mini-batch gradient descent with the Adam optimizer. Splits data into training and validation sets, and records loss per epoch.
@@ -781,7 +524,7 @@ pub const NN = struct {
         for (0..nTrain) |i| indexes[i] = i;
 
         // Alloc the batch buffers once and reuse them for every batch. Gathering the
-        // shuffled samples into contiguous buffers keeps backProp cache-friendly.
+        // shuffled samples into contiguous buffers keeps updateGrads cache-friendly.
         var inputsBatch: []T = &.{};
         if (self.allocator.alloc(T, params.batchSize * nIn)) |slice| {
             inputsBatch = slice;
@@ -817,7 +560,7 @@ pub const NN = struct {
                 }
 
                 // Compute the gradients
-                if (self.backProp(inputsBatch, outputsBatch)) |lossE| {
+                if (self.nn.updateGrads(inputsBatch, outputsBatch)) |lossE| {
                     lossEpoch += lossE / nBatchesF;
                 } else |_| {
                     std.log.err("Problem when trying to backprop in epoch {} and batch {}!\n", .{ epoch, batch });
@@ -825,7 +568,7 @@ pub const NN = struct {
                 }
 
                 // Update the weights
-                self.updateWeights();
+                self.nn.updateWeights();
             }
 
             // Handle the remainder batch
@@ -839,7 +582,7 @@ pub const NN = struct {
                 }
 
                 // Compute the gradients
-                if (self.backProp(inputsBatch[0 .. nRem * nIn], outputsBatch[0 .. nRem * nOut])) |lossE| {
+                if (self.nn.updateGrads(inputsBatch[0 .. nRem * nIn], outputsBatch[0 .. nRem * nOut])) |lossE| {
                     lossEpoch += lossE / nBatchesF;
                 } else |_| {
                     std.log.err("Problem when trying to backprop in epoch {} and batch {}!\n", .{ epoch, nBatches });
@@ -847,7 +590,7 @@ pub const NN = struct {
                 }
 
                 // Update the weights
-                self.updateWeights();
+                self.nn.updateWeights();
             }
 
             // Save the training loss of this epoch
@@ -856,7 +599,7 @@ pub const NN = struct {
             // Save the loss of the validation of this epoch
             self.lossesValidation[epoch] = 0.0;
             for (0..nVal) |i| {
-                const pred: []T = try self.nn.forward(inputs[(nTrain + i) * nIn .. (nTrain + i + 1) * nIn], &params.nNeurons, self.weights, self.biases, &params.activations);
+                const pred: []T = try self.nn.forward(inputs[(nTrain + i) * nIn .. (nTrain + i + 1) * nIn]);
                 self.lossesValidation[epoch] += loss.computeLoss(pred, outputs[(nTrain + i) * nOut .. (nTrain + i + 1) * nOut], dL, params.lossFunc) / nValF;
             }
 
@@ -943,8 +686,8 @@ pub const NN = struct {
         defer nnOut.deinit();
 
         // Change some weights
-        nnIn.weights[0] = 2.0;
-        nnIn.biases[0] = 1.0;
+        nnIn.nn.weights[0] = 2.0;
+        nnIn.nn.biases[0] = 1.0;
 
         // Save the weights to a file
         try nnIn.saveWeights(path);
@@ -953,8 +696,8 @@ pub const NN = struct {
         try nnOut.loadWeights(path);
 
         // Check the weights
-        try testing.expectEqual(nnIn.weights[0], nnOut.weights[0]);
-        try testing.expectEqual(nnIn.biases[0], nnOut.biases[0]);
+        try testing.expectEqual(nnIn.nn.weights[0], nnOut.nn.weights[0]);
+        try testing.expectEqual(nnIn.nn.biases[0], nnOut.nn.biases[0]);
 
         // Delete the test file
         const cwd = std.Io.Dir.cwd();

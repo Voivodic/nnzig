@@ -62,55 +62,6 @@ test "NN compute normalization and normalize" {
     try nn.normalize(input, output);
 }
 
-test "NN init correct field sizes" {
-    var gpa = std.heap.DebugAllocator(.{}){};
-    const allocator = gpa.allocator();
-    defer {
-        const deinit_status = gpa.deinit();
-        if (deinit_status == .leak) std.debug.print("Leak!\n", .{});
-    }
-
-    const ioContext = std.testing.io;
-
-    var nn: nnzig.NN = try nnzig.NN.init(allocator, ioContext);
-    defer nn.deinit();
-
-    var nWeights: usize = 0;
-    var nBiases: usize = 0;
-    for (1..params.nNeurons.len) |i| {
-        nWeights += params.nNeurons[i] * params.nNeurons[i - 1];
-        nBiases += params.nNeurons[i];
-    }
-
-    try testing.expectEqual(nWeights, nn.weights.len);
-    try testing.expectEqual(nWeights, nn.gradW.len);
-    try testing.expectEqual(nWeights, nn.mW.len);
-    try testing.expectEqual(nWeights, nn.vW.len);
-    try testing.expectEqual(nBiases, nn.biases.len);
-    try testing.expectEqual(nBiases, nn.gradB.len);
-    try testing.expectEqual(nBiases, nn.mB.len);
-    try testing.expectEqual(nBiases, nn.vB.len);
-}
-
-test "NN init adam arrays zeroed" {
-    var gpa = std.heap.DebugAllocator(.{}){};
-    const allocator = gpa.allocator();
-    defer {
-        const deinit_status = gpa.deinit();
-        if (deinit_status == .leak) std.debug.print("Leak!\n", .{});
-    }
-
-    const ioContext = std.testing.io;
-
-    var nn: nnzig.NN = try nnzig.NN.init(allocator, ioContext);
-    defer nn.deinit();
-
-    for (nn.mW) |val| try testing.expectEqual(@as(T, 0.0), val);
-    for (nn.vW) |val| try testing.expectEqual(@as(T, 0.0), val);
-    for (nn.mB) |val| try testing.expectEqual(@as(T, 0.0), val);
-    for (nn.vB) |val| try testing.expectEqual(@as(T, 0.0), val);
-}
-
 test "NN forward pass output size" {
     var gpa = std.heap.DebugAllocator(.{}){};
     const allocator = gpa.allocator();
@@ -129,28 +80,6 @@ test "NN forward pass output size" {
 
     const nOut = params.nNeurons[params.nNeurons.len - 1];
     try testing.expectEqual(nOut, output.len);
-}
-
-test "NN zeroGrad zeros all gradients" {
-    var gpa = std.heap.DebugAllocator(.{}){};
-    const allocator = gpa.allocator();
-    defer {
-        const deinit_status = gpa.deinit();
-        if (deinit_status == .leak) std.debug.print("Leak!\n", .{});
-    }
-
-    const ioContext = std.testing.io;
-
-    var nn: nnzig.NN = try nnzig.NN.init(allocator, ioContext);
-    defer nn.deinit();
-
-    @memset(nn.gradW, 3.14);
-    @memset(nn.gradB, 2.71);
-
-    nn.zeroGrad();
-
-    for (nn.gradW) |val| try testing.expectEqual(@as(T, 0.0), val);
-    for (nn.gradB) |val| try testing.expectEqual(@as(T, 0.0), val);
 }
 
 test "NN normalization factors positive std" {

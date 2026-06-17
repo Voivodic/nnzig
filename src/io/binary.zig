@@ -40,9 +40,8 @@ pub fn saveWeights(fileName: []const u8, nn: *const nnzig.NN) !void {
     try file.writeStreamingAll(nn.ioContext, std.mem.asBytes(&header));
 
     // Write the weights and biases to the file
-    try file.writeStreamingAll(nn.ioContext, std.mem.sliceAsBytes(nn.weights));
-    try file.writeStreamingAll(nn.ioContext, std.mem.sliceAsBytes(nn.biases));
-
+    try file.writeStreamingAll(nn.ioContext, std.mem.sliceAsBytes(nn.nn.weights));
+    try file.writeStreamingAll(nn.ioContext, std.mem.sliceAsBytes(nn.nn.biases));
 }
 
 /// Load the weights of the neural network from a binary file
@@ -78,8 +77,8 @@ pub fn loadWeights(fileName: []const u8, nn: *const nnzig.NN) !void {
     }
 
     // Read the weights and biases from the file
-    try reader.readSliceAll(std.mem.sliceAsBytes(nn.weights));
-    try reader.readSliceAll(std.mem.sliceAsBytes(nn.biases));
+    try reader.readSliceAll(std.mem.sliceAsBytes(nn.nn.weights));
+    try reader.readSliceAll(std.mem.sliceAsBytes(nn.nn.biases));
 }
 
 // Test the saving and loading of the weights
@@ -103,8 +102,8 @@ test "[io] save/load-Weights" {
     defer nnOut.deinit();
 
     // Change some weights
-    nnIn.weights[0] = 2.0;
-    nnIn.biases[0] = 1.0;
+    nnIn.nn.weights[0] = 2.0;
+    nnIn.nn.biases[0] = 1.0;
 
     // Save the weights to a file
     try saveWeights(path, &nnIn);
@@ -113,8 +112,8 @@ test "[io] save/load-Weights" {
     try loadWeights(path, &nnOut);
 
     // Check the weights
-    try testing.expectEqual(nnIn.weights[0], nnOut.weights[0]);
-    try testing.expectEqual(nnIn.biases[0], nnOut.biases[0]);
+    try testing.expectEqual(nnIn.nn.weights[0], nnOut.nn.weights[0]);
+    try testing.expectEqual(nnIn.nn.biases[0], nnOut.nn.biases[0]);
 
     // Delete the test file
     const cwd = std.Io.Dir.cwd();
@@ -130,19 +129,19 @@ pub fn saveData(io: std.Io, fileName: []const u8, dataIn: []const T, dataOut: []
 
     // Check the size of the data
     if (dataIn.len % dimIn != 0) {
-        std.log.err("The size of the data ({}) is not a multiple of dimData ({})!\n", .{dataIn.len, dimIn});
+        std.log.err("The size of the data ({}) is not a multiple of dimData ({})!\n", .{ dataIn.len, dimIn });
         return err.invalidNData;
     }
 
     // Check the size of the data
     if (dataOut.len % dimOut != 0) {
-        std.log.err("The size of the data ({}) is not a multiple of dimData ({})!\n", .{dataOut.len, dimOut});
+        std.log.err("The size of the data ({}) is not a multiple of dimData ({})!\n", .{ dataOut.len, dimOut });
         return err.invalidNData;
     }
 
     // Check the sizes of the data
     if (dataIn.len / dimIn != dataOut.len / dimOut) {
-        std.log.err("The size of the dataIn ({}) is not equal to the size of the dataOut ({})!\n", .{dataIn.len / dimIn, dataOut.len / dimOut});
+        std.log.err("The size of the dataIn ({}) is not equal to the size of the dataOut ({})!\n", .{ dataIn.len / dimIn, dataOut.len / dimOut });
         return err.invalidNData;
     }
 
@@ -190,7 +189,7 @@ pub fn loadData(allocator: std.mem.Allocator, io: std.Io, fileName: []const u8) 
     return .{ dataIn, dataOut };
 }
 
-// Test the saving and loading of the data 
+// Test the saving and loading of the data
 test "[io] save/load-Data" {
     // Create the IO context
     const path = "test.bin";
