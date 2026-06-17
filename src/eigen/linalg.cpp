@@ -114,4 +114,31 @@ extern "C"{
         vecGrad += matV.rowwise().sum();
     }
 
+    // Element-wise Adam optimizer step: updates moments m and v, then applies the
+    // bias-corrected weight update in place.  All scalars are passed by reference
+    // so a future CUDA backend can place them in constant/device memory.
+    void eigen_adamUpdate(f_type* w, const f_type* grad, f_type* m, f_type* v,
+                          const size_t& size,
+                          const f_type& beta1, const f_type& beta2,
+                          const f_type& lr, const f_type& eps,
+                          const f_type& normM, const f_type& normV){
+        Eigen::Map<ArrayXt> arrW(w, size);
+        Eigen::Map<const ArrayXt> arrGrad(grad, size);
+        Eigen::Map<ArrayXt> arrM(m, size);
+        Eigen::Map<ArrayXt> arrV(v, size);
+
+        // Update biased moments
+        arrM = beta1 * arrM + (f_type(1.0) - beta1) * arrGrad;
+        arrV = beta2 * arrV + (f_type(1.0) - beta2) * arrGrad.square();
+
+        // Apply bias-corrected update
+        arrW -= (arrM / normM) * lr / ((arrV / normV).sqrt() + eps);
+    }
+
+    // Divide every element by a scalar (used for gradient normalization)
+    void eigen_divScalar(f_type* a, const size_t& size, const f_type& divisor){
+        Eigen::Map<ArrayXt> arr(a, size);
+        arr /= divisor;
+    }
+
 }

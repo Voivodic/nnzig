@@ -33,7 +33,7 @@ pub const MLP = struct {
     /// Initializes the MLP, allocating memory for all weights, biases, gradients,
     /// Adam optimizer moments, hidden layer activations, and scratch vectors.
     /// Weights and biases are initialized with random normal values.
-    pub fn init(allocator: std.mem.Allocator, rand: std.Random) !MLP {
+    pub fn init(allocator: std.mem.Allocator) !MLP {
         // Create the mlp
         var mlp = MLP{
             .allocator = allocator,
@@ -157,13 +157,9 @@ pub const MLP = struct {
         eigen.setZero(mlp.mB);
         eigen.setZero(mlp.vB);
 
-        // Set the parameters to normal random numbers
-        for (mlp.weights) |*weight| {
-            weight.* = @floatCast(std.Random.floatNorm(rand, f32));
-        }
-        for (mlp.biases) |*bias| {
-            bias.* = @floatCast(std.Random.floatNorm(rand, f32));
-        }
+        // Set the parameters to normal random numbers (done by the Eigen backend)
+        eigen.initNormal(mlp.weights, params.seed);
+        eigen.initNormal(mlp.biases, params.seed);
 
         return mlp;
     }
@@ -198,10 +194,7 @@ pub const MLP = struct {
             if (deinit_status == .leak) std.log.err("Leak!\n", .{});
         }
 
-        var xoshiro256 = std.Random.Xoshiro256.init(params.seed);
-        const rand = std.Random.Xoshiro256.random(&xoshiro256);
-
-        var mlp_inst = try MLP.init(allocator, rand);
+        var mlp_inst = try MLP.init(allocator);
         defer mlp_inst.deinit();
 
         // Check hidden activation sizes
@@ -286,10 +279,7 @@ pub const MLP = struct {
             if (deinit_status == .leak) std.log.err("Leak!\n", .{});
         }
 
-        var xoshiro256 = std.Random.Xoshiro256.init(42);
-        const rand = std.Random.Xoshiro256.random(&xoshiro256);
-
-        var mlp_inst = try MLP.init(allocator, rand);
+        var mlp_inst = try MLP.init(allocator);
         defer mlp_inst.deinit();
 
         const nIn = params.nNeurons[0];
@@ -354,10 +344,7 @@ pub const MLP = struct {
             if (deinit_status == .leak) std.log.err("Leak!\n", .{});
         }
 
-        var xoshiro256 = std.Random.Xoshiro256.init(42);
-        const rand = std.Random.Xoshiro256.random(&xoshiro256);
-
-        var mlp_inst = try MLP.init(allocator, rand);
+        var mlp_inst = try MLP.init(allocator);
         defer mlp_inst.deinit();
 
         const nIn = params.nNeurons[0];
@@ -407,10 +394,7 @@ pub const MLP = struct {
             if (deinit_status == .leak) std.log.err("Leak!\n", .{});
         }
 
-        var xoshiro256 = std.Random.Xoshiro256.init(42);
-        const rand = std.Random.Xoshiro256.random(&xoshiro256);
-
-        var mlp_inst = try MLP.init(allocator, rand);
+        var mlp_inst = try MLP.init(allocator);
         defer mlp_inst.deinit();
 
         @memset(mlp_inst.gradW, 3.14);
@@ -428,25 +412,11 @@ pub const MLP = struct {
         const normM: T = @floatCast(1.0 - self.beta1_t);
         const normV: T = @floatCast(1.0 - self.beta2_t);
 
-        // Update the weights
-        for (self.weights, self.gradW, self.mW, self.vW) |*w, *dw, *mw, *vw| {
-            // Update the moments
-            mw.* = params.beta1 * mw.* + (1.0 - params.beta1) * dw.*;
-            vw.* = params.beta2 * vw.* + (1.0 - params.beta2) * (dw.*) * (dw.*);
+        // Update the weights (moments + weight update done by the Eigen backend)
+        eigen.adamUpdate(self.weights, self.gradW, self.mW, self.vW, params.beta1, params.beta2, params.lr, params.eps, normM, normV);
 
-            // Update the weights
-            w.* -= ((mw.*) / normM) * params.lr / (@sqrt(vw.* / normV) + params.eps);
-        }
-
-        // Update the bias
-        for (self.biases, self.gradB, self.mB, self.vB) |*b, *db, *mb, *vb| {
-            // Update the moments
-            mb.* = params.beta1 * mb.* + (1.0 - params.beta1) * db.*;
-            vb.* = params.beta2 * vb.* + (1.0 - params.beta2) * (db.*) * (db.*);
-
-            // Update the bias
-            b.* -= ((mb.*) / normM) * params.lr / (@sqrt(vb.* / normV) + params.eps);
-        }
+        // Update the biases (moments + bias update done by the Eigen backend)
+        eigen.adamUpdate(self.biases, self.gradB, self.mB, self.vB, params.beta1, params.beta2, params.lr, params.eps, normM, normV);
 
         // Update the state of the Adam optimizer
         self.step += 1;
@@ -462,10 +432,7 @@ pub const MLP = struct {
             if (deinit_status == .leak) std.log.err("Leak!\n", .{});
         }
 
-        var xoshiro256 = std.Random.Xoshiro256.init(42);
-        const rand = std.Random.Xoshiro256.random(&xoshiro256);
-
-        var mlp_inst = try MLP.init(allocator, rand);
+        var mlp_inst = try MLP.init(allocator);
         defer mlp_inst.deinit();
 
         const nIn: usize = params.nNeurons[0];
@@ -527,13 +494,9 @@ pub const MLP = struct {
             self.backward(dL);
         }
 
-        // Normalize the gradients
-        for (self.gradW) |*dw| {
-            dw.* /= nDataF;
-        }
-        for (self.gradB) |*db| {
-            db.* /= nDataF;
-        }
+        // Normalize the gradients (done by the Eigen backend)
+        eigen.divScalar(self.gradW, nDataF);
+        eigen.divScalar(self.gradB, nDataF);
 
         // Return the total loss computed
         return lossTotal;

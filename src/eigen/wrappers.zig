@@ -470,3 +470,109 @@ test "[eigen] denormalize" {
     try testing.expectApproxEqAbs(5.0, outputs[0], 1e-3);
     try testing.expectApproxEqAbs(15.0, outputs[1], 1e-3);
 }
+
+// --- Random initialization ---
+
+extern "c" fn eigen_initNormal(data: [*]T, size: *const usize, seed: *const u64) void;
+
+/// Fills `vec` with i.i.d. N(0, 1) random values using a deterministic PRNG seeded by `seed`.
+/// The PRNG lives entirely in the backend so a future CUDA backend can use cuRAND.
+pub fn initNormal(vec: []T, seed: u64) void {
+    const size = vec.len;
+    eigen_initNormal(vec.ptr, &size, &seed);
+}
+
+test "[eigen] initNormal" {
+    var buf_a: [1000]T = undefined;
+    var buf_b: [1000]T = undefined;
+
+    initNormal(buf_a[0..], 42);
+    initNormal(buf_b[0..], 42);
+
+    // Same seed -> identical sequence
+    for (buf_a, buf_b) |a, b| {
+        try testing.expectApproxEqAbs(a, b, 1e-6);
+    }
+
+    // Different seed -> different sequence
+    initNormal(buf_b[0..], 99);
+    var any_diff = false;
+    for (buf_a, buf_b) |a, b| {
+        if (@abs(a - b) > 1e-6) {
+            any_diff = true;
+            break;
+        }
+    }
+    try testing.expect(any_diff);
+
+    // Statistical check: mean ≈ 0, variance ≈ 1
+    var sum: f64 = 0;
+    var sumsq: f64 = 0;
+    for (buf_a) |val| {
+        const v: f64 = @floatCast(val);
+        sum += v;
+        sumsq += v * v;
+    }
+    const n: f64 = @floatFromInt(buf_a.len);
+    const mean = sum / n;
+    const variance = sumsq / n - mean * mean;
+
+    try testing.expect(@abs(mean) < 0.1);
+    try testing.expect(@abs(variance - 1.0) < 0.1);
+}
+
+// --- Adam optimizer step ---
+
+extern "c" fn eigen_adamUpdate(w: [*]T, grad: [*]const T, m: [*]T, v: [*]T, size: *const usize, beta1: *const T, beta2: *const T, lr: *const T, eps: *const T, normM: *const T, normV: *const T) void;
+
+/// Performs an element-wise Adam optimizer update in place:
+/// `m = beta1*m + (1-beta1)*grad`, `v = beta2*v + (1-beta2)*grad^2`,
+/// `w -= (m/normM) * lr / (sqrt(v/normV) + eps)`.
+/// All scalar parameters are passed by reference to the backend.
+pub fn adamUpdate(w: []T, grad: []const T, m: []T, v: []T, beta1: T, beta2: T, lr: T, eps: T, normM: T, normV: T) void {
+    const size = w.len;
+    eigen_adamUpdate(w.ptr, grad.ptr, m.ptr, v.ptr, &size, &beta1, &beta2, &lr, &eps, &normM, &normV);
+}
+
+test "[eigen] adamUpdate" {
+    // Set up: w=1, grad=0.5, m=0, v=0
+    // beta1=0.9, beta2=0.999, lr=0.1, eps=1e-8, normM=0.9, normV=0.999
+    var w = [_]T{ 1.0, 1.0, 1.0 };
+    const grad = [_]T{ 0.5, 0.5, 0.5 };
+    var m = [_]T{ 0.0, 0.0, 0.0 };
+    var v = [_]T{ 0.0, 0.0, 0.0 };
+
+    adamUpdate(w[0..], grad[0..], m[0..], v[0..], 0.9, 0.999, 0.1, 1e-8, 0.9, 0.999);
+
+    // m = 0.9*0 + 0.1*0.5 = 0.05
+    // v = 0.999*0 + 0.001*0.25 = 0.00025
+    // m_hat = 0.05 / 0.9 = 0.0556
+    // v_hat = 0.00025 / 0.999 = 0.00025025
+    // sqrt(v_hat) = 0.015819
+    // update = m_hat * 0.1 / (0.015819 + 1e-8) = 0.005556 / 0.015819 = 0.35122
+    // w_new = 1.0 - 0.35122 = 0.64878
+    try testing.expectApproxEqAbs(@as(T, 0.05), m[0], 1e-5);
+    try testing.expectApproxEqAbs(@as(T, 0.00025), v[0], 1e-7);
+    try testing.expectApproxEqAbs(@as(T, 0.64878), w[0], 1e-3);
+}
+
+// --- Scalar division (gradient normalization) ---
+
+extern "c" fn eigen_divScalar(a: [*]T, size: *const usize, divisor: *const T) void;
+
+/// Divides every element of `vec` by `divisor` in place using Eigen.
+pub fn divScalar(vec: []T, divisor: T) void {
+    const size = vec.len;
+    eigen_divScalar(vec.ptr, &size, &divisor);
+}
+
+test "[eigen] divScalar" {
+    var v = [_]T{ 10.0, 20.0, 30.0, 40.0 };
+
+    divScalar(v[0..], 4.0);
+
+    try testing.expectApproxEqAbs(@as(T, 2.5), v[0], 1e-5);
+    try testing.expectApproxEqAbs(@as(T, 5.0), v[1], 1e-5);
+    try testing.expectApproxEqAbs(@as(T, 7.5), v[2], 1e-5);
+    try testing.expectApproxEqAbs(@as(T, 10.0), v[3], 1e-5);
+}

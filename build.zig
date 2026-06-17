@@ -48,7 +48,7 @@ fn createTree(
     eigen_wrapper.addImport("params", params);
     eigen_wrapper.addCSourceFiles(.{
         .root = b.path("src/eigen"),
-        .files = &.{ "linalg.cpp", "activations.cpp", "losses.cpp", "normalizations.cpp" },
+        .files = &.{ "linalg.cpp", "activations.cpp", "losses.cpp", "normalizations.cpp", "random.cpp" },
         .flags = &.{ "-O3", "-fPIC", precision_flag },
     });
     eigen_wrapper.addIncludePath(eigen.path("./"));

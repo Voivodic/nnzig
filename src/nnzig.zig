@@ -35,7 +35,7 @@ pub const NN = struct {
         var nn = NN{
             .allocator = allocator,
             .ioContext = ioContext,
-            .nn = try mlp.MLP.init(allocator, std.Random.Xoshiro256.random(&xoshiro256)),
+            .nn = try mlp.MLP.init(allocator),
             .norm = try norms.Norm.init(allocator),
             .rand = std.Random.Xoshiro256.random(&xoshiro256),
         };
