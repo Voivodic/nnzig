@@ -491,7 +491,7 @@ pub const NN = struct {
 
         // Alloc the dL array used in the computation of the loss of the validation
         var dL: []T = &.{};
-        if (self.allocator.alloc(T, nOut)) |slice| {
+        if (self.allocator.alloc(T, nOut * params.batchSizeCompute)) |slice| {
             dL = slice;
         } else |_| {
             std.log.err("Error while allocating the slice for dL!", .{});
@@ -504,12 +504,15 @@ pub const NN = struct {
 
         // Compute the size of training and validation
         const nTrain: usize = @as(usize, @intFromFloat(@as(T, @floatFromInt(nData)) * params.rTrain));
+        const nTrainF: T = @as(T, @floatFromInt(nTrain));
         const nValF: T = @as(T, @floatFromInt(nData)) * params.rVal;
         const nVal: usize = @as(usize, @intFromFloat(nValF));
 
         // Compute the number of batches
         const nBatches: usize = nTrain / params.batchSize;
-        const nBatchesF: T = @as(T, @floatFromInt(nBatches));
+        const nRem: usize = nTrain % params.batchSize;
+        const nBatchesVal: usize = nVal / params.batchSizeCompute;
+        const nRemVal: usize = nVal % params.batchSizeCompute;
 
         // Alloc the array of indexes used to shuffle the training data each epoch.
         // Only training indices [0, nTrain) are shuffled so that the validation set
@@ -562,7 +565,7 @@ pub const NN = struct {
 
                 // Compute the gradients
                 if (self.nn.updateGrads(inputsBatch, outputsBatch)) |lossE| {
-                    lossEpoch += lossE / nBatchesF;
+                    lossEpoch += lossE / nTrainF;
                 } else |_| {
                     std.log.err("Problem when trying to backprop in epoch {} and batch {}!\n", .{ epoch, batch });
                     return err.backProp;
@@ -573,7 +576,6 @@ pub const NN = struct {
             }
 
             // Handle the remainder batch
-            const nRem: usize = nTrain % params.batchSize;
             if (nRem != 0) {
                 // Gather the remaining shuffled samples into the batch buffers
                 for (0..nRem) |i| {
@@ -584,7 +586,7 @@ pub const NN = struct {
 
                 // Compute the gradients
                 if (self.nn.updateGrads(inputsBatch[0 .. nRem * nIn], outputsBatch[0 .. nRem * nOut])) |lossE| {
-                    lossEpoch += lossE / nBatchesF;
+                    lossEpoch += lossE / nTrainF;
                 } else |_| {
                     std.log.err("Problem when trying to backprop in epoch {} and batch {}!\n", .{ epoch, nBatches });
                     return err.backProp;
@@ -599,9 +601,13 @@ pub const NN = struct {
 
             // Save the loss of the validation of this epoch
             self.lossesValidation[epoch] = 0.0;
-            for (0..nVal) |i| {
-                const pred: []T = try self.nn.forward(inputs[(nTrain + i) * nIn .. (nTrain + i + 1) * nIn]);
-                self.lossesValidation[epoch] += loss.computeLoss(pred, outputs[(nTrain + i) * nOut .. (nTrain + i + 1) * nOut], dL, params.lossFunc) / nValF;
+            for (0..nBatchesVal) |batch| {
+                const pred: []T = try self.nn.forward(inputs[(nTrain + batch * params.batchSizeCompute) * nIn .. (nTrain + (batch + 1) * params.batchSizeCompute) * nIn]);
+                self.lossesValidation[epoch] += loss.computeLoss(pred, outputs[(nTrain + batch * params.batchSizeCompute) * nOut .. (nTrain + (batch + 1) * params.batchSizeCompute) * nOut], dL, params.lossFunc) / nValF;
+            }
+            if (nRemVal > 0) {
+                const pred: []T = try self.nn.forward(inputs[(nTrain + nBatchesVal * params.batchSizeCompute) * nIn .. (nTrain + nBatchesVal * params.batchSizeCompute + nRemVal) * nIn]);
+                self.lossesValidation[epoch] += loss.computeLoss(pred, outputs[(nTrain + nBatchesVal * params.batchSizeCompute) * nOut .. (nTrain + nBatchesVal * params.batchSizeCompute + nRemVal) * nOut], dL[0 .. nRemVal * nOut], params.lossFunc) / nValF;
             }
 
             // Print the current state

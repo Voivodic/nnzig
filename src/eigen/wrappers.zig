@@ -260,8 +260,8 @@ test "[eigen] activateSigmoid" {
 
 extern "c" fn eigen_mse(pred: [*]const T, out: [*]const T, dL: [*]T, loss: *T, n: usize) void;
 
-/// Computes the mean squared error `L = 0.5 * mean((pred - out)^2)` and writes the
-/// derivative `dL = (pred - out) / n` using Eigen. Returns the scalar loss.
+/// Computes the mean squared error `L = 0.5 * sum((pred - out)^2)` and writes the
+/// derivative `dL = (pred - out)` using Eigen. Returns the scalar loss.
 pub fn computeMSE(pred: []const T, out: []const T, dL: []T) T {
     var loss: T = 0.0;
     eigen_mse(pred.ptr, out.ptr, dL.ptr, &loss, pred.len);
@@ -276,8 +276,8 @@ test "[eigen] computeMSE" {
 
     const lossVal = computeMSE(&pred, &out, &dL);
 
-    try testing.expectApproxEqAbs(2.0, lossVal, 1e-3);
-    for (dL) |val| try testing.expectApproxEqAbs(0.5, val, 1e-3);
+    try testing.expectApproxEqAbs(8.0, lossVal, 1e-3);
+    for (dL) |val| try testing.expectApproxEqAbs(2.0, val, 1e-3);
 
     // Zero error: pred == out -> loss=0, dL=0
     const lossZero = computeMSE(&pred, &pred, &dL);

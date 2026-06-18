@@ -59,9 +59,9 @@ test "[loss] computeLoss MSE known error" {
 
     // Compute the loss
     const lossVal = computeLoss(&pred, &out, &dL, params.loss.MSE);
-    const expectedLoss: T = 0.5 * 4.0;
+    const expectedLoss: T = 0.5 * 4.0 * @as(T, @floatFromInt(nOut));
 
     // Check the results
     try testing.expectApproxEqAbs(expectedLoss, lossVal, 1e-3);
-    for (dL) |val| try testing.expectApproxEqAbs(@as(T, 1.0), val, 1e-3);
+    for (dL) |val| try testing.expectApproxEqAbs(@as(T, @floatFromInt(nOut)), val, 1e-3);
 }
