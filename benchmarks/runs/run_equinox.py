@@ -190,7 +190,7 @@ if __name__ == "__main__":
     print("[info] Training network...")
 
     model = MLP(network["nNeurons"], network["activations"], key=init_key)
-    model = init_normal(model, init_key)
+    # model = init_normal(model, init_key)
 
     loss_name = network["lossFunc"]
     if loss_name not in _LOSS_FUNCS:

@@ -139,8 +139,8 @@ if __name__ == "__main__":
 
     model = MLP(network["nNeurons"], network["activations"]).to(torch_dtype)
     # Match nnzig's init: every weight and bias drawn from N(0, 1).
-    for p in model.parameters():
-        torch.nn.init.normal_(p, mean=0.0, std=1.0)
+    # for p in model.parameters():
+    #     torch.nn.init.normal_(p, mean=0.0, std=1.0)
 
     loss_name = network["lossFunc"]
     if loss_name not in _LOSS_FUNCS:
