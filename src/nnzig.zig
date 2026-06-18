@@ -568,7 +568,7 @@ pub const NN = struct {
 
                 // Compute the gradients
                 if (self.nn.updateGrads(inputsBatch, outputsBatch)) |lossE| {
-                    lossEpoch += lossE / nTrainF;
+                    lossEpoch += lossE;
                 } else |_| {
                     std.log.err("Problem when trying to backprop in epoch {} and batch {}!\n", .{ epoch, batch });
                     return err.backProp;
@@ -589,7 +589,7 @@ pub const NN = struct {
 
                 // Compute the gradients
                 if (self.nn.updateGrads(inputsBatch[0 .. nRem * nIn], outputsBatch[0 .. nRem * nOut])) |lossE| {
-                    lossEpoch += lossE / nTrainF;
+                    lossEpoch += lossE;
                 } else |_| {
                     std.log.err("Problem when trying to backprop in epoch {} and batch {}!\n", .{ epoch, nBatches });
                     return err.backProp;
@@ -600,17 +600,17 @@ pub const NN = struct {
             }
 
             // Save the training loss of this epoch
-            self.lossesTraining[epoch] = lossEpoch;
+            self.lossesTraining[epoch] = lossEpoch / nTrainF / @as(T, @floatFromInt(nOut));
 
             // Save the loss of the validation of this epoch
             self.lossesValidation[epoch] = 0.0;
             for (0..nBatchesVal) |batch| {
                 const pred: []T = try self.nn.forward(inputs[(nTrain + batch * params.batchSizeCompute) * nIn .. (nTrain + (batch + 1) * params.batchSizeCompute) * nIn]);
-                self.lossesValidation[epoch] += loss.computeLoss(pred, outputs[(nTrain + batch * params.batchSizeCompute) * nOut .. (nTrain + (batch + 1) * params.batchSizeCompute) * nOut], dL, params.lossFunc) / nValF;
+                self.lossesValidation[epoch] += loss.computeLoss(pred, outputs[(nTrain + batch * params.batchSizeCompute) * nOut .. (nTrain + (batch + 1) * params.batchSizeCompute) * nOut], dL, params.lossFunc) / nValF / nOut;
             }
             if (nRemVal > 0) {
                 const pred: []T = try self.nn.forward(inputs[(nTrain + nBatchesVal * params.batchSizeCompute) * nIn .. (nTrain + nBatchesVal * params.batchSizeCompute + nRemVal) * nIn]);
-                self.lossesValidation[epoch] += loss.computeLoss(pred, outputs[(nTrain + nBatchesVal * params.batchSizeCompute) * nOut .. (nTrain + nBatchesVal * params.batchSizeCompute + nRemVal) * nOut], dL[0 .. nRemVal * nOut], params.lossFunc) / nValF;
+                self.lossesValidation[epoch] += loss.computeLoss(pred, outputs[(nTrain + nBatchesVal * params.batchSizeCompute) * nOut .. (nTrain + nBatchesVal * params.batchSizeCompute + nRemVal) * nOut], dL[0 .. nRemVal * nOut], params.lossFunc) / nValF / nOut;
             }
 
             // Print the current state
