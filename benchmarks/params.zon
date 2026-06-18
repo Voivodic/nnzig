@@ -1,7 +1,7 @@
 .{
     .precision = 32,
     .numThreads = 1,
-    .nNeurons = .{ 2, 4, 4, 2 },
+    .nNeurons = .{ 128, 256, 256, 128 },
     .activations = .{ "relu", "relu", "none" },
     .lossFunc = "MSE",
     .normalization = "meanStd",
