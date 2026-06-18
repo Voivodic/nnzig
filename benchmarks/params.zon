@@ -14,5 +14,6 @@
     .lr = 0.01,
     .nEpochs = 500,
     .batchSize = 50,
+    .batchSizeCompute = 50,
     .printEvery = 0,
 }

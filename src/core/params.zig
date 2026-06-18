@@ -54,11 +54,12 @@ const baseParams = struct {
     lr: T = 0.01,
     nEpochs: usize = 500,
     batchSize: usize = 50,
+    batchSizeCompute: usize = 0,
     printEvery: usize = 0,
 };
 
 // --- Conversion functions ---
- 
+
 /// Converts a compile-time int to its matching type
 fn convertIntToType(comptime pre: usize) type {
     switch (pre) {
@@ -123,12 +124,12 @@ fn convertTupleToEnumArray(comptime EnumType: type, comptime tuple: anytype) [tu
 
 // Test the conversion to enum array
 test "[params] tupleToEnumArray" {
-    const lossTuple = comptime .{std.meta.fieldNames(loss)[0], std.meta.fieldNames(loss)[0], std.meta.fieldNames(loss)[0]};
+    const lossTuple = comptime .{ std.meta.fieldNames(loss)[0], std.meta.fieldNames(loss)[0], std.meta.fieldNames(loss)[0] };
     const lossResult = convertTupleToEnumArray(loss, lossTuple);
     try std.testing.expectEqual(lossResult.len, lossTuple.len);
     try std.testing.expectEqual(@TypeOf(lossResult), [lossTuple.len]loss);
 
-    const normTuple = comptime .{std.meta.fieldNames(norm)[0], std.meta.fieldNames(norm)[0]};
+    const normTuple = comptime .{ std.meta.fieldNames(norm)[0], std.meta.fieldNames(norm)[0] };
     const normResult = convertTupleToEnumArray(norm, normTuple);
     try std.testing.expectEqual(normResult.len, normTuple.len);
     try std.testing.expectEqual(@TypeOf(normResult), [normTuple.len]norm);
@@ -166,22 +167,22 @@ pub const activations = blk: {
                 }
 
                 for (actsTmp.len..acts.len) |i| {
-                    acts[i] = activation.relu ;
+                    acts[i] = activation.relu;
                 }
 
                 acts[acts.len - 1] = actsTmp[actsTmp.len - 1];
-            // The user provided more activation functions than the number of layers - 1
+                // The user provided more activation functions than the number of layers - 1
             } else if (paramsFile.activations.len > nLayers - 1) {
                 for (0..acts.len) |i| {
                     acts[i] = actsTmp[i];
                 }
 
                 acts[acts.len - 1] = actsTmp[actsTmp.len - 1];
-            // The user provided the correct number of activation functions
+                // The user provided the correct number of activation functions
             } else {
                 acts = actsTmp;
             }
-        // The user did not provide activation functions, so use the default
+            // The user did not provide activation functions, so use the default
         } else {
             for (0..acts.len) |i| {
                 acts[i] = activation.relu;
@@ -285,6 +286,17 @@ pub const batchSize: usize = blk: {
         @compileError("batchSize is the number of samples to use for each batch. It must be positive! Use 0 to use all samples in a batch.");
     }
     break :blk config.batchSize;
+};
+
+/// Set the batch size used for computation (number of samples processed in parallel by Eigen).
+/// Must be between 1 and batchSize. If outside this range, it is set to batchSize.
+pub const batchSizeCompute: usize = blk: {
+    if (config.batchSizeCompute < 1 or config.batchSizeCompute > config.batchSize) {
+        break :blk config.batchSize;
+    } else if (config.batchSize % config.batchSizeCompute != 0) {
+        break :blk config.batchSize / (config.batchSize / config.batchSizeCompute + 1);
+    }
+    break :blk config.batchSizeCompute;
 };
 
 /// Set the frequency of printing results

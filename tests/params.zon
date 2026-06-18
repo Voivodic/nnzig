@@ -33,5 +33,6 @@
     // Training loop parameters
     .nEpochs = 500,
     .batchSize = 50,
+    .batchSizeCompute = 1,
     .printEvery = 0,
 }

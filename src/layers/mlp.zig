@@ -57,16 +57,16 @@ pub const MLP = struct {
             nHidden += nN;
         }
 
-        // Alloc space for the hidden values
-        if (allocator.alloc(T, nHidden)) |slice| {
+        // Alloc space for the hidden values (sized for batchSizeCompute)
+        if (allocator.alloc(T, params.batchSizeCompute * nHidden)) |slice| {
             mlp.y = slice;
         } else |_| {
             std.log.err("Failure when trying to allocate memory for y!\n", .{});
             return err.allocationOfHiddens;
         }
 
-        // Alloc space for the derivative of hidden values
-        if (allocator.alloc(T, nHidden)) |slice| {
+        // Alloc space for the derivative of hidden values (sized for batchSizeCompute)
+        if (allocator.alloc(T, params.batchSizeCompute * nHidden)) |slice| {
             mlp.dy = slice;
         } else |_| {
             std.log.err("Failure when trying to allocate memory for dy!\n", .{});
@@ -81,8 +81,8 @@ pub const MLP = struct {
             }
         }
 
-        // Alloc memory for the V vector
-        if (allocator.alloc(T, vSize)) |slice| {
+        // Alloc memory for the V vector (sized for batchSizeCompute)
+        if (allocator.alloc(T, params.batchSizeCompute * vSize)) |slice| {
             mlp.V = slice;
         } else |_| {
             std.log.err("Failure when trying to allocate memory for V!\n", .{});
@@ -222,12 +222,12 @@ pub const MLP = struct {
         var mlp_inst = try MLP.init(allocator);
         defer mlp_inst.deinit();
 
-        // Check hidden activation sizes
+        // Check hidden activation sizes (sized for batchSizeCompute)
         var nHidden: usize = 0;
         for (params.nNeurons) |n| nHidden += n;
 
-        try std.testing.expectEqual(nHidden, mlp_inst.y.len);
-        try std.testing.expectEqual(nHidden, mlp_inst.dy.len);
+        try std.testing.expectEqual(params.batchSizeCompute * nHidden, mlp_inst.y.len);
+        try std.testing.expectEqual(params.batchSizeCompute * nHidden, mlp_inst.dy.len);
 
         var vSize: usize = 0;
         for (1..params.nNeurons.len) |i| {
@@ -235,7 +235,7 @@ pub const MLP = struct {
                 vSize = params.nNeurons[i];
             }
         }
-        try std.testing.expectEqual(vSize, mlp_inst.V.len);
+        try std.testing.expectEqual(params.batchSizeCompute * vSize, mlp_inst.V.len);
 
         // Check weight/bias/gradient sizes
         var nWeights: usize = 0;
@@ -267,10 +267,14 @@ pub const MLP = struct {
     }
 
     /// Performs a forward pass through all layers, returning the output slice.
+    /// The batch size is derived from the input length.
     pub fn forward(self: *const MLP, input: []const T) ![]T {
-        // Save the input in first hidden values
+        // Derive the batch size from the input length
+        const Bc: usize = input.len / params.nNeurons[0];
+
+        // Save the input in first hidden values and zero the derivatives
         eigen.setZero(self.dy);
-        eigen.vectorInit(input, self.y);
+        eigen.vectorInit(input, self.y[0 .. Bc * params.nNeurons[0]]);
 
         // Run over all layers and compute the partial result
         var nprod: usize = 0;
@@ -283,16 +287,16 @@ pub const MLP = struct {
             // Compute the matrix vector multiplication then add the result to a third vector
             eigen.matrixVectorMulAdd(
                 self.weights[nprod..(nprod + nin * nout)],
-                self.y[nsum..(nsum + nin)],
+                self.y[nsum * Bc .. (nsum + nin) * Bc],
                 self.biases[nBias..(nBias + nout)],
-                self.y[(nsum + nin)..(nsum + nin + nout)]
+                self.y[(nsum + nin) * Bc .. (nsum + nin + nout) * Bc],
             );
 
             // Apply the activation function
             act.activateElements(
-                self.y[(nsum + nin)..(nsum + nin + nout)],
-                self.dy[(nsum + nin)..(nsum + nin + nout)],
-                params.activations[i]
+                self.y[(nsum + nin) * Bc .. (nsum + nin + nout) * Bc],
+                self.dy[(nsum + nin) * Bc .. (nsum + nin + nout) * Bc],
+                params.activations[i],
             );
 
             // Update the total sum and sum of products to keep track of the current position of the 1D slices
@@ -302,7 +306,7 @@ pub const MLP = struct {
         }
 
         // Return the last slice of hidden values (the output)
-        return self.y[nsum..];
+        return self.y[nsum * Bc .. (nsum + params.nNeurons[params.nNeurons.len - 1]) * Bc];
     }
 
     test "[mlp] forward output size" {
@@ -330,50 +334,56 @@ pub const MLP = struct {
 
     /// Performs backpropagation from the loss gradient, computing weight and bias gradients for all layers.
     pub fn backward(self: *const MLP, dL: []const T) void {
+        // Derive the batch size from the dL length
+        const Bc: usize = dL.len / params.nNeurons[params.nNeurons.len - 1];
+
         // Counters used to iterate over the weights and biases
         var layer: usize = params.nNeurons.len - 1;
         var nwIni: usize = self.weights.len - params.nNeurons[layer] * params.nNeurons[layer - 1];
         var nwEnd: usize = self.weights.len;
         var nbIni: usize = self.biases.len - params.nNeurons[layer];
         var nbEnd: usize = self.biases.len;
-        var nyIni: usize = self.y.len - params.nNeurons[layer];
+        var nyIni: usize = self.y.len - params.nNeurons[layer] * Bc;
         var nyEnd: usize = self.y.len;
 
         // Compute the initial value for the vector V
-        eigen.vectorInit(dL, self.V);
+        eigen.vectorInit(dL, self.V[0..(params.nNeurons[layer] * Bc)]);
 
         // Iterate from the last to the first layer
         while (layer > 0) : (layer -= 1) {
+            const nL: usize = params.nNeurons[layer];
+            const nLprev: usize = params.nNeurons[layer - 1];
+
             // Multiply the propagated vector V by the derivative of the activation function.
-            eigen.vectorMul(self.dy[nyIni..nyEnd], self.V[0..(params.nNeurons[layer])]);
+            eigen.vectorMul(self.dy[nyIni..nyEnd], self.V[0..(nL * Bc)]);
 
             // Update the gradient for the weights
             eigen.updateGradWeights(
-                self.V[0..params.nNeurons[layer]],
-                self.y[(nyIni - params.nNeurons[layer - 1])..nyIni],
+                self.V[0..(nL * Bc)],
+                self.y[(nyIni - nLprev * Bc)..nyIni],
                 self.gradW[nwIni..nwEnd],
-                1,
+                Bc,
             );
 
             // Update the gradient for the biases
             eigen.updateGradBiases(
-                self.V[0..params.nNeurons[layer]],
+                self.V[0..(nL * Bc)],
                 self.gradB[nbIni..nbEnd],
             );
 
             // Do not run this part in the last iteration
             if (layer > 1) {
 
-                // Update the M matrix using the current weight matrix
-                eigen.vectorMatrixMul(self.V[0..(params.nNeurons[layer])], self.weights[nwIni..nwEnd], 1);
+                // Update the V matrix using the current weight matrix
+                eigen.vectorMatrixMul(self.V[0..(nL * Bc)], self.weights[nwIni..nwEnd], Bc);
 
                 // Update the counters
                 nyEnd = nyIni;
-                nyIni -= params.nNeurons[layer - 1];
+                nyIni -= nLprev * Bc;
                 nbEnd = nbIni;
-                nbIni -= params.nNeurons[layer - 1];
+                nbIni -= nLprev;
                 nwEnd = nwIni;
-                nwIni -= params.nNeurons[layer - 1] * params.nNeurons[layer - 2];
+                nwIni -= nLprev * params.nNeurons[layer - 2];
             }
         }
     }
@@ -500,6 +510,8 @@ pub const MLP = struct {
     }
 
     /// Computes gradients over the given batch of data and returns the average loss.
+    /// Data is processed in sub-batches of `batchSizeCompute` samples at a time,
+    /// allowing Eigen to parallelize the linear algebra across multiple samples.
     pub fn updateGrads(self: *MLP, inputs: []const T, outputs: []const T) !T {
         // Get the data size
         const nIn: usize = params.nNeurons[0];
@@ -507,11 +519,14 @@ pub const MLP = struct {
         const nDataF: T = @as(T, @floatFromInt(inputs.len / nIn));
         const nData: usize = @as(usize, @intFromFloat(nDataF));
 
+        // Get the compute batch size
+        const Bc: usize = params.batchSizeCompute;
+
         self.zeroGrad();
 
-        // Slice to keep the derivatives of the loss
+        // Slice to keep the derivatives of the loss (sized for the compute batch)
         var dL: []T = undefined;
-        if (self.allocator.alloc(T, nOut)) |slice| {
+        if (self.allocator.alloc(T, Bc * nOut)) |slice| {
             dL = slice;
         } else |_| {
             std.log.err("Problem to allocate the array for the derivatives of the loss!\n", .{});
@@ -522,15 +537,28 @@ pub const MLP = struct {
         // Save the value of the total loss
         var lossTotal: T = 0.0;
 
-        // Run over all inputs and outputs
-        for (0..nData) |i| {
-            // Compute the forward pass
-            const pred: []T = try self.forward(inputs[i * nIn .. (i + 1) * nIn]);
+        // Run over full compute batches
+        const nBatches: usize = nData / Bc;
+        for (0..nBatches) |batch| {
+            const offset: usize = batch * Bc;
 
-            // Compute the loss and its derivative
-            lossTotal += loss.computeLoss(pred, outputs[i * nOut .. (i + 1) * nOut], dL, params.lossFunc) / nDataF;
+            // Compute the forward pass for the sub-batch
+            const pred: []T = try self.forward(inputs[offset * nIn .. (offset + Bc) * nIn]);
 
-            // Compute the gradient
+            // Compute the loss and its derivative per-sample within the sub-batch.
+            // Calling computeLoss per-sample gives each dL element the correct
+            // diff/nOut normalization (same as the Bc=1 case), so no extra
+            // divScalar on dL is needed.
+            for (0..Bc) |j| {
+                lossTotal += loss.computeLoss(
+                    pred[j * nOut .. (j + 1) * nOut],
+                    outputs[(offset + j) * nOut .. (offset + j + 1) * nOut],
+                    dL[j * nOut .. (j + 1) * nOut],
+                    params.lossFunc,
+                ) / nDataF;
+            }
+
+            // Compute the gradient for the sub-batch
             self.backward(dL);
         }
 
