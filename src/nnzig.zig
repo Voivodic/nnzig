@@ -363,7 +363,7 @@ pub const NN = struct {
         var dL = [_]T{ 0.0, 0.0 };
         _ = &dL;
 
-        const loss0 = try nn.nn.updateGrads(&inputs, &outputs);
+        const loss0 = try nn.nn.updateGrads(&inputs, &outputs) / nBatch;
 
         // squared gradient norm (mean gradient, since updateGrads averages)
         var g2: T = 0.0;

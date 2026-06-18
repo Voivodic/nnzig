@@ -546,17 +546,12 @@ pub const MLP = struct {
             const pred: []T = try self.forward(inputs[offset * nIn .. (offset + Bc) * nIn]);
 
             // Compute the loss and its derivative per-sample within the sub-batch.
-            // Calling computeLoss per-sample gives each dL element the correct
-            // diff/nOut normalization (same as the Bc=1 case), so no extra
-            // divScalar on dL is needed.
-            for (0..Bc) |j| {
-                lossTotal += loss.computeLoss(
-                    pred[j * nOut .. (j + 1) * nOut],
-                    outputs[(offset + j) * nOut .. (offset + j + 1) * nOut],
-                    dL[j * nOut .. (j + 1) * nOut],
-                    params.lossFunc,
-                ) / nDataF;
-            }
+            lossTotal += loss.computeLoss(
+                pred,
+                outputs[batch * Bc * nOut .. (batch + 1) * Bc * nOut],
+                dL,
+                params.lossFunc,
+            );
 
             // Compute the gradient for the sub-batch
             self.backward(dL);
