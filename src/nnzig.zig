@@ -462,7 +462,8 @@ pub const NN = struct {
         try testing.expect(@abs(variance - 1.0) < 0.05);
     }
 
-    /// Trains the neural network using mini-batch gradient descent with the Adam optimizer. Splits data into training and validation sets, and records loss per epoch.
+    /// Trains the neural network using mini-batch gradient descent with the Adam optimizer. 
+    /// Splits data into training and validation sets, and records loss per epoch.
     pub fn train(self: *NN, inputs: []const T, outputs: []const T) !void {
         const nIn: usize = params.nNeurons[0];
         const nOut: usize = params.nNeurons[params.nNeurons.len - 1];

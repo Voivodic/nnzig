@@ -8,43 +8,25 @@ const T = params.T;
 
 // --- Matrix * vector + vector ---
 
-extern "c" fn eigen_matrixVectorMulAdd(a: [*]const T, b: [*]const T, c: [*]const T, d: [*]T, a_rows: usize, a_cols: usize) void;
 
-/// Computes `result = matrix * vector_mult + vector_add` using Eigen
-pub fn matrixVectorMulAdd(matrix: []const T, vector_mult: []const T, vector_add: []const T, vector_result: []T) void {
-    eigen_matrixVectorMulAdd(matrix.ptr, vector_mult.ptr, vector_add.ptr, vector_result.ptr, vector_add.len, vector_mult.len);
+extern "c" fn eigen_matrixVectorMulAdd(matrix: [*]const T, vecs_mul: [*]const T, vec_sum: [*]const T, vecs_result: [*]T, a_rows: usize, a_cols: usize, batch_size: usize) void;
+
+/// Computes `result = matrix * vector_mult + vector_add` using Eigen for a full batch
+pub fn matrixVectorMulAdd(matrix: []const T, vectorsMult: []const T, vectorAdd: []const T, vectorResult: []T) void {
+    const dimOut: usize = vectorAdd.len;
+    const dimIn: usize = matrix.len / dimOut;
+    const batchSize: usize = vectorsMult.len / dimIn;
+
+    eigen_matrixVectorMulAdd(matrix.ptr, vectorsMult.ptr, vectorAdd.ptr, vectorResult.ptr, dimOut, dimIn, batchSize);
 }
 
 test "[eigen] matrixVectorMulAdd" {
     const matrix = [_]T{ 1.0, 2.0, 3.0, 4.0 };
-    const v_mult = [_]T{ 1.0, 2.0 };
-    const v_add = [_]T{ 5.0, 6.0 };
-    var result = [_]T{ 0.0, 0.0 };
-
-    matrixVectorMulAdd(matrix[0..], v_mult[0..], v_add[0..], result[0..]);
-
-    try testing.expectApproxEqAbs(12.0, result[0], 0.001);
-    try testing.expectApproxEqAbs(16.0, result[1], 0.001);
-}
-
-extern "c" fn eigen_matrixVectorMulAddBatch(a: [*]const T, b: [*]const T, c: [*]const T, d: [*]T, a_rows: usize, a_cols: usize, batch_size: usize) void;
-
-/// Computes `result = matrix * vector_mult + vector_add` using Eigen for a full batch
-pub fn matrixVectorMulAddBatch(matrix: []const T, vector_mult: []const T, vector_add: []const T, vector_result: []T) void {
-    const dimOut: usize = vector_add.len;
-    const dimIn: usize = matrix.len / dimOut;
-    const batchSize: usize = vector_mult.len / dimIn;
-
-    eigen_matrixVectorMulAddBatch(matrix.ptr, vector_mult.ptr, vector_add.ptr, vector_result.ptr, dimOut, dimIn, batchSize);
-}
-
-test "[eigen] matrixVectorMulAddBatch" {
-    const matrix = [_]T{ 1.0, 2.0, 3.0, 4.0 };
-    const v_mult = [_]T{ 1.0, 2.0, 1.0, 2.0 };
-    const v_add = [_]T{ 5.0, 6.0 };
+    const vMult = [_]T{ 1.0, 2.0, 1.0, 2.0 };
+    const vAdd = [_]T{ 5.0, 6.0 };
     var result = [_]T{ 0.0, 0.0, 0.0, 0.0 };
 
-    matrixVectorMulAddBatch(matrix[0..], v_mult[0..], v_add[0..], result[0..]);
+    matrixVectorMulAdd(matrix[0..], vMult[0..], vAdd[0..], result[0..]);
 
     try testing.expectApproxEqAbs(12.0, result[0], 0.001);
     try testing.expectApproxEqAbs(16.0, result[1], 0.001);
@@ -54,61 +36,26 @@ test "[eigen] matrixVectorMulAddBatch" {
 
 // --- Vector * matrix ---
 
-extern "c" fn eigen_vectorMatrixMul(A: [*]T, B: [*]const T, b_rows: usize, b_cols: usize) void;
+extern "c" fn eigen_vectorMatrixMul(vecs: [*]T, mat: [*]const T, b_rows: usize, b_cols: usize, batch_size: usize) void;
 
-/// Computes `vector_mult *= matrix` (in-place vector-matrix multiplication) using Eigen
-pub fn vectorMatrixMul(vector_mult: []T, matrix: []const T) void {
-    eigen_vectorMatrixMul(vector_mult.ptr, matrix.ptr, vector_mult.len, matrix.len / vector_mult.len);
+/// Computes `result = vectors^T * matrix` for a batch of row vectors using Eigen
+pub fn vectorMatrixMul(vectors: []T, matrix: []const T, batchSize: usize) void {
+    const dimIn: usize = vectors.len / batchSize;
+    const dimOut: usize = matrix.len / dimIn;
+
+    eigen_vectorMatrixMul(vectors.ptr, matrix.ptr, dimIn, dimOut, batchSize);
 }
 
 test "[eigen] vectorMatrixMul" {
-    var v = [_]T{ 1.0, 2.0 };
+    var vectors = [_]T{ 1.0, 2.0, 3.0, 4.0 };
     const matrix = [_]T{ 1.0, 2.0, 3.0, 4.0 };
 
-    vectorMatrixMul(v[0..], matrix[0..]);
+    vectorMatrixMul(vectors[0..], matrix[0..], 2);
 
-    try testing.expectApproxEqAbs(5.0, v[0], 0.001);
-    try testing.expectApproxEqAbs(11.0, v[1], 0.001);
-}
-
-test "[eigen] vectorMatrixMul rectangular (grow 2 -> 4)" {
-    // Mirrors backprop delta propagation: V is sized to the largest layer (4)
-    // but passed as a slice of the current layer size (2); the kernel must
-    // write b_cols=4 elements back into the SAME buffer without corrupting the
-    // input it is still reading. column-major (2x4): matB = [[1,3,5,7],[2,4,6,8]]
-    var v = [_]T{ 1.0, 2.0, 99.0, 99.0 };
-    const matrix = [_]T{ 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0 };
-
-    vectorMatrixMul(v[0..2], matrix[0..]);
-
-    // result[j] = sum_i v[i]*matB(i,j) = [1+4, 3+8, 5+12, 7+16] = [5, 11, 17, 23]
-    try testing.expectApproxEqAbs(@as(T, 5.0), v[0], 1e-3);
-    try testing.expectApproxEqAbs(@as(T, 11.0), v[1], 1e-3);
-    try testing.expectApproxEqAbs(@as(T, 17.0), v[2], 1e-3);
-    try testing.expectApproxEqAbs(@as(T, 23.0), v[3], 1e-3);
-}
-
-extern "c" fn eigen_vectorMatrixMulBatch(A: [*]const T, result: [*]T, B: [*]const T, b_rows: usize, b_cols: usize, batch_size: usize) void;
-
-/// Computes `result = vectors^T * matrix` for a batch of row vectors using Eigen
-pub fn vectorMatrixMulBatch(vectors_in: []const T, vectors_out: []T, matrix: []const T, in_dim: usize) void {
-    const batch_size: usize = vectors_in.len / in_dim;
-    const out_dim: usize = matrix.len / in_dim;
-
-    eigen_vectorMatrixMulBatch(vectors_in.ptr, vectors_out.ptr, matrix.ptr, in_dim, out_dim, batch_size);
-}
-
-test "[eigen] vectorMatrixMulBatch" {
-    const vectors_in = [_]T{ 1.0, 2.0, 3.0, 4.0 };
-    const matrix = [_]T{ 1.0, 2.0, 3.0, 4.0 };
-    var vectors_out = [_]T{ 0.0, 0.0, 0.0, 0.0 };
-
-    vectorMatrixMulBatch(vectors_in[0..], vectors_out[0..], matrix[0..], 2);
-
-    try testing.expectApproxEqAbs(5.0, vectors_out[0], 0.001);
-    try testing.expectApproxEqAbs(11.0, vectors_out[1], 0.001);
-    try testing.expectApproxEqAbs(11.0, vectors_out[2], 0.001);
-    try testing.expectApproxEqAbs(25.0, vectors_out[3], 0.001);
+    try testing.expectApproxEqAbs(5.0, vectors[0], 0.001);
+    try testing.expectApproxEqAbs(11.0, vectors[1], 0.001);
+    try testing.expectApproxEqAbs(11.0, vectors[2], 0.001);
+    try testing.expectApproxEqAbs(25.0, vectors[3], 0.001);
 }
 
 // --- Vector * vector (elementwise) ---
@@ -169,42 +116,22 @@ test "[eigen] vectorInit" {
 
 // --- Gradient accumulation (weights) ---
 
-extern "c" fn eigen_updateGradWeights(V: [*]const T, Y: [*]const T, grad: [*]T, v_size: usize, y_size: usize) void;
+extern "c" fn eigen_updateGradWeights(V: [*]const T, Y: [*]const T, grad: [*]T, v_size: usize, y_size: usize, batch_size: usize) void;
 
-/// Accumulates the outer product of `v` and `y` into the weight gradient
-pub fn updateGradWeights(v: []const T, y: []const T, grad: []T) void {
-    eigen_updateGradWeights(v.ptr, y.ptr, grad.ptr, v.len, y.len);
+/// Accumulates the outer products from a batch into the weight gradient (`grad += V * Y^T`)
+pub fn updateGradWeights(v: []const T, y: []const T, grad: []T, batchSize: usize) void {
+    const dimV: usize = v.len / batchSize;
+    const dimY: usize = y.len / batchSize;
+
+    eigen_updateGradWeights(v.ptr, y.ptr, grad.ptr, dimV, dimY, batchSize);
 }
 
 test "[eigen] updateGradWeights" {
-    const v = [_]T{ 1.0, 2.0 };
-    const y = [_]T{ 0.5, 0.5 };
-    var grad = [_]T{ 0.0, 0.0, 0.0, 0.0 };
-
-    updateGradWeights(v[0..], y[0..], grad[0..]);
-
-    try testing.expectApproxEqAbs(0.5, grad[0], 0.001);
-    try testing.expectApproxEqAbs(1.0, grad[1], 0.001);
-    try testing.expectApproxEqAbs(0.5, grad[2], 0.001);
-    try testing.expectApproxEqAbs(1.0, grad[3], 0.001);
-}
-
-extern "c" fn eigen_updateGradWeightsBatch(V: [*]const T, Y: [*]const T, grad: [*]T, v_size: usize, y_size: usize, batch_size: usize) void;
-
-/// Accumulates the outer products from a batch into the weight gradient (`grad += V * Y^T`)
-pub fn updateGradWeightsBatch(v: []const T, y: []const T, grad: []T, v_size: usize) void {
-    const y_size: usize = grad.len / v_size;
-    const batch_size: usize = v.len / v_size;
-
-    eigen_updateGradWeightsBatch(v.ptr, y.ptr, grad.ptr, v_size, y_size, batch_size);
-}
-
-test "[eigen] updateGradWeightsBatch" {
     const v = [_]T{ 1.0, 2.0, 3.0, 4.0 };
     const y = [_]T{ 0.5, 0.5, 1.0, 1.0 };
     var grad = [_]T{ 0.0, 0.0, 0.0, 0.0 };
 
-    updateGradWeightsBatch(v[0..], y[0..], grad[0..], 2);
+    updateGradWeights(v[0..], y[0..], grad[0..], 2);
 
     try testing.expectApproxEqAbs(3.5, grad[0], 0.001);
     try testing.expectApproxEqAbs(5.0, grad[1], 0.001);
@@ -214,38 +141,21 @@ test "[eigen] updateGradWeightsBatch" {
 
 // --- Gradient accumulation (biases) ---
 
-extern "c" fn eigen_updateGradBiases(V: [*]const T, grad: [*]T, v_size: usize) void;
-
-/// Adds `v` element-wise into the bias gradient
-pub fn updateGradBiases(v: []const T, grad: []T) void {
-    eigen_updateGradBiases(v.ptr, grad.ptr, v.len);
-}
-
-test "[eigen] updateGradBiases" {
-    const v = [_]T{ 1.0, 2.0 };
-    var grad = [_]T{ 1.0, 2.0 };
-
-    updateGradBiases(v[0..], grad[0..]);
-
-    try testing.expectApproxEqAbs(2.0, grad[0], 0.001);
-    try testing.expectApproxEqAbs(4.0, grad[1], 0.001);
-}
-
-extern "c" fn eigen_updateGradBiasesBatch(V: [*]const T, grad: [*]T, v_size: usize, batch_size: usize) void;
+extern "c" fn eigen_updateGradBiases(V: [*]const T, grad: [*]T, v_size: usize, batch_size: usize) void;
 
 /// Accumulates bias gradients from a batch (`grad += rowwise_sum(V)`)
-pub fn updateGradBiasesBatch(v: []const T, grad: []T) void {
+pub fn updateGradBiases(v: []const T, grad: []T) void {
     const v_size: usize = grad.len;
     const batch_size: usize = v.len / v_size;
 
-    eigen_updateGradBiasesBatch(v.ptr, grad.ptr, v_size, batch_size);
+    eigen_updateGradBiases(v.ptr, grad.ptr, v_size, batch_size);
 }
 
-test "[eigen] updateGradBiasesBatch" {
+test "[eigen] updateGradBiases" {
     const v = [_]T{ 1.0, 2.0, 3.0, 4.0 };
     var grad = [_]T{ 1.0, 1.0 };
 
-    updateGradBiasesBatch(v[0..], grad[0..]);
+    updateGradBiases(v[0..], grad[0..]);
 
     try testing.expectApproxEqAbs(5.0, grad[0], 0.001);
     try testing.expectApproxEqAbs(7.0, grad[1], 0.001);
