@@ -12,6 +12,24 @@ const Tree = struct {
     nnzig: *std.Build.Module,
 };
 
+// Get the openmp paths
+fn getOpenMPPaths(b: *std.Build) struct { []const u8, []const u8 } {
+    const env = b.graph.environ_map;
+    var paths = struct { []const u8, []const u8 }{ "", "" };
+
+    // Check for explicit Nix include path
+    if (env.get("OPENMP_INCLUDE_PATH")) |inc_path| {
+        paths[0] = inc_path;
+    }
+
+    // Check for explicit Nix library path
+    if (env.get("OPENMP_LIB_PATH")) |lib_path| {
+        paths[1] = lib_path;
+    }
+
+    return paths;
+}
+
 // Creates a tree with all modules
 fn createTree(
     b: *std.Build,
@@ -19,9 +37,20 @@ fn createTree(
     optimize: std.builtin.OptimizeMode,
     errors: *std.Build.Module,
     eigen: *std.Build.Dependency,
+    nThreads: i64,
     params_path: []const u8,
     precision_flag: []const u8,
-) Tree {
+) !Tree {
+    // Check for the number of threads
+    var numThreads: usize = 1;
+    if (nThreads < 1) {
+        numThreads = 1;
+    } else if (nThreads > try std.Thread.getCpuCount()) {
+        numThreads = try std.Thread.getCpuCount();
+    } else {
+        numThreads = @intCast(nThreads);
+    }
+
     // Params file module (the ZON file)
     const params_file = b.createModule(.{
         .root_source_file = b.path(params_path),
@@ -46,12 +75,27 @@ fn createTree(
         .link_libcpp = true,
     });
     eigen_wrapper.addImport("params", params);
-    eigen_wrapper.addCSourceFiles(.{
-        .root = b.path("src/eigen"),
-        .files = &.{ "linalg.cpp", "activations.cpp", "losses.cpp", "normalizations.cpp", "random.cpp" },
-        .flags = &.{ "-O3", "-fPIC", precision_flag },
-    });
-    eigen_wrapper.addIncludePath(eigen.path("./"));
+    if (numThreads > 1) {
+        var buf: [32]u8 = undefined;
+        const threads_flag = try std.fmt.bufPrint(&buf, "-DNUM_THREADS={}", .{numThreads});
+        eigen_wrapper.addCSourceFiles(.{
+            .root = b.path("src/eigen"),
+            .files = &.{ "linalg.cpp", "activations.cpp", "losses.cpp", "normalizations.cpp", "random.cpp" },
+            .flags = &.{ "-O3", "-fPIC", "-fopenmp", precision_flag, threads_flag },
+        });
+        eigen_wrapper.addIncludePath(eigen.path("./"));
+        eigen_wrapper.linkSystemLibrary("gomp", .{});
+        const openmp_paths = getOpenMPPaths(b);
+        eigen_wrapper.addIncludePath(.{ .cwd_relative = openmp_paths[0] });
+        eigen_wrapper.addLibraryPath(.{ .cwd_relative = openmp_paths[1] });
+    } else {
+        eigen_wrapper.addCSourceFiles(.{
+            .root = b.path("src/eigen"),
+            .files = &.{ "linalg.cpp", "activations.cpp", "losses.cpp", "normalizations.cpp", "random.cpp" },
+            .flags = &.{ "-O3", "-fPIC", precision_flag },
+        });
+        eigen_wrapper.addIncludePath(eigen.path("./"));
+    }
 
     // Activation module
     const activation = b.createModule(.{
@@ -134,7 +178,7 @@ fn createTree(
     };
 }
 
-pub fn build(b: *std.Build) void {
+pub fn build(b: *std.Build) !void {
     // Use the standard target and optimization options
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
@@ -158,9 +202,9 @@ pub fn build(b: *std.Build) void {
     const precision_flag_bench = std.fmt.comptimePrint("-DFLOAT_PRECISION={d}", .{@import("benchmarks/params.zon").precision});
 
     // Create a separate module tree for each context
-    const tree_main = createTree(b, target, optimize, errors, eigen, "params.zon", precision_flag_main);
-    const tree_test = createTree(b, target, optimize, errors, eigen, "tests/params.zon", precision_flag_test);
-    const tree_bench = createTree(b, target, optimize, errors, eigen, "benchmarks/params.zon", precision_flag_bench);
+    const tree_main = try createTree(b, target, optimize, errors, eigen, @import("params.zon").numThreads, "params.zon", precision_flag_main);
+    const tree_test = try createTree(b, target, optimize, errors, eigen, @import("tests/params.zon").numThreads, "tests/params.zon", precision_flag_test);
+    const tree_bench = try createTree(b, target, optimize, errors, eigen, @import("benchmarks/params.zon").numThreads, "benchmarks/params.zon", precision_flag_bench);
 
     // --- Test step (uses tests/params.zon) ---
 

@@ -6,6 +6,13 @@ const params = @import("params");
 
 const T = params.T;
 
+extern "c" fn eigen_initThreads() void;
+
+/// Initializes the number of threads used by Eigen
+pub fn initThreads() void {
+    eigen_initThreads();
+}
+
 // --- Matrix * vector + vector ---
 
 

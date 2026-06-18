@@ -14,11 +14,20 @@
     #error "FLOAT_PRECISION must be 16, 32, or 64"
 #endif
 
+#ifndef NUM_THREADS
+#define NUM_THREADS 1
+#endif
+
 using MatrixXt = Eigen::Matrix<f_type, Eigen::Dynamic, Eigen::Dynamic>;
 using VectorXt = Eigen::Matrix<f_type, Eigen::Dynamic, 1>;
 using ArrayXt  = Eigen::Array<f_type, Eigen::Dynamic, 1>;
 
 extern "C"{
+
+    // Initialize the threads
+    void eigen_initThreads(){
+        Eigen::setNbThreads(NUM_THREADS);
+    }
 
     // Multiply a matrix and a batch of vectors then add a vector
     void eigen_matrixVectorMulAdd(const f_type* matrix, const f_type* vecs_mul, const f_type* vec_sum, f_type* vecs_result, size_t a_rows, size_t a_cols, size_t batch_size){

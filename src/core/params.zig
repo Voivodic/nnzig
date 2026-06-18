@@ -42,7 +42,6 @@ pub const norm = enum(u8) {
 // --- Define the base parameters ---
 
 const baseParams = struct {
-    numThreads: usize = 1,
     lossFunc: []const u8 = "MSE",
     normalization: []const u8 = "meanStd",
     seed: u64 = 12345,
@@ -212,14 +211,6 @@ pub const lossFunc: loss = convertStringToEnum(loss, paramsFile.lossFunc);
 
 /// Set the normalization type used
 pub const normalization: norm = convertStringToEnum(norm, paramsFile.normalization);
-
-/// Set the number of threads to use on the cpu
-pub const numThreads: usize = blk: {
-    if (config.numThreads < 1) {
-        @compileError("numThreads is the number of threads to use on the cpu. It must be greater than 0!");
-    }
-    break :blk config.numThreads;
-};
 
 /// Set the seed used for the pseudo random number generators
 pub const seed: u64 = config.seed;

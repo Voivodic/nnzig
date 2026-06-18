@@ -28,6 +28,9 @@ pub const NN = struct {
 
     /// Initializes the neural network, allocating memory for the MLP layer, normalization data, and loss arrays
     pub fn init(allocator: std.mem.Allocator, ioContext: std.Io) !NN {
+        // Initialize the threads for Eigen
+        eigen.initThreads();
+
         // Initialize the random generator
         var xoshiro256 = std.Random.Xoshiro256.init(params.seed);
 
