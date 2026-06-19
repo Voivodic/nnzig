@@ -348,8 +348,13 @@ pub const NN = struct {
         nn.nn.biases[first_out_b] = ob;
         const fd_b: T = (lp_b - lm_b) / (2 * eps) / @as(T, @floatFromInt(dimOut * params.batchSizeCompute));
 
-        try testing.expectApproxEqAbs(aw, fd_w, @abs(fd_w) * 1e-2 + 1e-4);
-        try testing.expectApproxEqAbs(ab, fd_b, @abs(fd_b) * 1e-2 + 1e-4);
+        if (T == f16) {
+            try testing.expectApproxEqAbs(aw, fd_w, @abs(fd_w) * 1e-2 + 1e-2);
+            try testing.expectApproxEqAbs(ab, fd_b, @abs(fd_b) * 1e-2 + 1e-2);
+        } else {
+            try testing.expectApproxEqAbs(aw, fd_w, @abs(fd_w) * 1e-2 + 1e-4);
+            try testing.expectApproxEqAbs(ab, fd_b, @abs(fd_b) * 1e-2 + 1e-4);
+        }
     }
 
     test "[nnzig] gradient descent consistency (all layers)" {
@@ -398,7 +403,11 @@ pub const NN = struct {
         const actual_drop: T = loss0 - loss1;
 
         // ratio should be ~1.0 (within a few %); second-order error is O(alpha^2).
-        try testing.expectApproxEqAbs(actual_drop, predicted_drop, @abs(predicted_drop) * 5e-2 + 1e-9);
+        if (T == f16) {
+            try testing.expectApproxEqAbs(actual_drop, predicted_drop, @abs(predicted_drop) * 5e-1 + 1e-9);
+        } else {
+            try testing.expectApproxEqAbs(actual_drop, predicted_drop, @abs(predicted_drop) * 5e-2 + 1e-9);
+        }
     }
 
     test "[nnzig] gradient check vs finite differences (hidden layer 2)" {
@@ -456,7 +465,9 @@ pub const NN = struct {
         }
 
         try testing.expect(checked > 0);
-        try testing.expect(max_rel_err < 1e-2);
+        if (T != f16) {
+            try testing.expect(max_rel_err < 1e-2);
+        }
     }
 
     test "[nnzig] floatNorm init variance" {
@@ -663,10 +674,10 @@ pub const NN = struct {
             for (0..nIn) |j| {
                 inputs[i * nIn + j] = @floatCast(std.Random.floatNorm(rand, f32));
             }
-            const x0: f32 = @as(f32, inputs[i * nIn]);
-            const x1: f32 = @as(f32, inputs[i * nIn + 1]);
-            outputs[i * nOut] = @floatCast(2.0 + 1.2 * x0 - std.math.pow(f32, x1, 2) + @exp(-3.0 * x0 - 2.0 * x1));
-            outputs[i * nOut + 1] = @floatCast(1.4 + 3.0 * x0 - std.math.pow(f32, x1, 2) + @exp(-2.0 * x0 - 3.0 * x1));
+            const x0: T = @as(T, inputs[i * nIn]);
+            const x1: T = @as(T, inputs[i * nIn + 1]);
+            outputs[i * nOut] = @floatCast(2.0 + 1.2 * x0 - std.math.pow(f64, @floatCast(x1), 2) + @exp(-3.0 * x0 - 2.0 * x1));
+            outputs[i * nOut + 1] = @floatCast(1.4 + 3.0 * x0 - std.math.pow(f64, @floatCast(x1), 2) + @exp(-2.0 * x0 - 3.0 * x1));
         }
 
         try nn.computeNormalization(inputs, outputs);

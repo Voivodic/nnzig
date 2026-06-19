@@ -8,6 +8,10 @@ const testing = std.testing;
 
 const T: type = params.T;
 
+fn pow(x: T, n: T) T {
+    return @floatCast(std.math.pow(f64, @floatCast(x), @floatCast(n)));
+}
+
 test "NN init and deinit" {
     var gpa = std.heap.DebugAllocator(.{}){};
     const allocator = gpa.allocator();
@@ -52,10 +56,10 @@ test "NN compute normalization and normalize" {
         for (0..Nin) |j| {
             input[i * Nin + j] = @floatCast(std.Random.floatNorm(rand, f32));
         }
-        const x0: f32 = @as(f32, input[i * Nin]);
-        const x1: f32 = @as(f32, input[i * Nin + 1]);
-        output[i * Nout] = @floatCast(2.0 + 1.2 * x0 - std.math.pow(f32, x1, 2) + @exp(-3.0 * x0 - 2.0 * x1));
-        output[i * Nout + 1] = @floatCast(1.4 + 3.0 * x0 - std.math.pow(f32, x1, 2) + @exp(-2.0 * x0 - 3.0 * x1));
+        const x0: T = @as(T, input[i * Nin]);
+        const x1: T = @as(T, input[i * Nin + 1]);
+        output[i * Nout] = @floatCast(2.0 + 1.2 * x0 - pow(x1, 2) + @exp(-3.0 * x0 - 2.0 * x1));
+        output[i * Nout + 1] = @floatCast(1.4 + 3.0 * x0 - pow(x1, 2) + @exp(-2.0 * x0 - 3.0 * x1));
     }
 
     try nn.computeNormalization(input, output);
@@ -112,10 +116,10 @@ test "NN normalization factors positive std" {
         for (0..Nin) |j| {
             input[i * Nin + j] = @floatCast(std.Random.floatNorm(rand, f32));
         }
-        const x0: f32 = @as(f32, input[i * Nin]);
-        const x1: f32 = @as(f32, input[i * Nin + 1]);
-        output[i * Nout] = @floatCast(2.0 + 1.2 * x0 - std.math.pow(f32, x1, 2) + @exp(-3.0 * x0 - 2.0 * x1));
-        output[i * Nout + 1] = @floatCast(1.4 + 3.0 * x0 - std.math.pow(f32, x1, 2) + @exp(-2.0 * x0 - 3.0 * x1));
+        const x0: T = @as(T, input[i * Nin]);
+        const x1: T = @as(T, input[i * Nin + 1]);
+        output[i * Nout] = @floatCast(2.0 + 1.2 * x0 - pow(x1, 2) + @exp(-3.0 * x0 - 2.0 * x1));
+        output[i * Nout + 1] = @floatCast(1.4 + 3.0 * x0 - pow(x1, 2) + @exp(-2.0 * x0 - 3.0 * x1));
     }
 
     try nn.computeNormalization(input, output);
@@ -159,10 +163,10 @@ test "NN training" {
         for (0..Nin) |j| {
             input[i * Nin + j] = @floatCast(std.Random.floatNorm(rand, f32));
         }
-        const x0: f32 = @as(f32, input[i * Nin]);
-        const x1: f32 = @as(f32, input[i * Nin + 1]);
-        output[i * Nout] = @floatCast(2.0 + 1.2 * x0 - std.math.pow(f32, x1, 2) + @exp(-3.0 * x0 - 2.0 * x1));
-        output[i * Nout + 1] = @floatCast(1.4 + 3.0 * x0 - std.math.pow(f32, x1, 2) + @exp(-2.0 * x0 - 3.0 * x1));
+        const x0: T = @as(T, input[i * Nin]);
+        const x1: T = @as(T, input[i * Nin + 1]);
+        output[i * Nout] = @floatCast(2.0 + 1.2 * x0 - pow(x1, 2) + @exp(-3.0 * x0 - 2.0 * x1));
+        output[i * Nout + 1] = @floatCast(1.4 + 3.0 * x0 - pow(x1, 2) + @exp(-2.0 * x0 - 3.0 * x1));
     }
 
     try nn.computeNormalization(input, output);
