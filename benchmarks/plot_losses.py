@@ -2,6 +2,7 @@ import numpy as np
 import os
 import struct
 import matplotlib
+
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
@@ -31,12 +32,12 @@ def read_losses_binary(filename):
         precision_bytes, n_epochs, _, _ = struct.unpack(header_format, header_bytes)
         if precision_bytes not in _DTYPE_FROM_BYTES:
             raise ValueError(
-                "Unknown precision ({} bytes) in {}".format(precision_bytes, filename)
+                f"Unknown precision ({precision_bytes} bytes) in {filename}"
             )
         dtype = _DTYPE_FROM_BYTES[precision_bytes]
         data = np.frombuffer(f.read(), dtype=dtype)
         train_losses = data[:n_epochs]
-        val_losses = data[n_epochs:2 * n_epochs]
+        val_losses = data[n_epochs : 2 * n_epochs]
         return train_losses, val_losses
 
 
@@ -48,18 +49,25 @@ if __name__ == "__main__":
 
     pt_train, pt_val = read_losses_binary(outputs["losses_pytorch"])
     eq_train, eq_val = read_losses_binary(outputs["losses_equinox"])
+    tf_train, tf_val = read_losses_binary(outputs["losses_tensorflow"])
     zig_train, zig_val = read_losses_binary(outputs["losses_zig"])
 
-    if not (len(pt_train) == len(eq_train) == len(zig_train)
-            == len(pt_val) == len(eq_val) == len(zig_val)):
+    if not (
+        len(pt_train)
+        == len(eq_train)
+        == len(tf_train)
+        == len(zig_train)
+        == len(pt_val)
+        == len(eq_val)
+        == len(tf_val)
+        == len(zig_val)
+    ):
         raise ValueError(
-            "Loss arrays have mismatched lengths: pytorch train/val = {}/{}, "
-            "equinox train/val = {}/{}, zig train/val = {}/{}. All runs must "
-            "use the same nEpochs.".format(
-                len(pt_train), len(pt_val),
-                len(eq_train), len(eq_val),
-                len(zig_train), len(zig_val),
-            )
+            f"Loss arrays have mismatched lengths: pytorch train/val = "
+            f"{len(pt_train)}/{len(pt_val)}, equinox train/val = "
+            f"{len(eq_train)}/{len(eq_val)}, tensorflow train/val = "
+            f"{len(tf_train)}/{len(tf_val)}, zig train/val = "
+            f"{len(zig_train)}/{len(zig_val)}. All runs must use the same nEpochs."
         )
 
     epochs = np.arange(1, len(pt_train) + 1)
@@ -68,6 +76,7 @@ if __name__ == "__main__":
 
     axes[0].plot(epochs, pt_train, label="PyTorch", alpha=0.8)
     axes[0].plot(epochs, eq_train, label="Equinox", alpha=0.8)
+    axes[0].plot(epochs, tf_train, label="TensorFlow", alpha=0.8)
     axes[0].plot(epochs, zig_train, label="nnzig", alpha=0.8)
     axes[0].set_xlabel("Epoch")
     axes[0].set_ylabel("Loss")
@@ -78,6 +87,7 @@ if __name__ == "__main__":
 
     axes[1].plot(epochs, pt_val, label="PyTorch", alpha=0.8)
     axes[1].plot(epochs, eq_val, label="Equinox", alpha=0.8)
+    axes[1].plot(epochs, tf_val, label="TensorFlow", alpha=0.8)
     axes[1].plot(epochs, zig_val, label="nnzig", alpha=0.8)
     axes[1].set_xlabel("Epoch")
     axes[1].set_ylabel("Loss")

@@ -14,6 +14,14 @@
         pythonPlotEnv = pkgs.python314.withPackages (ps: [ ps.numpy ps.matplotlib ]);
         pythonTorchEnv = pkgs.python314.withPackages (ps: [ ps.numpy ps.torch ]);
         pythonEquinoxEnv = pkgs.python314.withPackages (ps: [ ps.numpy ps.equinox ps.optax ]);
+        # TensorFlow's prebuilt binary (tensorflow-bin) is not yet available
+        # for Python 3.14 in nixpkgs ("unsupported configuration: ..._314"),
+        # so the TF benchmark runs on Python 3.13, where the package is fully
+        # cached. TF >= 2.16 ships Keras 3 as a SEPARATE package that tf.keras
+        # imports lazily, so `keras` must be installed alongside `tensorflow`.
+        # The architecture/training/binary-output format are Python-version
+        # agnostic, so results stay directly comparable.
+        pythonTfEnv = pkgs.python313.withPackages (ps: [ ps.numpy ps.tensorflow ps.keras ]);
 
         # ${self} is the store copy of this flake's directory (benchmarks/),
         # which holds the scripts together with their sibling modules
@@ -50,6 +58,7 @@
             generate-data = mkApp "generate-data" pythonEnv "generate_data.py";
             run-pytorch = mkApp "run-pytorch" pythonTorchEnv "runs/run_pytorch.py";
             run-equinox = mkApp "run-equinox" pythonEquinoxEnv "runs/run_equinox.py";
+            run-tensorflow = mkApp "run-tensorflow" pythonTfEnv "runs/run_tensorflow.py";
             plot-losses = mkApp "plot-losses" pythonPlotEnv "plot_losses.py";
             plot-resources = mkApp "plot-resources" pythonPlotEnv "plot_resources.py";
             default = self.apps.${system}.generate-data;

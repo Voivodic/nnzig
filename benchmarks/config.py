@@ -49,7 +49,7 @@ _VALID_ACTIVATIONS = ("none", "relu", "tanh", "sigmoid")
 
 
 def load_config(path=CONFIG_PATH, validate=True):
-    with open(path, "r") as f:
+    with open(path) as f:
         config = json.load(f)
     if validate:
         validate_config(config)
@@ -92,25 +92,25 @@ def validate_config(config):
     n_hidden = len(n_neurons) - 1
     _check(
         len(activations) == n_hidden,
-        "network.activations must have exactly len(nNeurons) - 1 = {} "
-        "entries, got {}.".format(n_hidden, len(activations)),
+        f"network.activations must have exactly len(nNeurons) - 1 = {n_hidden} "
+        f"entries, got {len(activations)}.",
     )
     bad = [a for a in activations if a not in _VALID_ACTIVATIONS]
     _check(
-        not bad, "Invalid activation(s): {}. Valid: {}.".format(bad, _VALID_ACTIVATIONS)
+        not bad, f"Invalid activation(s): {bad}. Valid: {_VALID_ACTIVATIONS}."
     )
 
     _check(
         network["precision"] in _VALID_PRECISIONS,
-        "network.precision must be one of {}.".format(_VALID_PRECISIONS),
+        f"network.precision must be one of {_VALID_PRECISIONS}.",
     )
     _check(
         network["lossFunc"] in _VALID_LOSSES,
-        "network.lossFunc must be one of {}.".format(_VALID_LOSSES),
+        f"network.lossFunc must be one of {_VALID_LOSSES}.",
     )
     _check(
         network["normalization"] in _VALID_NORMALIZATIONS,
-        "network.normalization must be one of {}.".format(_VALID_NORMALIZATIONS),
+        f"network.normalization must be one of {_VALID_NORMALIZATIONS}.",
     )
     _check(
         isinstance(network["numThreads"], int) and network["numThreads"] >= 1,
@@ -171,8 +171,8 @@ def validate_config(config):
     n_train = int(dataset["num_points"] * r_train)
     _check(
         n_train >= 1,
-        "dataset.num_points * training.rTrain must yield at least 1 training "
-        "sample (currently {}).".format(n_train),
+        f"dataset.num_points * training.rTrain must yield at least 1 training "
+        f"sample (currently {n_train}).",
     )
 
     # --- Outputs ---
@@ -180,13 +180,16 @@ def validate_config(config):
         "losses_zig",
         "losses_pytorch",
         "losses_equinox",
+        "losses_tensorflow",
         "losses_plot",
         "resources_nnzig",
+        "resources_nnzig_b1",
         "resources_pytorch",
         "resources_equinox",
+        "resources_tensorflow",
         "resources_plot",
     ):
-        _check(outputs.get(key), "outputs.{} must be a non-empty string.".format(key))
+        _check(outputs.get(key), f"outputs.{key} must be a non-empty string.")
 
 
 def _format_zon_value(value):
