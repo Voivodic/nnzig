@@ -11,7 +11,7 @@ const eigen = @import("eigen");
 const err = @import("errors").normalizationError;
 const T = params.T;
 
-/// Main structure to handle the normalization and denormalization
+/// Holds the Z-score scale (`a*`) and shift (`b*`) factors for both inputs and outputs, used to normalize and denormalize the data via x' = (x - b)/a.
 pub const Norm = struct {
     allocator: std.mem.Allocator,
     aIn: []T = &.{},
@@ -19,7 +19,7 @@ pub const Norm = struct {
     aOut: []T = &.{},
     bOut: []T = &.{},
 
-    /// Initializes the structure computing the mean and std of the inputs and outputs
+    /// Initializes the structure by allocating and zeroing the scale and shift slices for the inputs and outputs.
     pub fn init(allocator: std.mem.Allocator) !Norm {
         // Create the structure to be outputed
         var norm = Norm{
@@ -73,7 +73,7 @@ pub const Norm = struct {
         return norm;
     }
 
-    /// Frees all memory allocated in the structure
+    /// Frees all memory allocated in the structure.
     pub fn deinit(self: *const Norm) void {
         self.allocator.free(self.aIn);
         self.allocator.free(self.bIn);
@@ -111,7 +111,7 @@ pub const Norm = struct {
         for (norm.bOut) |val| try std.testing.expectEqual(@as(T, 0.0), val);
     }
 
-    /// Computes the normalization factors
+    /// Computes the per-feature mean (stored in `bIn`/`bOut`) and population standard deviation (stored in `aIn`/`aOut`) from the given data. Returns `incompatibleSizes` if the input and output counts differ, or `notInitialized` if `init` was not called.
     pub fn computeNormalization(self: *const Norm, inputs: []const T, outputs: []const T) !void {
         const nIn = params.nNeurons[0];
         const nOut = params.nNeurons[params.nNeurons.len - 1];
@@ -167,7 +167,7 @@ pub const Norm = struct {
         try std.testing.expectApproxEqAbs(@as(T, 5.656854), norm.aOut[1], 1e-3);
     }
 
-    /// Normalizes the inputs and outputs given
+    /// Normalizes the given inputs and outputs in place by applying x' = (x - b)/a with the previously computed factors. Requires `computeNormalization` to have run first.
     pub fn normalize(self: *const Norm, inputs: []T, outputs: []T) !void {
         const nIn = params.nNeurons[0];
         const nOut = params.nNeurons[params.nNeurons.len - 1];
@@ -253,7 +253,7 @@ pub const Norm = struct {
         }
     }
 
-    /// Denormalize the inputs and outputs
+    /// Denormalizes the given inputs and outputs in place by reversing the transform, x = x'*a + b. Requires `computeNormalization` to have run first.
     pub fn denormalize(self: *const Norm, inputs: []T, outputs: []T) !void {
         const nIn = params.nNeurons[0];
         const nOut = params.nNeurons[params.nNeurons.len - 1];

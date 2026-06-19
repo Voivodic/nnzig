@@ -8,17 +8,16 @@ const T = params.T;
 
 extern "c" fn eigen_initThreads() void;
 
-/// Initializes the number of threads used by Eigen
+/// Initializes the number of threads used by Eigen.
 pub fn initThreads() void {
     eigen_initThreads();
 }
 
 // --- Matrix * vector + vector ---
 
-
 extern "c" fn eigen_matrixVectorMulAdd(matrix: [*]const T, vecs_mul: [*]const T, vec_sum: [*]const T, vecs_result: [*]T, a_rows: usize, a_cols: usize, batch_size: usize) void;
 
-/// Computes `result = matrix * vector_mult + vector_add` using Eigen for a full batch
+/// Computes `result = matrix * vector_mult + vector_add` using Eigen for a full batch.
 pub fn matrixVectorMulAdd(matrix: []const T, vectorsMult: []const T, vectorAdd: []const T, vectorResult: []T) void {
     const dimOut: usize = vectorAdd.len;
     const dimIn: usize = matrix.len / dimOut;
@@ -45,7 +44,7 @@ test "[eigen] matrixVectorMulAdd" {
 
 extern "c" fn eigen_vectorMatrixMul(vecs: [*]T, mat: [*]const T, b_rows: usize, b_cols: usize, batch_size: usize) void;
 
-/// Computes `result = vectors^T * matrix` for a batch of row vectors using Eigen
+/// Computes `result = vectors^T * matrix` for a batch of row vectors using Eigen.
 pub fn vectorMatrixMul(vectors: []T, matrix: []const T, batchSize: usize) void {
     const dimIn: usize = vectors.len / batchSize;
     const dimOut: usize = matrix.len / dimIn;
@@ -69,7 +68,7 @@ test "[eigen] vectorMatrixMul" {
 
 extern "c" fn eigen_vectorMul(A: [*]const T, B: [*]T, size: usize) void;
 
-/// Computes `vector_b *= vector_a` element-wise using Eigen
+/// Computes `vector_b *= vector_a` element-wise using Eigen.
 pub fn vectorMul(vector_a: []const T, vector_b: []T) void {
     eigen_vectorMul(vector_a.ptr, vector_b.ptr, vector_b.len);
 }
@@ -88,7 +87,7 @@ test "[eigen] vectorMul" {
 
 extern "c" fn eigen_setZero(A: [*]T, size: usize) void;
 
-/// Sets all elements of the vector to zero using Eigen
+/// Sets all elements of the vector to zero using Eigen.
 pub fn setZero(vector: []T) void {
     eigen_setZero(vector.ptr, vector.len);
 }
@@ -105,7 +104,7 @@ test "[eigen] setZero" {
 
 extern "c" fn eigen_vectorInit(A: [*]const T, B: [*]T, size: usize) void;
 
-/// Copies all elements from `vector_a` into `vector_b` using Eigen
+/// Copies all elements from `vector_a` into `vector_b` using Eigen.
 pub fn vectorInit(vector_a: []const T, vector_b: []T) void {
     eigen_vectorInit(vector_a.ptr, vector_b.ptr, vector_b.len);
 }
@@ -125,7 +124,7 @@ test "[eigen] vectorInit" {
 
 extern "c" fn eigen_updateGradWeights(V: [*]const T, Y: [*]const T, grad: [*]T, v_size: usize, y_size: usize, batch_size: usize) void;
 
-/// Accumulates the outer products from a batch into the weight gradient (`grad += V * Y^T`)
+/// Accumulates the outer products from a batch into the weight gradient (`grad += V * Y^T`).
 pub fn updateGradWeights(v: []const T, y: []const T, grad: []T, batchSize: usize) void {
     const dimV: usize = v.len / batchSize;
     const dimY: usize = y.len / batchSize;
@@ -150,7 +149,7 @@ test "[eigen] updateGradWeights" {
 
 extern "c" fn eigen_updateGradBiases(V: [*]const T, grad: [*]T, v_size: usize, batch_size: usize) void;
 
-/// Accumulates bias gradients from a batch (`grad += rowwise_sum(V)`)
+/// Accumulates bias gradients from a batch (`grad += rowwise_sum(V)`).
 pub fn updateGradBiases(v: []const T, grad: []T) void {
     const v_size: usize = grad.len;
     const batch_size: usize = v.len / v_size;
@@ -175,7 +174,7 @@ extern "c" fn eigen_relu(input: [*]T, df: [*]T, n: usize) void;
 extern "c" fn eigen_tanh(input: [*]T, df: [*]T, n: usize) void;
 extern "c" fn eigen_sigmoid(input: [*]T, df: [*]T, n: usize) void;
 
-/// Applies the "none" activation: leaves `input` untouched and sets every derivative in `df` to 1
+/// Applies the "none" activation: leaves `input` untouched and sets every derivative in `df` to 1.
 pub fn activateNone(input: []T, df: []T) void {
     eigen_none(input.ptr, df.ptr, input.len);
 }
@@ -191,7 +190,7 @@ test "[eigen] activateNone" {
     for (df) |val| try testing.expectApproxEqAbs(1.0, val, 0.001);
 }
 
-/// Applies ReLU element-wise to `input` (in place) and writes its derivative into `df`
+/// Applies ReLU element-wise to `input` (in place) and writes its derivative into `df`.
 pub fn activateRelu(input: []T, df: []T) void {
     eigen_relu(input.ptr, df.ptr, input.len);
 }
@@ -215,7 +214,7 @@ test "[eigen] activateRelu" {
     try testing.expectApproxEqAbs(1.0, df[4], 0.001);
 }
 
-/// Applies tanh element-wise to `input` (in place) and writes its derivative into `df`
+/// Applies tanh element-wise to `input` (in place) and writes its derivative into `df`.
 pub fn activateTanh(input: []T, df: []T) void {
     eigen_tanh(input.ptr, df.ptr, input.len);
 }
@@ -239,7 +238,7 @@ test "[eigen] activateTanh" {
     try testing.expectApproxEqAbs(0.0706508, df[4], 1e-3);
 }
 
-/// Applies sigmoid element-wise to `input` (in place) and writes its derivative into `df`
+/// Applies sigmoid element-wise to `input` (in place) and writes its derivative into `df`.
 pub fn activateSigmoid(input: []T, df: []T) void {
     eigen_sigmoid(input.ptr, df.ptr, input.len);
 }
@@ -329,7 +328,8 @@ test "[eigen] computeMeanStd" {
     try testing.expectApproxEqAbs(1.632993, aOut[0], 1e-3);
 }
 
-/// Normalizes `inputs`/`outputs` in place over a full batch: x' = (x - b) / a
+/// Normalizes `inputs`/`outputs` in place over a full batch: x' = (x - b) / a,
+/// using the per-feature scale and offset factors from `computeMeanStd`.
 pub fn normalize(inputs: []T, outputs: []T, aIn: []const T, bIn: []const T, aOut: []const T, bOut: []const T) void {
     const nIn: usize = aIn.len;
     const nOut: usize = aOut.len;
@@ -358,7 +358,8 @@ test "[eigen] normalize" {
     try testing.expectApproxEqAbs(1.0, outputs[1], 1e-3);
 }
 
-/// Denormalizes `inputs`/`outputs` in place over a full batch: x = x' * a + b
+/// Denormalizes `inputs`/`outputs` in place over a full batch: x = x' * a + b,
+/// using the per-feature scale and offset factors from `computeMeanStd`.
 pub fn denormalize(inputs: []T, outputs: []T, aIn: []const T, bIn: []const T, aOut: []const T, bOut: []const T) void {
     const nIn: usize = aIn.len;
     const nOut: usize = aOut.len;

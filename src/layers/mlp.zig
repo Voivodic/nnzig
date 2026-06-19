@@ -24,7 +24,9 @@ fn computeSigma(a: params.activation, dimIn: usize, dimOut: usize) T {
     };
 }
 
-/// Define the structure for the MLP.
+/// Define the structure for the MLP, which owns the network weights and biases,
+/// their gradients, the Adam optimizer moments, and the hidden activation and
+/// backprop scratch buffers.
 pub const MLP = struct {
     allocator: std.mem.Allocator,
     y: []T = &.{},

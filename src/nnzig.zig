@@ -6,17 +6,20 @@
 
 // Import the modules used
 const std = @import("std");
-const loss = @import("loss");
-const eigen = @import("eigen");
-const mlp = @import("mlp");
-const params = @import("params");
-const io = @import("io");
-const norms = @import("norms");
-const err = @import("errors").nnError;
+pub const loss = @import("loss");
+pub const eigen = @import("eigen");
+pub const mlp = @import("mlp");
+pub const params = @import("params");
+pub const io = @import("io");
+pub const norms = @import("norms");
+pub const errors = @import("errors");
+const err = errors.nnError;
 const testing = std.testing;
 const T = params.T;
 
-/// Create the main structure for the NN
+/// Primary, user-facing handle for the network. Orchestrates the `MLP` layer,
+/// Z-score normalization, per-epoch training and validation loss tracking, and the
+/// training-time pseudo-random number generator.
 pub const NN = struct {
     allocator: std.mem.Allocator,
     ioContext: std.Io,
@@ -26,7 +29,9 @@ pub const NN = struct {
     lossesTraining: []T = &.{},
     lossesValidation: []T = &.{},
 
-    /// Initializes the neural network, allocating memory for the MLP layer, normalization data, and loss arrays
+    /// Initializes the neural network, allocating memory for the MLP layer, normalization
+    /// data, and loss arrays. Also seeds the PRNG from `params.seed` and initializes Eigen's
+    /// thread pool. Returns `err.lossesAllocation` if the loss arrays cannot be allocated.
     pub fn init(allocator: std.mem.Allocator, ioContext: std.Io) !NN {
         // Initialize the threads for Eigen
         eigen.initThreads();
@@ -65,7 +70,7 @@ pub const NN = struct {
         return nn;
     }
 
-    /// Frees all memory allocated by `init`, including the MLP layer, normalization data, and loss arrays
+    /// Frees all memory allocated by `init`, including the MLP layer, normalization data, and loss arrays.
     pub fn deinit(self: *const NN) void {
         // Deinit the MLP layer (frees weights, biases, gradients, Adam moments, activations)
         self.nn.deinit();
@@ -80,7 +85,7 @@ pub const NN = struct {
         }
     }
 
-    /// Computes Z-score normalization factors (mean and standard deviation) for the given inputs and outputs
+    /// Computes Z-score normalization factors (mean and standard deviation) for the given inputs and outputs.
     pub fn computeNormalization(self: *const NN, inputs: []const T, outputs: []const T) !void {
         try self.norm.computeNormalization(inputs, outputs);
     }
@@ -126,7 +131,8 @@ pub const NN = struct {
         for (nn.norm.aOut) |val| try testing.expect(val > 0);
     }
 
-    /// Normalizes the given inputs and outputs in-place using the previously computed normalization factors
+    /// Normalizes the given inputs and outputs in-place using the previously computed normalization factors.
+    /// `computeNormalization` must be called first to populate those factors.
     pub fn normalize(self: *const NN, inputs: []T, outputs: []T) !void {
         try self.norm.normalize(inputs, outputs);
     }
@@ -174,7 +180,7 @@ pub const NN = struct {
         try testing.expect(@abs(meanIn) < 0.5);
     }
 
-    /// Reverses the normalization, restoring data to its original scale
+    /// Reverses the normalization, restoring data to its original scale.
     pub fn denormalize(self: *const NN, inputs: []T, outputs: []T) !void {
         try self.norm.denormalize(inputs, outputs);
     }
@@ -228,7 +234,7 @@ pub const NN = struct {
         }
     }
 
-    /// Resets all training and validation loss arrays to zero
+    /// Resets all training and validation loss arrays to zero.
     pub fn zeroLosses(self: *const NN) void {
         eigen.setZero(self.lossesTraining);
         eigen.setZero(self.lossesValidation);
@@ -255,7 +261,9 @@ pub const NN = struct {
         for (nn.lossesValidation) |val| try testing.expectEqual(@as(T, 0.0), val);
     }
 
-    /// Runs a forward pass through the network for the given input and returns the output slice
+    /// Runs a forward pass through the network for the given input and returns the output slice.
+    /// The input length must be a whole multiple of `params.nNeurons[0]`, otherwise returns
+    /// `err.incompatibleSizes`.
     pub fn forward(self: *const NN, input: []const T) ![]T {
         const nIn: usize = params.nNeurons[0];
 
@@ -465,7 +473,7 @@ pub const NN = struct {
         try testing.expect(@abs(variance - 1.0) < 0.05);
     }
 
-    /// Trains the neural network using mini-batch gradient descent with the Adam optimizer. 
+    /// Trains the neural network using mini-batch gradient descent with the Adam optimizer.
     /// Splits data into training and validation sets, and records loss per epoch.
     pub fn train(self: *NN, inputs: []const T, outputs: []const T) !void {
         const nIn: usize = params.nNeurons[0];
@@ -665,12 +673,12 @@ pub const NN = struct {
         try testing.expect(nn.lossesValidation[0] > nn.lossesValidation[params.nEpochs - 1]);
     }
 
-    /// Save the weights of the neural network to a file
+    /// Saves the weights of the neural network to a file. Delegates the actual serialization to the `io` module.
     pub fn saveWeights(self: *const NN, fileName: []const u8) !void {
         try io.saveWeights(fileName, self);
     }
 
-    /// Load the weights of the neural network from a file
+    /// Loads the weights of the neural network from a file. Delegates the actual parsing to the `io` module.
     pub fn loadWeights(self: *const NN, fileName: []const u8) !void {
         try io.loadWeights(fileName, self);
     }
@@ -714,12 +722,13 @@ pub const NN = struct {
         try cwd.deleteFile(ioContext, path);
     }
 
-    /// Save data points to a binary file
+    /// Saves data points to a binary file. Delegates the actual serialization to the `io` module.
     pub fn saveData(self: *const NN, fileName: []const u8, dataIn: []const T, dataOut: []const T) !void {
         try io.saveData(self.ioContext, fileName, dataIn, dataOut, params.nNeurons[0], params.nNeurons[params.nNeurons.len - 1]);
     }
 
-    /// Load data points from a binary file
+    /// Loads data points from a binary file, returning both the input and output arrays. The
+    /// caller is responsible for freeing the returned slices.
     pub fn loadData(self: *const NN, fileName: []const u8) !struct { []T, []T } {
         const result = try io.loadData(self.allocator, self.ioContext, fileName);
 
@@ -773,7 +782,7 @@ pub const NN = struct {
         try cwd.deleteFile(ioContext, path);
     }
 
-    /// Save the losses to a file
+    /// Saves the losses to a file. The training and validation loss arrays are written as paired columns.
     pub fn saveLosses(self: *const NN, fileName: []const u8) !void {
         // Save the losses to a file
         try io.saveData(self.ioContext, fileName, self.lossesTraining, self.lossesValidation, 1, 1);

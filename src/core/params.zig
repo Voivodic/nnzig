@@ -4,7 +4,8 @@
 const std = @import("std");
 const paramsFile = @import("paramsFile");
 
-/// Set the precision of the floats used
+/// Sets the float precision used throughout the library. `T` is the float alias
+/// (f16, f32, or f64) selected by the `precision` field.
 pub const T: type = if (@hasField(@TypeOf(paramsFile), "precision"))
     convertIntToType(paramsFile.precision)
 else
@@ -21,7 +22,7 @@ const nLayers = blk: {
 
 // --- Enums definitions ---
 
-/// Enum of the possible activation functions
+/// Enum of the possible activation functions: `none` (identity), `relu`, `tanh`, and `sigmoid`.
 pub const activation = enum(u8) {
     none,
     relu,
@@ -29,12 +30,12 @@ pub const activation = enum(u8) {
     sigmoid,
 };
 
-/// Enum of the possible loss functions
+/// Enum of the possible loss functions. Currently only `MSE` (mean squared error) is supported.
 pub const loss = enum(u8) {
     MSE,
 };
 
-/// Enum of the possible ways to normalize the data
+/// Enum of the possible ways to normalize the data. Currently only `meanStd` (Z-score) is supported.
 pub const norm = enum(u8) {
     meanStd,
 };
@@ -59,7 +60,7 @@ const baseParams = struct {
 
 // --- Conversion functions ---
 
-/// Converts a compile-time int to its matching type
+/// Converts a compile-time int to its matching type.
 fn convertIntToType(comptime pre: usize) type {
     switch (pre) {
         16 => return f16,
@@ -69,7 +70,7 @@ fn convertIntToType(comptime pre: usize) type {
     }
 }
 
-/// Converts a compile-time string to its matching Enum attribute
+/// Converts a compile-time string to its matching enum attribute.
 fn convertStringToEnum(comptime enum_type: type, comptime str: []const u8) enum_type {
     const maybe_enum = comptime std.meta.stringToEnum(enum_type, str);
 
@@ -91,7 +92,7 @@ test "[params] stringToEnum" {
     try std.testing.expectEqual(resultNorm, @field(norm, fieldNameNorm));
 }
 
-/// Converts a compile-time ZON tuple into a standard fixed-size array
+/// Converts a compile-time ZON tuple into a standard fixed-size array.
 fn convertTupleToArray(comptime ElemType: type, comptime tuple: anytype) [tuple.len]ElemType {
     var arr: [tuple.len]ElemType = undefined;
 
@@ -110,7 +111,7 @@ test "[params] tupleToArray" {
     try std.testing.expectEqual(@TypeOf(result), [tuple.len]usize);
 }
 
-/// Converts a compile-time ZON tuple into a standard array of Enum attributes
+/// Converts a compile-time ZON tuple into a standard array of enum attributes.
 fn convertTupleToEnumArray(comptime EnumType: type, comptime tuple: anytype) [tuple.len]EnumType {
     var arr: [tuple.len]EnumType = undefined;
 
@@ -136,8 +137,8 @@ test "[params] tupleToEnumArray" {
 
 // --- Exposed parameters ---
 
-/// Set the number of neurons in each layer, including the input and output layers
-/// [Ninputs, Nhidden1, ..., NhiddenN, Noutputs]
+/// Sets the number of neurons in each layer, including the input and output layers.
+/// The shape follows `[Ninputs, Nhidden1, ..., NhiddenN, Noutputs]`.
 pub const nNeurons = blk: {
     if (nLayers > 2) {
         break :blk convertTupleToArray(usize, paramsFile.nNeurons);
@@ -148,8 +149,8 @@ pub const nNeurons = blk: {
     }
 };
 
-/// Set the activation function used in each layer
-/// It should have the size of the nNeurons array - 1
+/// Sets the activation function used in each layer.
+/// It should have the size of the `nNeurons` array minus one.
 pub const activations = blk: {
     if (nLayers < 2) {
         @compileError("There are not enough layers to set activations!");
@@ -193,7 +194,7 @@ pub const activations = blk: {
     }
 };
 
-/// Set the final configuration from the ZON file and base parameters
+/// Sets the final configuration from the ZON file and base parameters.
 pub const config = blk: {
     var cfg = baseParams{};
 
@@ -206,30 +207,30 @@ pub const config = blk: {
     break :blk cfg;
 };
 
-/// Set the loss function used
+/// Sets the loss function used.
 pub const lossFunc: loss = convertStringToEnum(loss, paramsFile.lossFunc);
 
-/// Set the normalization type used
+/// Sets the normalization type used.
 pub const normalization: norm = convertStringToEnum(norm, paramsFile.normalization);
 
-/// Set the seed used for the pseudo random number generators
+/// Sets the seed used for the pseudo-random number generators.
 pub const seed: u64 = config.seed;
 
-/// Set how all data will be splitted into
+/// Sets the fraction of data used for training.
 pub const rTrain: T = blk: {
     if (config.rTrain < 0.0 or config.rTrain > 1.0) {
         @compileError("rTrain is the fraction of data to use for training. It must be between 0.0 and 1.0!");
     }
     break :blk config.rTrain;
 };
-/// Set the fraction of data to use for validation
+/// Sets the fraction of data to use for validation.
 pub const rVal: T = blk: {
     if (config.rVal < 0.0 or config.rVal > 1.0) {
         @compileError("rVal is the fraction of data to use for validation. It must be between 0.0 and 1.0!");
     }
     break :blk config.rVal;
 };
-/// Set the fraction of data to use for testing
+/// Sets the fraction of data to use for testing.
 pub const rTest: T = blk: {
     if (1.0 - rTrain - rVal < 0.0) {
         @compileError("rTrain + rVal is the fraction of data to use for testing. It must be between 0.0 and 1.0!");
@@ -237,7 +238,7 @@ pub const rTest: T = blk: {
     break :blk 1.0 - rTrain - rVal;
 };
 
-/// Set the parameters used by the adam optimizator
+/// Sets the parameters used by the Adam optimizer.
 pub const eps: T = blk: {
     if (config.eps <= 0.0) {
         break :blk 1e-4;
@@ -263,7 +264,7 @@ pub const lr: T = blk: {
     break :blk config.lr;
 };
 
-/// Set the number of epochs used by the adam optim
+/// Sets the number of training epochs.
 pub const nEpochs: usize = blk: {
     if (config.nEpochs < 1) {
         @compileError("nEpochs is the number of epochs to use for training. It must be greater than 0!");
@@ -271,7 +272,7 @@ pub const nEpochs: usize = blk: {
     break :blk config.nEpochs;
 };
 
-/// Set the batch size
+/// Sets the batch size. A value of 0 uses the whole dataset as a single batch.
 pub const batchSize: usize = blk: {
     if (config.batchSize < 0) {
         @compileError("batchSize is the number of samples to use for each batch. It must be positive! Use 0 to use all samples in a batch.");
@@ -279,7 +280,7 @@ pub const batchSize: usize = blk: {
     break :blk config.batchSize;
 };
 
-/// Set the batch size used for computation (number of samples processed in parallel by Eigen).
+/// Sets the batch size used for computation (number of samples processed in parallel by Eigen).
 /// Must be between 1 and batchSize. If outside this range, it is set to batchSize.
 pub const batchSizeCompute: usize = blk: {
     if (config.batchSizeCompute < 1 or config.batchSizeCompute > config.batchSize) {
@@ -290,7 +291,7 @@ pub const batchSizeCompute: usize = blk: {
     break :blk config.batchSizeCompute;
 };
 
-/// Set the frequency of printing results
+/// Sets the frequency of printing results. A value of 0 disables printing.
 pub const printEvery: usize = blk: {
     if (config.printEvery < 0) {
         @compileError("printEvery is the number of epochs to wait before printing results. It must be positive! Use 0 to not print results.");

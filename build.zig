@@ -249,7 +249,14 @@ pub fn build(b: *std.Build) !void {
     // --- Documentation step (uses params.zon) ---
 
     const docs_step = b.step("docs", "Generate documentation");
-    const docs_test = b.addTest(.{ .name = "nnzig_docs", .root_module = tree_main.nnzig });
+
+    // 4. Run a compile step on this bundle to extract documentation
+    const docs_test = b.addTest(.{ 
+        .name = "nnzig", 
+        .root_module = tree_main.nnzig, 
+    });
+
+    // 5. Emit the docs to zig-out/docs
     docs_step.dependOn(&b.addInstallDirectory(.{
         .source_dir = docs_test.getEmittedDocs(),
         .install_dir = .prefix,

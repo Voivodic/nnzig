@@ -11,14 +11,15 @@ const err = errors.ioError;
 const testing = std.testing;
 const T = params.T;
 
-/// Header structure for neural network binary files, storing precision and layer topology
+/// Header structure for neural network binary files, storing precision and layer topology.
+/// It is written before the raw weight and bias bytes so that files are self-describing.
 const NNHeader = struct {
     precision: u64 = @sizeOf(T),
     nLayers: u64 = @as(u64, params.nNeurons.len),
     nNeurons: [params.nNeurons.len]u64 = @as([params.nNeurons.len]u64, params.nNeurons),
 };
 
-/// Header structure for generic data binary files, storing precision, count, and dimension
+/// Header structure for generic data binary files, storing precision, count, and dimension.
 const DataHeader = struct {
     precision: u64 = @sizeOf(T),
     nData: u64 = 0,
@@ -26,7 +27,8 @@ const DataHeader = struct {
     dimOut: u64 = 0,
 };
 
-/// Save the weights of the neural network to a binary file
+/// Saves the weights of the neural network to a binary file. Writes the `NNHeader`
+/// followed by the raw weight and bias bytes.
 pub fn saveWeights(fileName: []const u8, nn: *const nnzig.NN) !void {
     // Open the file in fileName
     const cwd = std.Io.Dir.cwd();
@@ -44,7 +46,9 @@ pub fn saveWeights(fileName: []const u8, nn: *const nnzig.NN) !void {
     try file.writeStreamingAll(nn.ioContext, std.mem.sliceAsBytes(nn.nn.biases));
 }
 
-/// Load the weights of the neural network from a binary file
+/// Loads the weights of the neural network from a binary file. Validates the `NNHeader`
+/// against the current config and returns `ioError` on mismatch before reading the weight
+/// and bias bytes.
 pub fn loadWeights(fileName: []const u8, nn: *const nnzig.NN) !void {
     // Open the file in fileName
     const cwd = std.Io.Dir.cwd();
@@ -120,7 +124,8 @@ test "[io] save/load-Weights" {
     cwd.deleteFile(io, path) catch {};
 }
 
-/// Save the data points to a binary file
+/// Saves the data points to a binary file. Writes the `DataHeader` followed by the
+/// input and output arrays.
 pub fn saveData(io: std.Io, fileName: []const u8, dataIn: []const T, dataOut: []const T, dimIn: u64, dimOut: u64) !void {
     // Open the file in fileName
     const cwd = std.Io.Dir.cwd();
@@ -161,7 +166,8 @@ pub fn saveData(io: std.Io, fileName: []const u8, dataIn: []const T, dataOut: []
     try file.writeStreamingAll(io, std.mem.sliceAsBytes(dataOut));
 }
 
-/// Load the data points from a binary file
+/// Loads the data points from a binary file. Allocates and returns the input and output
+/// arrays; the caller is responsible for freeing both.
 pub fn loadData(allocator: std.mem.Allocator, io: std.Io, fileName: []const u8) !struct { []T, []T } {
     // Open the file in fileName
     const cwd = std.Io.Dir.cwd();
