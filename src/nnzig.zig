@@ -310,18 +310,23 @@ pub const NN = struct {
         var nn = try NN.init(allocator, ioContext);
         defer nn.deinit();
 
+        const dimIn: usize = params.nNeurons[0];
+        const dimOut: usize = params.nNeurons[params.nNeurons.len - 1];
+
         // Single fixed sample: updateGrads then yields the per-sample gradient
         // (no batch averaging to reason about).
-        var inputs = [_]T{ 0.5, -0.3 };
-        var outputs = [_]T{ 1.0, 0.0 };
-        var dL = [_]T{ 0.0, 0.0 };
+        var inputs: [dimIn * params.batchSizeCompute]T = undefined;
+        var outputs: [dimOut * params.batchSizeCompute]T = undefined;
+        var dL: [dimOut * params.batchSizeCompute]T = undefined;
+
+        for (&inputs) |*val| val.* = 0.5;
+        for (&outputs) |*val| val.* = 1.0;
 
         _ = try nn.nn.updateGrads(&inputs, &outputs);
 
         const eps: T = 1e-3;
-        const nOut: usize = params.nNeurons[params.nNeurons.len - 1];
-        const first_out_w: usize = nn.nn.weights.len - nOut * params.nNeurons[params.nNeurons.len - 2];
-        const first_out_b: usize = nn.nn.biases.len - nOut;
+        const first_out_w: usize = nn.nn.weights.len - dimOut * params.nNeurons[params.nNeurons.len - 2];
+        const first_out_b: usize = nn.nn.biases.len - dimOut;
 
         // Output layer uses the "none" activation, so perturbing its weights/
         // biases does not cross any ReLU kink -> finite differences are clean.
@@ -332,7 +337,7 @@ pub const NN = struct {
         nn.nn.weights[first_out_w] = ow - eps;
         const lm_w = loss.computeLoss(try nn.forward(&inputs), &outputs, &dL, params.lossFunc);
         nn.nn.weights[first_out_w] = ow;
-        const fd_w: T = (lp_w - lm_w) / (2 * eps);
+        const fd_w: T = (lp_w - lm_w) / (2 * eps) / @as(T, @floatFromInt(dimOut * params.batchSizeCompute));
 
         const ob = nn.nn.biases[first_out_b];
         const ab = nn.nn.gradB[first_out_b];
@@ -341,9 +346,7 @@ pub const NN = struct {
         nn.nn.biases[first_out_b] = ob - eps;
         const lm_b = loss.computeLoss(try nn.forward(&inputs), &outputs, &dL, params.lossFunc);
         nn.nn.biases[first_out_b] = ob;
-        const fd_b: T = (lp_b - lm_b) / (2 * eps);
-
-        std.log.info("gradCheck OUT: w analytic={} fd={} | b analytic={} fd={}", .{ aw, fd_w, ab, fd_b });
+        const fd_b: T = (lp_b - lm_b) / (2 * eps) / @as(T, @floatFromInt(dimOut * params.batchSizeCompute));
 
         try testing.expectApproxEqAbs(aw, fd_w, @abs(fd_w) * 1e-2 + 1e-4);
         try testing.expectApproxEqAbs(ab, fd_b, @abs(fd_b) * 1e-2 + 1e-4);
@@ -367,14 +370,15 @@ pub const NN = struct {
 
         const nIn: usize = params.nNeurons[0];
         const nOut: usize = params.nNeurons[params.nNeurons.len - 1];
-        const nBatch: usize = 4;
 
-        var inputs = [_]T{ 0.5, -0.3, 0.8, 0.2, -0.6, 0.9, 0.1, -0.7 };
-        var outputs = [_]T{ 1.0, 0.0, 0.2, 0.7, -0.5, 0.4, 0.9, -0.2 };
-        var dL = [_]T{ 0.0, 0.0 };
-        _ = &dL;
+        var inputs: [nIn * params.batchSizeCompute]T = undefined;
+        var outputs: [nOut * params.batchSizeCompute]T = undefined;
+        var dL: [nOut * params.batchSizeCompute]T = undefined;
 
-        const loss0 = try nn.nn.updateGrads(&inputs, &outputs) / nBatch;
+        for (&inputs) |*val| val.* = 0.5;
+        for (&outputs) |*val| val.* = 1.0;
+
+        const loss0 = try nn.nn.updateGrads(&inputs, &outputs) / @as(T, @floatFromInt(params.batchSizeCompute * nOut));
 
         // squared gradient norm (mean gradient, since updateGrads averages)
         var g2: T = 0.0;
@@ -387,10 +391,8 @@ pub const NN = struct {
 
         // recompute mean batch loss
         var loss1: T = 0.0;
-        for (0..nBatch) |i| {
-            const pred = try nn.forward(inputs[i * nIn .. (i + 1) * nIn]);
-            loss1 += loss.computeLoss(pred, outputs[i * nOut .. (i + 1) * nOut], &dL, params.lossFunc) / @as(T, @floatFromInt(nBatch));
-        }
+        const pred = try nn.forward(&inputs);
+        loss1 += loss.computeLoss(pred, &outputs, &dL, params.lossFunc) / @as(T, @floatFromInt(params.batchSizeCompute * nOut));
 
         const predicted_drop: T = alpha * g2;
         const actual_drop: T = loss0 - loss1;
@@ -414,9 +416,12 @@ pub const NN = struct {
         var nn = try NN.init(allocator, ioContext);
         defer nn.deinit();
 
-        var inputs = [_]T{ 0.5, -0.3 };
-        var outputs = [_]T{ 1.0, 0.0 };
-        var dL = [_]T{ 0.0, 0.0 };
+        var inputs: [params.nNeurons[0] * params.batchSizeCompute]T = undefined;
+        var outputs: [params.nNeurons[params.nNeurons.len - 1] * params.batchSizeCompute]T = undefined;
+        var dL: [params.nNeurons[params.nNeurons.len - 1] * params.batchSizeCompute]T = undefined;
+
+        for (&inputs) |*val| val.* = 0.5;
+        for (&outputs) |*val| val.* = 1.0;
 
         _ = try nn.nn.updateGrads(&inputs, &outputs);
 
@@ -441,7 +446,7 @@ pub const NN = struct {
             nn.nn.weights[wi] = ow - eps / 2;
             const lm2 = loss.computeLoss(try nn.forward(&inputs), &outputs, &dL, params.lossFunc);
             nn.nn.weights[wi] = ow;
-            const fd: T = (lp - lm) / (2 * eps);
+            const fd: T = (lp - lm) / (2 * eps) / @as(T, @floatFromInt(params.batchSizeCompute * params.nNeurons[params.nNeurons.len - 1]));
             const fd2: T = (lp2 - lm2) / eps;
             // if the two FD estimates disagree, we are near a ReLU kink -> skip
             if (@abs(fd - fd2) > @abs(fd) * 1e-2 + 1e-6) continue;

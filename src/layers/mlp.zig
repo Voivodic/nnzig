@@ -404,12 +404,12 @@ pub const MLP = struct {
         const nIn = params.nNeurons[0];
         const nOut = params.nNeurons[params.nNeurons.len - 1];
 
-        var input: [nIn]T = undefined;
+        var input: [nIn * params.batchSizeCompute]T = undefined;
         for (&input) |*val| val.* = 1.0;
 
         _ = try mlp_inst.forward(&input);
 
-        var dL: [nOut]T = undefined;
+        var dL: [nOut * params.batchSizeCompute]T = undefined;
         for (&dL) |*d| d.* = 1.0;
 
         mlp_inst.zeroGrad();
@@ -492,9 +492,12 @@ pub const MLP = struct {
         const nIn: usize = params.nNeurons[0];
         const nOut: usize = params.nNeurons[params.nNeurons.len - 1];
 
-        var inputs: [nIn]T = .{ 0.5, -0.3 };
-        var outputs: [nOut]T = .{ 1.0, 0.0 };
-        var dL: [nOut]T = .{ 0.0, 0.0 };
+        var inputs: [nIn * params.batchSizeCompute]T = undefined;
+        var outputs: [nOut * params.batchSizeCompute]T = undefined;
+        var dL: [nOut * params.batchSizeCompute]T = undefined;
+
+        for (&inputs) |*val| val.* = 1.0;
+        for (&outputs) |*val| val.* = 2.0;
 
         // Compute initial loss
         const loss0 = loss.computeLoss(try mlp_inst.forward(&inputs), &outputs, &dL, params.lossFunc);
@@ -518,6 +521,7 @@ pub const MLP = struct {
         // Get the data size
         const nIn: usize = params.nNeurons[0];
         const nOut: usize = params.nNeurons[params.nNeurons.len - 1];
+        const nOutF: T = @as(T, @floatFromInt(nOut));
         const nDataF: T = @as(T, @floatFromInt(inputs.len / nIn));
         const nData: usize = @as(usize, @intFromFloat(nDataF));
 
@@ -560,8 +564,8 @@ pub const MLP = struct {
         }
 
         // Normalize the gradients (done by the Eigen backend)
-        eigen.divScalar(self.gradW, nDataF);
-        eigen.divScalar(self.gradB, nDataF);
+        eigen.divScalar(self.gradW, nDataF * nOutF);
+        eigen.divScalar(self.gradB, nDataF * nOutF);
 
         // Return the total loss computed
         return lossTotal;
