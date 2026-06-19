@@ -37,6 +37,7 @@ _PARAMS_FIELDS = [
     ("lr", ("training", "lr")),
     ("nEpochs", ("training", "nEpochs")),
     ("batchSize", ("training", "batchSize")),
+    ("batchSizeCompute", ("training", "batchSizeCompute")),
     ("printEvery", ("training", "printEvery")),
 ]
 
@@ -95,7 +96,9 @@ def validate_config(config):
         "entries, got {}.".format(n_hidden, len(activations)),
     )
     bad = [a for a in activations if a not in _VALID_ACTIVATIONS]
-    _check(not bad, "Invalid activation(s): {}. Valid: {}.".format(bad, _VALID_ACTIVATIONS))
+    _check(
+        not bad, "Invalid activation(s): {}. Valid: {}.".format(bad, _VALID_ACTIVATIONS)
+    )
 
     _check(
         network["precision"] in _VALID_PRECISIONS,
@@ -152,6 +155,10 @@ def validate_config(config):
         "training.batchSize must be a positive integer.",
     )
     _check(
+        isinstance(training["batchSizeCompute"], int) and training["batchSizeCompute"] >= 1 and training["batchSizeCompute"] <= training["batchSize"],
+        "training.batchSizeCompute must be a positive integer smaller than or equal training.batchSize.",
+    )
+    _check(
         isinstance(training["printEvery"], int) and training["printEvery"] >= 0,
         "training.printEvery must be a non-negative integer.",
     )
@@ -169,9 +176,16 @@ def validate_config(config):
     )
 
     # --- Outputs ---
-    for key in ("losses_zig", "losses_pytorch", "losses_equinox", "losses_plot",
-                "resources_nnzig", "resources_pytorch", "resources_equinox",
-                "resources_plot"):
+    for key in (
+        "losses_zig",
+        "losses_pytorch",
+        "losses_equinox",
+        "losses_plot",
+        "resources_nnzig",
+        "resources_pytorch",
+        "resources_equinox",
+        "resources_plot",
+    ):
         _check(outputs.get(key), "outputs.{} must be a non-empty string.".format(key))
 
 
