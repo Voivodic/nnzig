@@ -59,7 +59,7 @@ def _stats_arrays(samples, scale=1.0):
     return np.array(means), np.array(stds)
 
 
-def _draw_main(ax, data, x_arr, x_values, field, ylabel, title, scale=1.0):
+def _draw_main(ax, data, x_arr, field, ylabel, title, scale=1.0):
     """Log-log main panel: mean line + std band for every library. Both axes
     are log-scaled; the x-axis is the total parameter count (x_arr /
     x_values), not N."""
@@ -73,13 +73,12 @@ def _draw_main(ax, data, x_arr, x_values, field, ylabel, title, scale=1.0):
     ax.set_yscale("log")
     ax.set_ylabel(ylabel)
     ax.set_title(title)
-    ax.set_xticks(x_values)
     ax.legend()
     ax.grid(True, alpha=0.3, which="both")
     return means_by_lib
 
 
-def _draw_ratio(ax, means_by_lib, x_arr, x_values):
+def _draw_ratio(ax, means_by_lib, x_arr):
     """Ratio panel: (lib - ref) / ref * 100 for every lib in _RATIO_LIBS
     (PyTorch, Equinox, TensorFlow, nnzig bC=1), vs nnzig. The y-axis is
     symmetric-log so large positive (slower/bigger) and small negative
@@ -87,13 +86,12 @@ def _draw_ratio(ax, means_by_lib, x_arr, x_values):
     and shows the total parameter count."""
     ref = means_by_lib[_REF]
     for lib in _RATIO_LIBS:
-        pct = (means_by_lib[lib] - ref) / ref * 100.0
+        pct = (means_by_lib[lib] - ref) / ref
         ax.plot(x_arr, pct, label=_LABELS[lib], alpha=0.8, marker="o", markersize=3)
     ax.axhline(0, color="black", linewidth=0.5, alpha=0.5)
     ax.set_xlabel("Total parameters")
     ax.set_xscale("log")
-    ax.set_xticks(x_values)
-    ax.set_ylabel(f"vs {_LABELS[_REF]} (%)")
+    ax.set_ylabel(f"vs {_LABELS[_REF]} (Ratio-1)")
     ax.set_yscale("symlog")
     ax.grid(True, alpha=0.3, which="both")
 
@@ -130,7 +128,7 @@ if __name__ == "__main__":
         2,
         figsize=(14, 6.5),
         sharex="col",
-        gridspec_kw={"height_ratios": [3, 1], "hspace": 0.0, "wspace": 0.15},
+        gridspec_kw={"height_ratios": [2, 1], "hspace": 0.0, "wspace": 0.15},
     )
     (ax_time, ax_mem), (ax_time_r, ax_mem_r) = axes
 
@@ -138,7 +136,6 @@ if __name__ == "__main__":
         ax_time,
         data,
         x_arr,
-        param_values,
         "time_seconds",
         "Time (seconds)",
         "Training Time",
@@ -147,15 +144,14 @@ if __name__ == "__main__":
         ax_mem,
         data,
         x_arr,
-        param_values,
         "max_rss_kbytes",
         "Memory (MB)",
         "Peak Memory",
         scale=1.0 / 1024.0,
     )
 
-    _draw_ratio(ax_time_r, time_means, x_arr, param_values)
-    _draw_ratio(ax_mem_r, mem_means, x_arr, param_values)
+    _draw_ratio(ax_time_r, time_means, x_arr)
+    _draw_ratio(ax_mem_r, mem_means, x_arr)
 
     output_file = outputs["resources_plot"]
     os.makedirs(os.path.dirname(output_file) or ".", exist_ok=True)
