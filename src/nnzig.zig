@@ -28,6 +28,7 @@ pub const NN = struct {
     rand: std.Random,
     lossesTraining: []T = &.{},
     lossesValidation: []T = &.{},
+    dLoss: []T = &.{},
 
     /// Initializes the neural network, allocating memory for the MLP layer, normalization
     /// data, and loss arrays. Also seeds the PRNG from `params.seed` and initializes Eigen's
@@ -64,6 +65,14 @@ pub const NN = struct {
             return err.lossesAllocation;
         }
 
+        // Create the slice for the derivative of the loss
+        if (allocator.alloc(T, params.nNeurons[params.nNeurons.len - 1] * params.batchSizeCompute)) |slice| {
+            nn.dLoss = slice;
+        } else |_| {
+            std.log.err("Error while allocating the slice for dLoss!", .{});
+            return err.lossesAllocation;
+        }
+
         // Set the losses to zero
         nn.zeroLosses();
 
@@ -79,10 +88,11 @@ pub const NN = struct {
         self.norm.deinit();
 
         // Free the memory used in the losses array
-        if (self.lossesTraining.len > 0) {
-            self.allocator.free(self.lossesTraining);
-            self.allocator.free(self.lossesValidation);
-        }
+        self.allocator.free(self.lossesTraining);
+        self.allocator.free(self.lossesValidation);
+
+        // Free the memory used in the dLoss slice
+        self.allocator.free(self.dLoss);
     }
 
     /// Computes Z-score normalization factors (mean and standard deviation) for the given inputs and outputs.
@@ -317,12 +327,11 @@ pub const NN = struct {
         // (no batch averaging to reason about).
         var inputs: [dimIn * params.batchSizeCompute]T = undefined;
         var outputs: [dimOut * params.batchSizeCompute]T = undefined;
-        var dL: [dimOut * params.batchSizeCompute]T = undefined;
 
         for (&inputs) |*val| val.* = 0.5;
         for (&outputs) |*val| val.* = 1.0;
 
-        _ = try nn.nn.updateGrads(&inputs, &outputs);
+        _ = try nn.nn.updateGrads(&inputs, &outputs, nn.dLoss);
 
         const eps: T = 1e-3;
         const first_out_w: usize = nn.nn.weights.len - dimOut * params.nNeurons[params.nNeurons.len - 2];
@@ -333,18 +342,18 @@ pub const NN = struct {
         const ow = nn.nn.weights[first_out_w];
         const aw = nn.nn.gradW[first_out_w];
         nn.nn.weights[first_out_w] = ow + eps;
-        const lp_w = loss.computeLoss(try nn.forward(&inputs), &outputs, &dL, params.lossFunc);
+        const lp_w = loss.computeLoss(try nn.forward(&inputs), &outputs, nn.dLoss, params.lossFunc);
         nn.nn.weights[first_out_w] = ow - eps;
-        const lm_w = loss.computeLoss(try nn.forward(&inputs), &outputs, &dL, params.lossFunc);
+        const lm_w = loss.computeLoss(try nn.forward(&inputs), &outputs, nn.dLoss, params.lossFunc);
         nn.nn.weights[first_out_w] = ow;
         const fd_w: T = (lp_w - lm_w) / (2 * eps) / @as(T, @floatFromInt(dimOut * params.batchSizeCompute));
 
         const ob = nn.nn.biases[first_out_b];
         const ab = nn.nn.gradB[first_out_b];
         nn.nn.biases[first_out_b] = ob + eps;
-        const lp_b = loss.computeLoss(try nn.forward(&inputs), &outputs, &dL, params.lossFunc);
+        const lp_b = loss.computeLoss(try nn.forward(&inputs), &outputs, nn.dLoss, params.lossFunc);
         nn.nn.biases[first_out_b] = ob - eps;
-        const lm_b = loss.computeLoss(try nn.forward(&inputs), &outputs, &dL, params.lossFunc);
+        const lm_b = loss.computeLoss(try nn.forward(&inputs), &outputs, nn.dLoss, params.lossFunc);
         nn.nn.biases[first_out_b] = ob;
         const fd_b: T = (lp_b - lm_b) / (2 * eps) / @as(T, @floatFromInt(dimOut * params.batchSizeCompute));
 
@@ -378,12 +387,11 @@ pub const NN = struct {
 
         var inputs: [nIn * params.batchSizeCompute]T = undefined;
         var outputs: [nOut * params.batchSizeCompute]T = undefined;
-        var dL: [nOut * params.batchSizeCompute]T = undefined;
 
         for (&inputs) |*val| val.* = 0.5;
         for (&outputs) |*val| val.* = 1.0;
 
-        const loss0 = try nn.nn.updateGrads(&inputs, &outputs) / @as(T, @floatFromInt(params.batchSizeCompute * nOut));
+        const loss0 = try nn.nn.updateGrads(&inputs, &outputs, nn.dLoss) / @as(T, @floatFromInt(params.batchSizeCompute * nOut));
 
         // squared gradient norm (mean gradient, since updateGrads averages)
         var g2: T = 0.0;
@@ -397,7 +405,7 @@ pub const NN = struct {
         // recompute mean batch loss
         var loss1: T = 0.0;
         const pred = try nn.forward(&inputs);
-        loss1 += loss.computeLoss(pred, &outputs, &dL, params.lossFunc) / @as(T, @floatFromInt(params.batchSizeCompute * nOut));
+        loss1 += loss.computeLoss(pred, &outputs, nn.dLoss, params.lossFunc) / @as(T, @floatFromInt(params.batchSizeCompute * nOut));
 
         const predicted_drop: T = alpha * g2;
         const actual_drop: T = loss0 - loss1;
@@ -427,12 +435,11 @@ pub const NN = struct {
 
         var inputs: [params.nNeurons[0] * params.batchSizeCompute]T = undefined;
         var outputs: [params.nNeurons[params.nNeurons.len - 1] * params.batchSizeCompute]T = undefined;
-        var dL: [params.nNeurons[params.nNeurons.len - 1] * params.batchSizeCompute]T = undefined;
 
         for (&inputs) |*val| val.* = 0.5;
         for (&outputs) |*val| val.* = 1.0;
 
-        _ = try nn.nn.updateGrads(&inputs, &outputs);
+        _ = try nn.nn.updateGrads(&inputs, &outputs, nn.dLoss);
 
         // layer 2 weights start at index nNeurons[1]*nNeurons[2]... actually
         // layer1 = [0..8], layer2 = [8..24]. Probe several layer-2 weights and
@@ -447,13 +454,13 @@ pub const NN = struct {
             const ow = nn.nn.weights[wi];
             const aw = nn.nn.gradW[wi];
             nn.nn.weights[wi] = ow + eps;
-            const lp = loss.computeLoss(try nn.forward(&inputs), &outputs, &dL, params.lossFunc);
+            const lp = loss.computeLoss(try nn.forward(&inputs), &outputs, nn.dLoss, params.lossFunc);
             nn.nn.weights[wi] = ow - eps;
-            const lm = loss.computeLoss(try nn.forward(&inputs), &outputs, &dL, params.lossFunc);
+            const lm = loss.computeLoss(try nn.forward(&inputs), &outputs, nn.dLoss, params.lossFunc);
             nn.nn.weights[wi] = ow + eps / 2;
-            const lp2 = loss.computeLoss(try nn.forward(&inputs), &outputs, &dL, params.lossFunc);
+            const lp2 = loss.computeLoss(try nn.forward(&inputs), &outputs, nn.dLoss, params.lossFunc);
             nn.nn.weights[wi] = ow - eps / 2;
-            const lm2 = loss.computeLoss(try nn.forward(&inputs), &outputs, &dL, params.lossFunc);
+            const lm2 = loss.computeLoss(try nn.forward(&inputs), &outputs, nn.dLoss, params.lossFunc);
             nn.nn.weights[wi] = ow;
             const fd: T = (lp - lm) / (2 * eps) / @as(T, @floatFromInt(params.batchSizeCompute * params.nNeurons[params.nNeurons.len - 1]));
             const fd2: T = (lp2 - lm2) / eps;
@@ -515,16 +522,6 @@ pub const NN = struct {
 
         // Zero the losses
         self.zeroLosses();
-
-        // Alloc the dL array used in the computation of the loss of the validation
-        var dL: []T = &.{};
-        if (self.allocator.alloc(T, nOut * params.batchSizeCompute)) |slice| {
-            dL = slice;
-        } else |_| {
-            std.log.err("Error while allocating the slice for dL!", .{});
-            return err.backProp;
-        }
-        defer self.allocator.free(dL);
 
         // Compute the dimension of the data
         const nData: usize = inputs.len / nIn;
@@ -591,7 +588,7 @@ pub const NN = struct {
                 }
 
                 // Compute the gradients
-                if (self.nn.updateGrads(inputsBatch, outputsBatch)) |lossE| {
+                if (self.nn.updateGrads(inputsBatch, outputsBatch, self.dLoss)) |lossE| {
                     lossEpoch += lossE;
                 } else |_| {
                     std.log.err("Problem when trying to backprop in epoch {} and batch {}!\n", .{ epoch, batch });
@@ -612,7 +609,7 @@ pub const NN = struct {
                 }
 
                 // Compute the gradients
-                if (self.nn.updateGrads(inputsBatch[0 .. nRem * nIn], outputsBatch[0 .. nRem * nOut])) |lossE| {
+                if (self.nn.updateGrads(inputsBatch[0 .. nRem * nIn], outputsBatch[0 .. nRem * nOut], self.dLoss)) |lossE| {
                     lossEpoch += lossE;
                 } else |_| {
                     std.log.err("Problem when trying to backprop in epoch {} and batch {}!\n", .{ epoch, nBatches });
@@ -630,11 +627,11 @@ pub const NN = struct {
             self.lossesValidation[epoch] = 0.0;
             for (0..nBatchesVal) |batch| {
                 const pred: []T = try self.nn.forward(inputs[(nTrain + batch * params.batchSizeCompute) * nIn .. (nTrain + (batch + 1) * params.batchSizeCompute) * nIn]);
-                self.lossesValidation[epoch] += loss.computeLoss(pred, outputs[(nTrain + batch * params.batchSizeCompute) * nOut .. (nTrain + (batch + 1) * params.batchSizeCompute) * nOut], dL, params.lossFunc) / nValF / nOut;
+                self.lossesValidation[epoch] += loss.computeLoss(pred, outputs[(nTrain + batch * params.batchSizeCompute) * nOut .. (nTrain + (batch + 1) * params.batchSizeCompute) * nOut], self.dLoss, params.lossFunc) / nValF / nOut;
             }
             if (nRemVal > 0) {
                 const pred: []T = try self.nn.forward(inputs[(nTrain + nBatchesVal * params.batchSizeCompute) * nIn .. (nTrain + nBatchesVal * params.batchSizeCompute + nRemVal) * nIn]);
-                self.lossesValidation[epoch] += loss.computeLoss(pred, outputs[(nTrain + nBatchesVal * params.batchSizeCompute) * nOut .. (nTrain + nBatchesVal * params.batchSizeCompute + nRemVal) * nOut], dL[0 .. nRemVal * nOut], params.lossFunc) / nValF / nOut;
+                self.lossesValidation[epoch] += loss.computeLoss(pred, outputs[(nTrain + nBatchesVal * params.batchSizeCompute) * nOut .. (nTrain + nBatchesVal * params.batchSizeCompute + nRemVal) * nOut], self.dLoss[0 .. nRemVal * nOut], params.lossFunc) / nValF / nOut;
             }
 
             // Print the current state

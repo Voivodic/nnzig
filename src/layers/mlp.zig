@@ -504,7 +504,7 @@ pub const MLP = struct {
 
         // Compute gradients and update weights a few times
         for (0..50) |_| {
-            _ = try mlp_inst.updateGrads(&inputs, &outputs);
+            _ = try mlp_inst.updateGrads(&inputs, &outputs, &dL);
             mlp_inst.updateWeights();
         }
 
@@ -517,7 +517,7 @@ pub const MLP = struct {
     /// Computes gradients over the given batch of data and returns the average loss.
     /// Data is processed in sub-batches of `batchSizeCompute` samples at a time,
     /// allowing Eigen to parallelize the linear algebra across multiple samples.
-    pub fn updateGrads(self: *MLP, inputs: []const T, outputs: []const T) !T {
+    pub fn updateGrads(self: *MLP, inputs: []const T, outputs: []const T, dLoss: []T) !T {
         // Get the data size
         const nIn: usize = params.nNeurons[0];
         const nOut: usize = params.nNeurons[params.nNeurons.len - 1];
@@ -528,17 +528,8 @@ pub const MLP = struct {
         // Get the compute batch size
         const Bc: usize = params.batchSizeCompute;
 
+        // Zero the gradients
         self.zeroGrad();
-
-        // Slice to keep the derivatives of the loss (sized for the compute batch)
-        var dL: []T = undefined;
-        if (self.allocator.alloc(T, Bc * nOut)) |slice| {
-            dL = slice;
-        } else |_| {
-            std.log.err("Problem to allocate the array for the derivatives of the loss!\n", .{});
-            return err.backProp;
-        }
-        defer self.allocator.free(dL);
 
         // Save the value of the total loss
         var lossTotal: T = 0.0;
@@ -555,12 +546,12 @@ pub const MLP = struct {
             lossTotal += loss.computeLoss(
                 pred,
                 outputs[batch * Bc * nOut .. (batch + 1) * Bc * nOut],
-                dL,
+                dLoss,
                 params.lossFunc,
             );
 
             // Compute the gradient for the sub-batch
-            self.backward(dL);
+            self.backward(dLoss);
         }
 
         // Normalize the gradients (done by the Eigen backend)
