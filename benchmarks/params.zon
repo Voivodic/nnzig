@@ -1,6 +1,6 @@
 .{
     .precision = 32,
-    .numThreads = 24,
+    .numThreads = 4,
     .nNeurons = .{ 128, 256, 256, 128 },
     .activations = .{ "relu", "relu", "none" },
     .lossFunc = "MSE",
