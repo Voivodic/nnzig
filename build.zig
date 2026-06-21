@@ -40,6 +40,7 @@ fn createTree(
     nThreads: i64,
     params_path: []const u8,
     precision_flag: []const u8,
+    mkl: bool,
 ) !Tree {
     // Check for the number of threads
     var numThreads: usize = 1;
@@ -75,13 +76,24 @@ fn createTree(
         .link_libcpp = true,
     });
     eigen_wrapper.addImport("params", params);
+
+    // Intel MKL backend (optional, enabled with -Dmkl). When active, the
+    // -DEIGEN_USE_MKL_ALL macro routes BLAS/LAPACK/VML calls through MKL and
+    // <mkl.h> must be on the include path. We use the Single Dynamic Library
+    // (libmkl_rt) so feature dispatch and threading are resolved at runtime.
+    const mkl_paths = getEnvPaths(b, "MKL_INCLUDE_PATH", "MKL_LIB_PATH");
+
     if (numThreads > 1) {
         var buf: [32]u8 = undefined;
         const threads_flag = try std.fmt.bufPrint(&buf, "-DNUM_THREADS={}", .{numThreads});
+        var flags: std.ArrayList([]const u8) = .empty;
+        defer flags.deinit(b.allocator);
+        try flags.appendSlice(b.allocator, &.{ "-O3", "-DNDEBUG", "-march=native", "-fPIC", "-fopenmp", precision_flag, threads_flag });
+        if (mkl) try flags.append(b.allocator, "-DEIGEN_USE_MKL_ALL");
         eigen_wrapper.addCSourceFiles(.{
             .root = b.path("src/eigen"),
             .files = &.{ "linalg.cpp", "activations.cpp", "losses.cpp", "normalizations.cpp", "random.cpp", "fused_kernels.cpp" },
-            .flags = &.{ "-O3", "-DNDEBUG", "-march=native", "-fPIC", "-fopenmp", precision_flag, threads_flag },
+            .flags = flags.items,
         });
         eigen_wrapper.addIncludePath(eigen.path("./"));
         eigen_wrapper.linkSystemLibrary("gomp", .{});
@@ -89,12 +101,23 @@ fn createTree(
         eigen_wrapper.addIncludePath(.{ .cwd_relative = openmp_paths[0] });
         eigen_wrapper.addLibraryPath(.{ .cwd_relative = openmp_paths[1] });
     } else {
+        var flags: std.ArrayList([]const u8) = .empty;
+        defer flags.deinit(b.allocator);
+        try flags.appendSlice(b.allocator, &.{ "-O3", "-DNDEBUG", "-march=native", "-fPIC", precision_flag });
+        if (mkl) try flags.append(b.allocator, "-DEIGEN_USE_MKL_ALL");
         eigen_wrapper.addCSourceFiles(.{
             .root = b.path("src/eigen"),
             .files = &.{ "linalg.cpp", "activations.cpp", "losses.cpp", "normalizations.cpp", "random.cpp", "fused_kernels.cpp" },
-            .flags = &.{ "-O3", "-DNDEBUG", "-march=native", "-fPIC", precision_flag },
+            .flags = flags.items,
         });
         eigen_wrapper.addIncludePath(eigen.path("./"));
+    }
+
+    // Link MKL (Single Dynamic Library) and expose its headers when enabled.
+    if (mkl) {
+        eigen_wrapper.addIncludePath(.{ .cwd_relative = mkl_paths[0] });
+        eigen_wrapper.addLibraryPath(.{ .cwd_relative = mkl_paths[1] });
+        eigen_wrapper.linkSystemLibrary("mkl_rt", .{});
     }
 
     // Activation module
@@ -183,6 +206,9 @@ pub fn build(b: *std.Build) !void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
 
+    // Use Intel MKL as Eigen's BLAS/LAPACK backend (EIGEN_USE_MKL_ALL).
+    const mkl = b.option(bool, "mkl", "Use Intel MKL as Eigen's BLAS/LAPACK backend") orelse false;
+
     // Shared errors module (does not depend on params)
     const errors = b.createModule(.{
         .root_source_file = b.path("src/core/errors.zig"),
@@ -202,9 +228,9 @@ pub fn build(b: *std.Build) !void {
     const precision_flag_bench = std.fmt.comptimePrint("-DFLOAT_PRECISION={d}", .{@import("benchmarks/params.zon").precision});
 
     // Create a separate module tree for each context
-    const tree_main = try createTree(b, target, optimize, errors, eigen, @import("params.zon").numThreads, "params.zon", precision_flag_main);
-    const tree_test = try createTree(b, target, optimize, errors, eigen, @import("tests/params.zon").numThreads, "tests/params.zon", precision_flag_test);
-    const tree_bench = try createTree(b, target, optimize, errors, eigen, @import("benchmarks/params.zon").numThreads, "benchmarks/params.zon", precision_flag_bench);
+    const tree_main = try createTree(b, target, optimize, errors, eigen, @import("params.zon").numThreads, "params.zon", precision_flag_main, mkl);
+    const tree_test = try createTree(b, target, optimize, errors, eigen, @import("tests/params.zon").numThreads, "tests/params.zon", precision_flag_test, mkl);
+    const tree_bench = try createTree(b, target, optimize, errors, eigen, @import("benchmarks/params.zon").numThreads, "benchmarks/params.zon", precision_flag_bench, mkl);
 
     // --- Test step (uses tests/params.zon) ---
 

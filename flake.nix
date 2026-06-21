@@ -9,7 +9,14 @@
     outputs = { self, nixpkgs, flake-utils, ... }:
     flake-utils.lib.eachDefaultSystem (system:
     let
-        pkgs = import nixpkgs { inherit system; };
+        # `mkl` is unfree (Intel Simplified Software License). Allow just that
+        # package so evaluation of the flake doesn't fail; it is still only
+        # linked when `zig build -Dmkl` is passed.
+        pkgs = import nixpkgs {
+            inherit system;
+            config.allowUnfreePredicate = pkg: builtins.elem (lib.getName pkg) [ "mkl" ];
+        };
+        lib = nixpkgs.lib;
 
         # ---- Zig build environment ----
 
@@ -22,12 +29,17 @@
         # OpenBLAS backend, selected with `-Dopenblas` (EIGEN_USE_BLAS).
         openblas = pkgs.openblas;
 
+        # Intel MKL backend, selected with `-Dmkl` (EIGEN_USE_MKL_ALL).
+        mkl = pkgs.mkl;
+
         # Set the environment variables that `zig build` expects.
         buildEnv = ''
             export OPENMP_INCLUDE_PATH="${openmp.dev}/include"
             export OPENMP_LIB_PATH="${openmp}/lib"
             export OPENBLAS_INCLUDE_PATH="${openblas.dev}/include"
             export OPENBLAS_LIB_PATH="${openblas}/lib"
+            export MKL_INCLUDE_PATH="${mkl}/include"
+            export MKL_LIB_PATH="${mkl}/lib"
         '';
 
         # A wrapper for `zig build` that sets the environment variables.
@@ -101,7 +113,7 @@
 
         # A shell where `zig build ...` works directly (env vars preset).
         devShells.default = pkgs.mkShell {
-            packages = [ zig openmp openblas ];
+            packages = [ zig openmp openblas mkl ];
             shellHook = buildEnv;
         };
     });
