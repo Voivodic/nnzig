@@ -9,9 +9,9 @@ Compile-time-configured neural network library in Zig with C++/Eigen linear-alge
 
 ## Commands
 
-- `zig build test --summary all` — the only verification step. Zig has no separate lint/typecheck; run this after every change.
-- `zig build docs` — emits `zig-out/docs` (deployed to GitHub Pages from `main`).
-- `zig build benchmark` — builds **and runs** the benchmark. Requires `benchmarks/dataset_benchmark.bin` (generate first, see below). Plain `zig build` also installs the benchmark executable.
+- `nix run .#test -- --summary all` — the only verification step. Zig has no separate lint/typecheck; run this after every change.
+- `nix run .#docs` — emits `zig-out/docs` (deployed to GitHub Pages from `main`).
+- `nix run .#benchmark` — builds **and runs** the benchmark. Requires `benchmarks/dataset_benchmark.bin` (generate first, see below). Plain `zig build` also installs the benchmark executable.
 - CI (`.github/workflows/`) runs `test` on every PR/push to `main`; `docs` builds on every push and deploys on merge to `main`.
 
 There is no formatter/linter step.
@@ -55,9 +55,9 @@ Tests are written **inline** in each source file as `test "..."` blocks and gath
 
 ## Benchmark setup
 
-`zig build benchmark` reads `benchmarks/dataset_benchmark.bin` (gitignored). Generate it first:
+`nix run .#benchmark` reads `benchmarks/dataset_benchmark.bin` (gitignored). Generate it first:
 
-- `nix run ./benchmarks#generate-data` (the flake also provides `run-pytorch` and `plot-losses` for the PyTorch comparison).
+- `nix run .#generate-data` (the flake also provides `run-pytorch`, `run-equinox`, `run-tensorflow`, and `plot-losses` for the comparisons).
 
 ## graphify
 

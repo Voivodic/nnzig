@@ -124,7 +124,7 @@ def resolve_nix_app(app_name):
             "eval",
             "--impure",
             "--raw",
-            f"./benchmarks#apps.x86_64-linux.{app_name}.program",
+            f".#apps.x86_64-linux.{app_name}.program",
         ],
         cwd=str(REPO),
         capture_output=True,
@@ -148,7 +148,7 @@ def ensure_app_realized(app_name, program_path):
             "run",
             "--no-pure-eval",
             "--impure",
-            f"./benchmarks#{app_name}",
+            f".#{app_name}",
         ],
         cwd=str(REPO),
     )
@@ -244,7 +244,7 @@ def set_n_neurons(N):
         json.dump(cfg, f, indent=4)
         f.write("\n")
     run(
-        ["nix", "run", "--no-pure-eval", "--impure", "./benchmarks#generate-data"],
+        ["nix", "run", "--no-pure-eval", "--impure", ".#generate-data"],
         cwd=str(REPO),
     )
 

@@ -82,6 +82,8 @@ Invalid values are caught at build time. See `params.zon` for the full set.
 ## Testing
 
 ```sh
+nix run .#test -- --summary all
+OR
 zig build test --summary all
 ```
 
@@ -90,6 +92,8 @@ Tests are written inline in each source file and cover every module.
 ## Documentation
 
 ```sh
+nix run .#docs
+OR
 zig build docs
 ```
 
@@ -101,6 +105,8 @@ from the `main` branch.
 A benchmark compares NNzig against an equivalent PyTorch model.
 
 ```sh
+nix run .#benchmark
+OR
 zig build benchmark
 ```
 
@@ -108,16 +114,19 @@ It reads `benchmarks/dataset_benchmark.bin`, which is gitignored. Generate it
 first:
 
 ```sh
-python benchmarks/generate_data.py
+nix run .#generate-data
 ```
 
-The benchmark suite includes a PyTorch reference and loss-plotting script. If you
-use [Nix](https://nixos.org), the provided flake sets up the Python environment:
+The benchmark suite includes a PyTorch, Equinox, and TensorFlow references 
+and loss-plotting script. Use [Nix](https://nixos.org), the provided flake
+sets up the Python environment:
 
 ```sh
-nix run ./benchmarks#generate-data   # generate the dataset
-nix run ./benchmarks#run-pytorch     # run the PyTorch reference
-nix run ./benchmarks#plot-losses     # plot both loss curves
+nix run .#generate-data   # generate the dataset
+nix run .#run-pytorch     # run the PyTorch reference
+nix run .#run-equinox     # run the Equinox reference
+nic run .#run-tensorflow      # run the TensorFlow reference
+nix run .#plot-losses     # plot both loss curves
 ```
 
 ## License

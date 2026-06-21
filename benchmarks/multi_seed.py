@@ -9,7 +9,7 @@ a single seed is RNG-driven; if nnzig is consistently worse across all seeds,
 that points to a real difference in the implementation.
 
 This script only needs the Python standard library. It shells out to
-``nix run ./benchmarks#...`` for the numpy/torch steps and ``zig build
+``nix run .#...`` for the numpy/torch steps and ``zig build
 benchmark`` for the nnzig step, so it must be run from the repository root.
 
 Usage:
@@ -88,7 +88,7 @@ def main():
     try:
         # 1. Generate the dataset ONCE with the configured dataset.seed.
         print("[multi-seed] Generating dataset once (dataset.seed) ...")
-        run(["nix", "run", "./benchmarks#generate-data", "--no-pure-eval"])
+        run(["nix", "run", ".#generate-data", "--no-pure-eval"])
 
         results = []
         for seed in seeds:
@@ -100,7 +100,7 @@ def main():
             z_tr, z_va = read_losses(BENCH / "losses" / "losses_zig.bin")
 
             print("[multi-seed] pytorch (nix run) ...")
-            run(["nix", "run", "./benchmarks#run-pytorch", "--no-pure-eval"])
+            run(["nix", "run", ".#run-pytorch", "--no-pure-eval"])
             p_tr, p_va = read_losses(BENCH / "losses" / "losses_pytorch.bin")
 
             results.append((seed, z_tr[-1], p_tr[-1], z_va[-1], p_va[-1]))
