@@ -1,2 +1,2 @@
 # Exclude the generated documentation directory from language stats
-zig-out/docs/* linguist-documentation
+zig-out/docs/** linguist-documentation
