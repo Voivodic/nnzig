@@ -135,6 +135,43 @@ nix run .#plot-resources  # plot the resource-benchmark results
 Python libraries, so the whole sweep is reproducible under Nix with no local
 Zig toolchain required.
 
+## Results
+
+The resource benchmark sweeps an `[N, 2N, 2N, N]` MLP across
+`N ∈ {16, 32, 64, 128, 256, 512}`, comparing NNzig (full-batch and `bC=1`
+variants) against PyTorch, Equinox, and TensorFlow references. As in the plot
+below, the horizontal axis is the total number of trainable parameters
+(weights + biases), `8N² + 5N`, rather than the raw sweep index `N`. Each
+value is reported as `mean ± std` over 5 runs (sample standard deviation,
+matching the bands drawn in the plot).
+
+### Training time (seconds)
+
+| Total parameters | PyTorch | Equinox | TensorFlow | nnzig | nnzig (bC=1) |
+|----------------:|---:|---:|---:|---:|---:|
+|           2,128 | 0.863 ± 0.010 | 3.423 ± 0.031 | 23.785 ± 0.321 | 0.229 ± 0.001 |   0.235 ± 0.002 |
+|           8,352 | 4.902 ± 0.063 | 3.650 ± 0.088 | 24.056 ± 0.152 | 0.666 ± 0.064 |   0.584 ± 0.005 |
+|          33,088 |12.816 ± 1.896 | 4.341 ± 0.235 | 25.708 ± 0.887 | 1.125 ± 0.030 |   2.036 ± 0.011 |
+|         131,712 |29.711 ± 1.470 | 5.934 ± 0.040 | 28.260 ± 0.611 | 3.881 ± 0.055 |   8.719 ± 0.063 |
+|         525,568 |54.246 ± 9.413 | 8.949 ± 0.097 | 44.384 ± 1.137 |17.044 ± 0.089 |  42.795 ± 0.659 |
+|       2,099,712 |31.507 ± 1.001 |16.818 ± 0.189 | 73.147 ± 0.787 |77.400 ± 0.641 | 208.843 ± 12.211 |
+
+### Peak memory (MB)
+
+| Total parameters | PyTorch | Equinox | TensorFlow | nnzig | nnzig (bC=1) |
+|----------------:|---:|---:|---:|---:|---:|
+|           2,128 | 332.21 ± 0.13 | 372.60 ± 3.85 | 645.07 ± 0.45 |  4.39 ± 0.12 |  3.93 ± 0.11 |
+|           8,352 | 332.52 ± 0.15 | 373.71 ± 5.22 | 645.60 ± 0.17 |  5.09 ± 0.10 |  4.15 ± 0.10 |
+|          33,088 | 333.62 ± 0.22 | 379.31 ± 6.70 | 646.65 ± 0.66 |  6.07 ± 0.10 |  4.90 ± 0.15 |
+|         131,712 | 336.57 ± 0.38 | 394.20 ± 7.34 | 650.88 ± 0.34 |  8.75 ± 0.05 |  7.09 ± 0.08 |
+|         525,568 | 346.92 ± 0.46 | 472.06 ±20.82 | 660.40 ± 0.24 | 17.73 ± 0.11 | 15.35 ± 0.10 |
+|       2,099,712 | 383.55 ± 0.62 | 861.91 ±42.94 | 705.23 ± 0.79 | 45.55 ± 0.15 | 42.28 ± 0.05 |
+
+![Resource benchmark results: training time and peak memory vs total parameters](benchmarks/plots/resources_plot.png)
+
+*Training time (left) and peak memory (right) vs total parameters. Top panels
+are log-log; bottom panels show each library's ratio relative to nnzig.*
+
 ## License
 
 [MIT](LICENSE) © Rodrigo Voivodic
