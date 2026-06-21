@@ -2,13 +2,6 @@
 .zig-cache/
 zig-out/
 zig-pkg/
-benchmarks/losses/*
-!benchmarks/losses/.gitkeep
-benchmarks/plots/*
-!benchmarks/plots/.gitkeep
-benchmarks/resources/*
-!benchmarks/resources/.gitkeep
-benchmarks/dataset_benchmark.bin
 benchmarks/**/__pycache__/
 graphify-out/*
 !graphify-out/graph.html
