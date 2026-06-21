@@ -50,6 +50,7 @@
         pythonTorchEnv = pkgs.python314.withPackages (ps: [ ps.numpy ps.torch ]);
         pythonEquinoxEnv = pkgs.python314.withPackages (ps: [ ps.numpy ps.equinox ps.optax ]);
         pythonTfEnv = pkgs.python313.withPackages (ps: [ ps.numpy ps.tensorflow ps.keras ]);
+        pythonBenchEnv = pkgs.python314;
 
         # Path to the benchmark scripts.
         benchSrc = "${self}/benchmarks";
@@ -83,6 +84,19 @@
             run-tensorflow = mkPyApp "run-tensorflow" pythonTfEnv "runs/run_tensorflow.py";
             plot-losses = mkPyApp "plot-losses" pythonPlotEnv "plot_losses.py";
             plot-resources = mkPyApp "plot-resources" pythonPlotEnv "plot_resources.py";
+
+            # Run the resource benchmark.
+            bench-resources = {
+                type = "app";
+                program = "${pkgs.writeShellScriptBin "bench-resources" ''
+                    if [ ! -f benchmarks/bench_resources.py ]; then
+                        echo "bench-resources: run from the repository root (benchmarks/ not found in CWD)" >&2
+                        exit 1
+                    fi
+                    export PATH="${pkgs.lib.makeBinPath [ pkgs.time ]}:$PATH"
+                    exec ${pythonBenchEnv}/bin/python ./benchmarks/bench_resources.py "$@"
+                ''}/bin/bench-resources";
+            };
         };
 
         # A shell where `zig build ...` works directly (env vars preset).

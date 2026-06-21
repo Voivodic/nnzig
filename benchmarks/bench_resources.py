@@ -63,7 +63,10 @@ DEFAULT_N_VALUES = [2, 4, 8, 16, 32]
 DEFAULT_REPS = 3
 
 # nnzig is built in ReleaseFast so the Zig training loop is optimized and
-# not slowed by Debug-mode safety/overflow checks.
+# not slowed by Debug-mode safety/overflow checks. These flags are forwarded
+# to the `.#default` flake app below (`zig build`'s install step), so Nix
+# provides the Zig toolchain + build env — the same way the Python libraries
+# are driven through their own flake apps instead of a bare local toolchain.
 ZIG_BUILD_FLAGS = ["-Doptimize=ReleaseFast"]
 
 # Each runner prints "NNBENCH_TRAIN_SECONDS:<value>" covering ONLY the
@@ -319,7 +322,10 @@ def main():
             # --- nnzig full-batch (batchSizeCompute = batchSize) ---
             set_batch_size_compute(batch_size_value)
             print(f"[bench] building nnzig (batchSizeCompute={batch_size_value}) ...")
-            run(["zig", "build", *ZIG_BUILD_FLAGS], cwd=str(REPO))
+            # Build via the `.#default` flake app so Nix provides zig + the
+            # build env (OpenMP/OpenBLAS paths). The install step writes
+            # zig-out/bin/benchmark, run directly below under `time -v`.
+            run(["nix", "run", ".#default", "--", *ZIG_BUILD_FLAGS], cwd=str(REPO))
             for r in range(reps):
                 print(f"[bench]   rep {r + 1}/{reps} [nnzig]", flush=True)
                 _timed_and_record(
@@ -329,7 +335,7 @@ def main():
             # --- nnzig sequential (batchSizeCompute = 1) ---
             set_batch_size_compute(1)
             print("[bench] building nnzig (batchSizeCompute=1) ...")
-            run(["zig", "build", *ZIG_BUILD_FLAGS], cwd=str(REPO))
+            run(["nix", "run", ".#default", "--", *ZIG_BUILD_FLAGS], cwd=str(REPO))
             for r in range(reps):
                 print(f"[bench]   rep {r + 1}/{reps} [nnzig_b1]", flush=True)
                 _timed_and_record(

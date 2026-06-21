@@ -117,7 +117,7 @@ first:
 nix run .#generate-data
 ```
 
-The benchmark suite includes a PyTorch, Equinox, and TensorFlow references 
+The benchmark suite includes a PyTorch, Equinox, and TensorFlow references
 and loss-plotting script. Use [Nix](https://nixos.org), the provided flake
 sets up the Python environment:
 
@@ -127,7 +127,13 @@ nix run .#run-pytorch     # run the PyTorch reference
 nix run .#run-equinox     # run the Equinox reference
 nic run .#run-tensorflow      # run the TensorFlow reference
 nix run .#plot-losses     # plot both loss curves
+nix run .#bench-resources # sweep N: time & peak-RSS vs PyTorch/Equinox/TF
+nix run .#plot-resources  # plot the resource-benchmark results
 ```
+
+`bench-resources` builds nnzig through the same flake (via `.#default`) as the
+Python libraries, so the whole sweep is reproducible under Nix with no local
+Zig toolchain required.
 
 ## License
 
