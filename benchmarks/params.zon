@@ -13,7 +13,7 @@
     .beta2 = 0.999,
     .lr = 0.001,
     .nEpochs = 500,
-    .batchSize = 200,
-    .batchSizeCompute = 200,
+    .batchSize = 100,
+    .batchSizeCompute = 100,
     .printEvery = 0,
 }
