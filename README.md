@@ -31,7 +31,6 @@ single ZON config file.
 ```zig
 const std = @import("std");
 const nnzig = @import("nnzig");
-const io = @import("io");
 
 pub fn main(init: std.process.Init) !void {
     const allocator = init.gpa;
