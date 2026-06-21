@@ -15,9 +15,15 @@ batchSizeCompute, so they are run once per N.
 
 For each N in --n-values (default [2, 4, 8, 16, 32]) the network shape is
 set to [N, 2N, 2N, N], the dataset is regenerated, nnzig is rebuilt (once
-per batchSizeCompute config), and each library is run --reps times under
-GNU ``time -v``. The two reported fields ("Elapsed (wall clock) time" and
-"Maximum resident set size") are saved per library as JSON:
+per batchSizeCompute config) in ReleaseFast, and each library is run --reps
+times under GNU ``time -v``.
+
+The reported ``time_seconds`` is the TRAINING-ONLY time: every runner
+prints ``NNBENCH_TRAIN_SECONDS:<value>`` around its training phase, so the
+per-library startup tax (torch/tf/jax import, model construction, JIT
+tracing) is excluded. When a runner emits no marker the whole-process wall
+time is used as a fallback. ``max_rss_kbytes`` is always the whole-process
+peak from ``time -v``. Both are saved per library as JSON:
 
     {
       "N_values":       [2, 4, 8, 16, 32],
@@ -38,6 +44,7 @@ import argparse
 import contextlib
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -54,6 +61,15 @@ from config import load_config, write_params_zon  # noqa: E402
 
 DEFAULT_N_VALUES = [2, 4, 8, 16, 32]
 DEFAULT_REPS = 3
+
+# nnzig is built in ReleaseFast so the Zig training loop is optimized and
+# not slowed by Debug-mode safety/overflow checks.
+ZIG_BUILD_FLAGS = ["-Doptimize=ReleaseFast"]
+
+# Each runner prints "NNBENCH_TRAIN_SECONDS:<value>" covering ONLY the
+# training phase, so the per-library startup tax (torch/tf/jax import,
+# model construction, JIT tracing) is excluded from the reported time.
+_TRAIN_SECONDS_RE = re.compile(r"NNBENCH_TRAIN_SECONDS:\s*([0-9]+(?:\.[0-9]+)?)")
 
 
 _DEFAULT_DESC = "Sweep network size N and record time/memory for nnzig (2 configs), PyTorch, Equinox, TensorFlow."
@@ -169,11 +185,13 @@ def parse_time_output(text):
 
 
 def run_timed(cmd, cwd):
-    """Run cmd under `time -v`, return (wall_seconds, max_rss_kbytes).
+    """Run cmd under `time -v`, return (wall_seconds, max_rss_kbytes, train_seconds).
 
-    GNU time writes its report to a temp file (-o) so it doesn't mix with
-    the command's own stderr; the command's stdout/stderr are still captured
-    in proc for error reporting."""
+    wall_seconds / max_rss come from GNU time (-v). train_seconds is parsed
+    from the command's combined stdout+stderr by looking for the
+    ``NNBENCH_TRAIN_SECONDS:<value>`` marker each runner prints over its
+    training phase only (so the library startup tax is excluded). It is None
+    when no marker is found, in which case the caller falls back to wall."""
     fd, time_file = tempfile.mkstemp(suffix=".time")
     os.close(fd)
     try:
@@ -194,7 +212,26 @@ def run_timed(cmd, cwd):
     finally:
         with contextlib.suppress(OSError):
             os.unlink(time_file)
-    return parse_time_output(time_output)
+    wall, rss = parse_time_output(time_output)
+    combined = (proc.stdout or "") + "\n" + (proc.stderr or "")
+    match = _TRAIN_SECONDS_RE.search(combined)
+    train = float(match.group(1)) if match else None
+    return wall, rss, train
+
+
+def _timed_and_record(label, key, cmd, cwd, results, N):
+    """Run a timed command and append (time_seconds, rss_kbytes) to results.
+
+    Prefers the runner-emitted training-only time (startup tax excluded)
+    over the whole-process wall time; logs which source was used with a
+    ``(train)`` / ``(wall)`` tag."""
+    wall, rss, train = run_timed(cmd, cwd)
+    if train is not None:
+        reported, tag = train, "train"
+    else:
+        reported, tag = wall, "wall"
+    results[key].setdefault(N, []).append((reported, rss))
+    print(f"[bench]     {label:<13}: {reported:.3f}s ({tag}), {rss} KB")
 
 
 def set_n_neurons(N):
@@ -282,38 +319,40 @@ def main():
             # --- nnzig full-batch (batchSizeCompute = batchSize) ---
             set_batch_size_compute(batch_size_value)
             print(f"[bench] building nnzig (batchSizeCompute={batch_size_value}) ...")
-            run(["zig", "build"], cwd=str(REPO))
+            run(["zig", "build", *ZIG_BUILD_FLAGS], cwd=str(REPO))
             for r in range(reps):
                 print(f"[bench]   rep {r + 1}/{reps} [nnzig]", flush=True)
-                wall, rss = run_timed(["zig-out/bin/benchmark"], cwd=str(REPO))
-                results["nnzig"].setdefault(N, []).append((wall, rss))
-                print(f"[bench]     {'nnzig':<13}: {wall:.3f}s, {rss} KB")
+                _timed_and_record(
+                    "nnzig", "nnzig", ["zig-out/bin/benchmark"], str(REPO), results, N
+                )
 
             # --- nnzig sequential (batchSizeCompute = 1) ---
             set_batch_size_compute(1)
             print("[bench] building nnzig (batchSizeCompute=1) ...")
-            run(["zig", "build"], cwd=str(REPO))
+            run(["zig", "build", *ZIG_BUILD_FLAGS], cwd=str(REPO))
             for r in range(reps):
                 print(f"[bench]   rep {r + 1}/{reps} [nnzig_b1]", flush=True)
-                wall, rss = run_timed(["zig-out/bin/benchmark"], cwd=str(REPO))
-                results["nnzig_b1"].setdefault(N, []).append((wall, rss))
-                print(f"[bench]     {'nnzig (bC=1)':<13}: {wall:.3f}s, {rss} KB")
+                _timed_and_record(
+                    "nnzig (bC=1)",
+                    "nnzig_b1",
+                    ["zig-out/bin/benchmark"],
+                    str(REPO),
+                    results,
+                    N,
+                )
 
             # --- Python libraries (unaffected by batchSizeCompute) ---
             for r in range(reps):
                 print(f"[bench]   rep {r + 1}/{reps} [python]", flush=True)
-
-                wall, rss = run_timed([pytorch_app], cwd=str(REPO))
-                results["pytorch"].setdefault(N, []).append((wall, rss))
-                print(f"[bench]     {'pytorch':<13}: {wall:.3f}s, {rss} KB")
-
-                wall, rss = run_timed([equinox_app], cwd=str(REPO))
-                results["equinox"].setdefault(N, []).append((wall, rss))
-                print(f"[bench]     {'equinox':<13}: {wall:.3f}s, {rss} KB")
-
-                wall, rss = run_timed([tensorflow_app], cwd=str(REPO))
-                results["tensorflow"].setdefault(N, []).append((wall, rss))
-                print(f"[bench]     {'tensorflow':<13}: {wall:.3f}s, {rss} KB")
+                _timed_and_record(
+                    "pytorch", "pytorch", [pytorch_app], str(REPO), results, N
+                )
+                _timed_and_record(
+                    "equinox", "equinox", [equinox_app], str(REPO), results, N
+                )
+                _timed_and_record(
+                    "tensorflow", "tensorflow", [tensorflow_app], str(REPO), results, N
+                )
 
         # Persist per-library JSON (overwrite mode). The output keys are
         # "resources_<lib>", which lines up with all five lib keys.

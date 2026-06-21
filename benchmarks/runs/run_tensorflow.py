@@ -1,6 +1,7 @@
 import numpy as np
 import os
 import struct
+import time
 import tensorflow as tf
 
 from config import load_config
@@ -198,6 +199,7 @@ if __name__ == "__main__":
     train_losses = np.empty(n_epochs, dtype=np_dtype)
     val_losses = np.empty(n_epochs, dtype=np_dtype)
 
+    _bench_train_t0 = time.perf_counter()
     for epoch in range(n_epochs):
         # Match nnzig: shuffle only the training indices each epoch so the
         # validation set stays fixed and comparable.
@@ -245,6 +247,14 @@ if __name__ == "__main__":
         # No GradientTape here: pure forward pass for the validation loss.
         # 0.5 * mean over (val, out); matches nnzig's validation loss.
         val_losses[epoch] = float(0.5 * loss_fn(model(X_v), Y_v))
+
+    _bench_train_seconds = time.perf_counter() - _bench_train_t0
+    # Training-only wall time, printed for bench_resources.py to parse. This
+    # excludes the heavy tensorflow import + dataset load + normalization +
+    # model construction, removing the fixed Python startup tax (~5-10s of TF
+    # import) from the result. (Per-step graph tracing inside the loop IS
+    # included, since it is part of running the training loop.)
+    print(f"NNBENCH_TRAIN_SECONDS:{_bench_train_seconds:.6}")
 
     write_losses_binary(
         config["outputs"]["losses_tensorflow"], train_losses, val_losses, precision_bits

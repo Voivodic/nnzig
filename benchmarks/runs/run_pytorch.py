@@ -1,6 +1,7 @@
 import numpy as np
 import os
 import struct
+import time
 import torch
 
 from config import load_config
@@ -58,9 +59,7 @@ def write_losses_binary(filename, train_losses, val_losses, precision_bits):
     precision_bytes = precision_bits // 8
 
     header_format = "<QQQQ"
-    header_bytes = struct.pack(
-        header_format, precision_bytes, len(train_losses), 1, 1
-    )
+    header_bytes = struct.pack(header_format, precision_bytes, len(train_losses), 1, 1)
     os.makedirs(os.path.dirname(filename) or ".", exist_ok=True)
     with open(filename, "wb") as f:
         f.write(header_bytes)
@@ -131,8 +130,8 @@ if __name__ == "__main__":
 
     X_t = torch.tensor(X[:n_train], dtype=torch_dtype)
     Y_t = torch.tensor(Y[:n_train], dtype=torch_dtype)
-    X_v = torch.tensor(X[n_train:n_train + n_val], dtype=torch_dtype)
-    Y_v = torch.tensor(Y[n_train:n_train + n_val], dtype=torch_dtype)
+    X_v = torch.tensor(X[n_train : n_train + n_val], dtype=torch_dtype)
+    Y_v = torch.tensor(Y[n_train : n_train + n_val], dtype=torch_dtype)
     del X, Y
 
     print("[info] Training network...")
@@ -170,6 +169,7 @@ if __name__ == "__main__":
     train_losses = np.empty(n_epochs, dtype=np_dtype)
     val_losses = np.empty(n_epochs, dtype=np_dtype)
 
+    _bench_train_t0 = time.perf_counter()
     for epoch in range(n_epochs):
         model.train()
 
@@ -214,6 +214,12 @@ if __name__ == "__main__":
         with torch.no_grad():
             # 0.5 * mean over (val, out); matches nnzig's validation loss.
             val_losses[epoch] = (0.5 * criterion(model(X_v), Y_v)).item()
+
+    _bench_train_seconds = time.perf_counter() - _bench_train_t0
+    # Training-only wall time, printed for bench_resources.py to parse. This
+    # excludes the torch import + dataset load + normalization + model
+    # construction, removing the fixed Python startup tax from the result.
+    print(f"NNBENCH_TRAIN_SECONDS:{_bench_train_seconds:.6}")
 
     write_losses_binary(
         config["outputs"]["losses_pytorch"], train_losses, val_losses, precision_bits

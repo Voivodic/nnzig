@@ -6,6 +6,7 @@ import numpy as np
 import optax
 import os
 import struct
+import time
 
 from config import load_config
 
@@ -74,9 +75,7 @@ def write_losses_binary(filename, train_losses, val_losses, precision_bits):
     precision_bytes = precision_bits // 8
 
     header_format = "<QQQQ"
-    header_bytes = struct.pack(
-        header_format, precision_bytes, len(train_losses), 1, 1
-    )
+    header_bytes = struct.pack(header_format, precision_bytes, len(train_losses), 1, 1)
     os.makedirs(os.path.dirname(filename) or ".", exist_ok=True)
     with open(filename, "wb") as f:
         f.write(header_bytes)
@@ -92,6 +91,7 @@ class MLP(eqx.Module):
     mirroring src/layers/mlp.zig which iterates activations alongside the
     weight matrices.
     """
+
     layers: list
     # Stored as static metadata so it is part of the PyTree treedef (not a
     # differentiable leaf) and is invisible to optax / eqx.filter_grad.
@@ -99,9 +99,7 @@ class MLP(eqx.Module):
 
     def __init__(self, layer_sizes, activations, *, key):
         if len(activations) != len(layer_sizes) - 1:
-            raise ValueError(
-                "activations must have len(layer_sizes) - 1 entries"
-            )
+            raise ValueError("activations must have len(layer_sizes) - 1 entries")
         bad = [a for a in activations if a not in _ACTIVATIONS]
         if bad:
             raise ValueError("Unsupported activation(s): " + str(bad))
@@ -126,18 +124,12 @@ def init_normal(model, key):
     new_layers = []
     for layer in model.layers:
         key, w_key, b_key = jrandom.split(key, 3)
-        new_weight = jrandom.normal(
-            w_key, layer.weight.shape, dtype=layer.weight.dtype
-        )
+        new_weight = jrandom.normal(w_key, layer.weight.shape, dtype=layer.weight.dtype)
         # eqx.nn.Linear always has a bias here (use_bias=True default), so
         # layer.bias is an array, not None.
-        new_bias = jrandom.normal(
-            b_key, layer.bias.shape, dtype=layer.bias.dtype
-        )
+        new_bias = jrandom.normal(b_key, layer.bias.shape, dtype=layer.bias.dtype)
         new_layers.append(
-            eqx.tree_at(
-                lambda l: (l.weight, l.bias), layer, (new_weight, new_bias)
-            )
+            eqx.tree_at(lambda l: (l.weight, l.bias), layer, (new_weight, new_bias))
         )
     return eqx.tree_at(lambda m: m.layers, model, new_layers)
 
@@ -183,8 +175,8 @@ if __name__ == "__main__":
 
     X_t = jnp.asarray(X[:n_train], dtype=jax_dtype)
     Y_t = jnp.asarray(Y[:n_train], dtype=jax_dtype)
-    X_v = jnp.asarray(X[n_train:n_train + n_val], dtype=jax_dtype)
-    Y_v = jnp.asarray(Y[n_train:n_train + n_val], dtype=jax_dtype)
+    X_v = jnp.asarray(X[n_train : n_train + n_val], dtype=jax_dtype)
+    Y_v = jnp.asarray(Y[n_train : n_train + n_val], dtype=jax_dtype)
     del X, Y
 
     print("[info] Training network...")
@@ -240,6 +232,7 @@ if __name__ == "__main__":
         # 0.5 * mean over (val, out); matches nnzig's validation loss.
         return 0.5 * loss_fn(pred, y)
 
+    _bench_train_t0 = time.perf_counter()
     for epoch in range(n_epochs):
         # Match nnzig: shuffle only the training indices each epoch so the
         # validation set stays fixed and comparable.
@@ -252,9 +245,7 @@ if __name__ == "__main__":
             X_batch = X_t[idx]
             Y_batch = Y_t[idx]
 
-            loss, model, opt_state = make_step(
-                model, X_batch, Y_batch, opt_state
-            )
+            loss, model, opt_state = make_step(model, X_batch, Y_batch, opt_state)
             epoch_loss += float(loss)
 
         # Match nnzig: process the remainder batch when it exists. Its loss is
@@ -265,15 +256,21 @@ if __name__ == "__main__":
             X_batch = X_t[idx]
             Y_batch = Y_t[idx]
 
-            loss, model, opt_state = make_step(
-                model, X_batch, Y_batch, opt_state
-            )
+            loss, model, opt_state = make_step(model, X_batch, Y_batch, opt_state)
             epoch_loss += float(loss)
 
         # nnzig divides the accumulated batch losses by the number of full
         # batches (nBatchesF), so do the same here.
         train_losses[epoch] = epoch_loss / n_batches if n_batches > 0 else 0.0
         val_losses[epoch] = float(eval_loss(model, X_v, Y_v))
+
+    _bench_train_seconds = time.perf_counter() - _bench_train_t0
+    # Training-only wall time, printed for bench_resources.py to parse. This
+    # excludes the jax/equinox import + dataset load + normalization + model
+    # construction, removing the fixed Python startup tax from the result.
+    # (The per-step XLA compile triggered inside make_step on the first epoch
+    # IS included, since it is part of running the training loop.)
+    print(f"NNBENCH_TRAIN_SECONDS:{_bench_train_seconds:.6}")
 
     write_losses_binary(
         config["outputs"]["losses_equinox"],
