@@ -12,18 +12,20 @@ const Tree = struct {
     nnzig: *std.Build.Module,
 };
 
-// Get the openmp paths
-fn getOpenMPPaths(b: *std.Build) struct { []const u8, []const u8 } {
+// Read optional include/library paths from environment variables. Used to
+// locate OpenMP and OpenBLAS, which may live in a Nix profile or a custom
+// prefix; empty values fall back to the system library search path.
+fn getEnvPaths(b: *std.Build, inc_var: []const u8, lib_var: []const u8) struct { []const u8, []const u8 } {
     const env = b.graph.environ_map;
     var paths = struct { []const u8, []const u8 }{ "", "" };
 
-    // Check for explicit Nix include path
-    if (env.get("OPENMP_INCLUDE_PATH")) |inc_path| {
+    // Check for explicit include path
+    if (env.get(inc_var)) |inc_path| {
         paths[0] = inc_path;
     }
 
-    // Check for explicit Nix library path
-    if (env.get("OPENMP_LIB_PATH")) |lib_path| {
+    // Check for explicit library path
+    if (env.get(lib_var)) |lib_path| {
         paths[1] = lib_path;
     }
 
@@ -40,6 +42,7 @@ fn createTree(
     nThreads: i64,
     params_path: []const u8,
     precision_flag: []const u8,
+    openblas: bool,
 ) !Tree {
     // Check for the number of threads
     var numThreads: usize = 1;
@@ -75,7 +78,21 @@ fn createTree(
         .link_libcpp = true,
     });
     eigen_wrapper.addImport("params", params);
-    if (numThreads > 1) {
+    if (openblas) {
+        // OpenBLAS backend: delegate Eigen's matrix products to OpenBLAS
+        var buf: [32]u8 = undefined;
+        const threads_flag = try std.fmt.bufPrint(&buf, "-DNUM_THREADS={}", .{numThreads});
+        eigen_wrapper.addCSourceFiles(.{
+            .root = b.path("src/eigen"),
+            .files = &.{ "linalg.cpp", "activations.cpp", "losses.cpp", "normalizations.cpp", "random.cpp" },
+            .flags = &.{ "-O3", "-fPIC", "-DEIGEN_USE_BLAS", precision_flag, threads_flag },
+        });
+        eigen_wrapper.addIncludePath(eigen.path("./"));
+        eigen_wrapper.linkSystemLibrary("openblas", .{});
+        const ob_paths = getEnvPaths(b, "OPENBLAS_INCLUDE_PATH", "OPENBLAS_LIB_PATH");
+        eigen_wrapper.addIncludePath(.{ .cwd_relative = ob_paths[0] });
+        eigen_wrapper.addLibraryPath(.{ .cwd_relative = ob_paths[1] });
+    } else if (numThreads > 1) {
         var buf: [32]u8 = undefined;
         const threads_flag = try std.fmt.bufPrint(&buf, "-DNUM_THREADS={}", .{numThreads});
         eigen_wrapper.addCSourceFiles(.{
@@ -85,7 +102,7 @@ fn createTree(
         });
         eigen_wrapper.addIncludePath(eigen.path("./"));
         eigen_wrapper.linkSystemLibrary("gomp", .{});
-        const openmp_paths = getOpenMPPaths(b);
+        const openmp_paths = getEnvPaths(b, "OPENMP_INCLUDE_PATH", "OPENMP_LIB_PATH");
         eigen_wrapper.addIncludePath(.{ .cwd_relative = openmp_paths[0] });
         eigen_wrapper.addLibraryPath(.{ .cwd_relative = openmp_paths[1] });
     } else {
@@ -183,6 +200,13 @@ pub fn build(b: *std.Build) !void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
 
+    // BLAS backend for Eigen's matrix products. Off by default
+    const openblas = b.option(
+        bool,
+        "openblas",
+        "Link OpenBLAS for the Eigen matrix-product kernels (EIGEN_USE_BLAS) instead of the built-in OpenMP path. Off by default.",
+    ) orelse false;
+
     // Shared errors module (does not depend on params)
     const errors = b.createModule(.{
         .root_source_file = b.path("src/core/errors.zig"),
@@ -202,9 +226,9 @@ pub fn build(b: *std.Build) !void {
     const precision_flag_bench = std.fmt.comptimePrint("-DFLOAT_PRECISION={d}", .{@import("benchmarks/params.zon").precision});
 
     // Create a separate module tree for each context
-    const tree_main = try createTree(b, target, optimize, errors, eigen, @import("params.zon").numThreads, "params.zon", precision_flag_main);
-    const tree_test = try createTree(b, target, optimize, errors, eigen, @import("tests/params.zon").numThreads, "tests/params.zon", precision_flag_test);
-    const tree_bench = try createTree(b, target, optimize, errors, eigen, @import("benchmarks/params.zon").numThreads, "benchmarks/params.zon", precision_flag_bench);
+    const tree_main = try createTree(b, target, optimize, errors, eigen, @import("params.zon").numThreads, "params.zon", precision_flag_main, openblas);
+    const tree_test = try createTree(b, target, optimize, errors, eigen, @import("tests/params.zon").numThreads, "tests/params.zon", precision_flag_test, openblas);
+    const tree_bench = try createTree(b, target, optimize, errors, eigen, @import("benchmarks/params.zon").numThreads, "benchmarks/params.zon", precision_flag_bench, openblas);
 
     // --- Test step (uses tests/params.zon) ---
 
@@ -251,9 +275,9 @@ pub fn build(b: *std.Build) !void {
     const docs_step = b.step("docs", "Generate documentation");
 
     // 4. Run a compile step on this bundle to extract documentation
-    const docs_test = b.addTest(.{ 
-        .name = "nnzig", 
-        .root_module = tree_main.nnzig, 
+    const docs_test = b.addTest(.{
+        .name = "nnzig",
+        .root_module = tree_main.nnzig,
     });
 
     // 5. Emit the docs to zig-out/docs

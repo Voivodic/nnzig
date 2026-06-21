@@ -24,9 +24,24 @@ using ArrayXt  = Eigen::Array<f_type, Eigen::Dynamic, 1>;
 
 extern "C"{
 
+#ifdef EIGEN_USE_BLAS
+    // OpenBLAS threading control (provided by libopenblas at link time). Declared
+    // here rather than including cblas.h so the build does not need OpenBLAS's
+    // headers on its include path.
+    void openblas_set_num_threads(int num_threads);
+#endif
+
     // Initialize the threads
     void eigen_initThreads(){
+#ifdef EIGEN_USE_BLAS
+        // OpenBLAS owns the BLAS threading; keep Eigen's own product path serial
+        // to avoid oversubscribing the cores. NUM_THREADS is forwarded to OpenBLAS
+        // so the per-build config still controls the thread count.
+        Eigen::setNbThreads(1);
+        openblas_set_num_threads(NUM_THREADS);
+#else
         Eigen::setNbThreads(NUM_THREADS);
+#endif
     }
 
     // Multiply a matrix and a batch of vectors then add a vector
