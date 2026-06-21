@@ -270,12 +270,11 @@ pub const MLP = struct {
 
     /// Performs a forward pass through all layers, returning the output slice.
     /// The batch size is derived from the input length.
-    pub fn forward(self: *const MLP, input: []const T) ![]T {
+    pub fn forward(self: *const MLP, input: []const T) []T {
         // Derive the batch size from the input length
         const Bc: usize = input.len / params.nNeurons[0];
 
         // Save the input in first hidden values and zero the derivatives
-        eigen.setZero(self.dy);
         eigen.vectorInit(input, self.y[0 .. Bc * params.nNeurons[0]]);
 
         // Run over all layers and compute the partial result
@@ -293,13 +292,21 @@ pub const MLP = struct {
                 self.biases[nBias..(nBias + nout)],
                 self.y[(nsum + nin) * Bc .. (nsum + nin + nout) * Bc],
             );
-
+            
             // Apply the activation function
             act.activateElements(
                 self.y[(nsum + nin) * Bc .. (nsum + nin + nout) * Bc],
                 self.dy[(nsum + nin) * Bc .. (nsum + nin + nout) * Bc],
                 params.activations[i],
             );
+            // eigen.forwardFusedGrad(
+            //     self.weights[nprod..(nprod + nin * nout)],
+            //     self.y[nsum * Bc .. (nsum + nin) * Bc],
+            //     self.biases[nBias..(nBias + nout)],
+            //     self.y[(nsum + nin) * Bc .. (nsum + nin + nout) * Bc],
+            //     self.dy[(nsum + nin) * Bc .. (nsum + nin + nout) * Bc],
+            //     params.activations[i],
+            // );
 
             // Update the total sum and sum of products to keep track of the current position of the 1D slices
             nsum += nin;
@@ -328,7 +335,7 @@ pub const MLP = struct {
         var input: [nIn]T = undefined;
         for (&input) |*val| val.* = 1.0;
 
-        const output = try mlp_inst.forward(&input);
+        const output = mlp_inst.forward(&input);
 
         try std.testing.expectEqual(nOut, output.len);
         for (output) |val| try std.testing.expect(std.math.isFinite(val));
@@ -407,7 +414,7 @@ pub const MLP = struct {
         var input: [nIn * params.batchSizeCompute]T = undefined;
         for (&input) |*val| val.* = 1.0;
 
-        _ = try mlp_inst.forward(&input);
+        _ = mlp_inst.forward(&input);
 
         var dL: [nOut * params.batchSizeCompute]T = undefined;
         for (&dL) |*d| d.* = 1.0;
@@ -500,7 +507,7 @@ pub const MLP = struct {
         for (&outputs) |*val| val.* = 2.0;
 
         // Compute initial loss
-        const loss0 = loss.computeLoss(try mlp_inst.forward(&inputs), &outputs, &dL, params.lossFunc);
+        const loss0 = loss.computeLoss(mlp_inst.forward(&inputs), &outputs, &dL, params.lossFunc);
 
         // Compute gradients and update weights a few times
         for (0..50) |_| {
@@ -509,7 +516,7 @@ pub const MLP = struct {
         }
 
         // Compute final loss
-        const loss1 = loss.computeLoss(try mlp_inst.forward(&inputs), &outputs, &dL, params.lossFunc);
+        const loss1 = loss.computeLoss(mlp_inst.forward(&inputs), &outputs, &dL, params.lossFunc);
 
         try std.testing.expect(loss1 < loss0);
     }
@@ -540,7 +547,7 @@ pub const MLP = struct {
             const offset: usize = batch * Bc;
 
             // Compute the forward pass for the sub-batch
-            const pred: []T = try self.forward(inputs[offset * nIn .. (offset + Bc) * nIn]);
+            const pred: []T = self.forward(inputs[offset * nIn .. (offset + Bc) * nIn]);
 
             // Compute the loss and its derivative per-sample within the sub-batch.
             lossTotal += loss.computeLoss(

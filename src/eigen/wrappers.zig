@@ -453,3 +453,52 @@ test "[eigen] divScalar" {
     try testing.expectApproxEqAbs(@as(T, 7.5), v[2], 1e-5);
     try testing.expectApproxEqAbs(@as(T, 10.0), v[3], 1e-5);
 }
+
+// --- Fused kernels ---
+
+extern "c" fn eigen_forwardNone(matrix: [*]const T, vecs_mul: [*]const T, vec_sum: [*]const T, vecs_result: [*]T, a_rows: usize, a_cols: usize, batch_size: usize) void;
+extern "c" fn eigen_forwardReLu(matrix: [*]const T, vecs_mul: [*]const T, vec_sum: [*]const T, vecs_result: [*]T, a_rows: usize, a_cols: usize, batch_size: usize) void;
+
+/// Computes a forward pass through the network for the given input.
+pub fn forwardFused(matrix: []const T, vecs_mul: []const T, vec_sum: []const T, vecs_result: []T, activation: params.activation) void {
+    const dimOut: usize = vec_sum.len;
+    const dimIn: usize = matrix.len / dimOut;
+    const batchSize: usize = vecs_mul.len / dimIn;
+
+    switch (activation) {
+        .none => eigen_forwardNone(matrix.ptr, vecs_mul.ptr, vec_sum.ptr, vecs_result.ptr, dimOut, dimIn, batchSize),
+        .relu => eigen_forwardReLu(matrix.ptr, vecs_mul.ptr, vec_sum.ptr, vecs_result.ptr, dimOut, dimIn, batchSize),
+        else => @panic("Unsupported activation!"),
+    }
+}
+
+test "[eigen] forwardFused" {
+    const matrix = [_]T{ 1.0, 2.0, 3.0, 4.0 };
+    const vMult = [_]T{ 1.0, 2.0, 1.0, 2.0 };
+    const vAdd = [_]T{ 5.0, -15.0 };
+    var result = [_]T{ 0.0, 0.0, 0.0, 0.0 };
+
+    forwardFused(matrix[0..], vMult[0..], vAdd[0..], result[0..], params.activation.relu);
+
+    try testing.expectApproxEqAbs(12.0, result[0], 0.001);
+    try testing.expectApproxEqAbs(0.0, result[1], 0.001);
+    try testing.expectApproxEqAbs(12.0, result[2], 0.001);
+    try testing.expectApproxEqAbs(0.0, result[3], 0.001);
+}
+
+extern "c" fn eigen_forwardNoneGrad(matrix: [*]const T, vecs_mul: [*]const T, vec_sum: [*]const T, vecs_result: [*]T, vecs_deriv: [*]T, a_rows: usize, a_cols: usize, batch_size: usize) void;
+extern "c" fn eigen_forwardReLuGrad(matrix: [*]const T, vecs_mul: [*]const T, vec_sum: [*]const T, vecs_result: [*]T, vecs_deriv: [*]T, a_rows: usize, a_cols: usize, batch_size: usize) void;
+
+/// Computes a forward (and its gradient) pass through the network for the given input.
+pub fn forwardFusedGrad(matrix: []const T, vecs_mul: []const T, vec_sum: []const T, vecs_result: []T, vecs_deriv: []T, activation: params.activation) void {
+    const dimOut: usize = vec_sum.len;
+    const dimIn: usize = matrix.len / dimOut;
+    const batchSize: usize = vecs_mul.len / dimIn;
+
+
+    switch (activation) {
+        .none => eigen_forwardNoneGrad(matrix.ptr, vecs_mul.ptr, vec_sum.ptr, vecs_result.ptr, vecs_deriv.ptr, dimOut, dimIn, batchSize),
+        .relu => eigen_forwardReLuGrad(matrix.ptr, vecs_mul.ptr, vec_sum.ptr, vecs_result.ptr, vecs_deriv.ptr, dimOut, dimIn, batchSize),
+        else => @panic("Unsupported activation!"),
+    }
+}

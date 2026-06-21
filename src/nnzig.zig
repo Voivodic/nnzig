@@ -626,11 +626,11 @@ pub const NN = struct {
             // Save the loss of the validation of this epoch
             self.lossesValidation[epoch] = 0.0;
             for (0..nBatchesVal) |batch| {
-                const pred: []T = try self.nn.forward(inputs[(nTrain + batch * params.batchSizeCompute) * nIn .. (nTrain + (batch + 1) * params.batchSizeCompute) * nIn]);
+                const pred: []T = self.nn.forward(inputs[(nTrain + batch * params.batchSizeCompute) * nIn .. (nTrain + (batch + 1) * params.batchSizeCompute) * nIn]);
                 self.lossesValidation[epoch] += loss.computeLoss(pred, outputs[(nTrain + batch * params.batchSizeCompute) * nOut .. (nTrain + (batch + 1) * params.batchSizeCompute) * nOut], self.dLoss, params.lossFunc) / nValF / nOut;
             }
             if (nRemVal > 0) {
-                const pred: []T = try self.nn.forward(inputs[(nTrain + nBatchesVal * params.batchSizeCompute) * nIn .. (nTrain + nBatchesVal * params.batchSizeCompute + nRemVal) * nIn]);
+                const pred: []T = self.nn.forward(inputs[(nTrain + nBatchesVal * params.batchSizeCompute) * nIn .. (nTrain + nBatchesVal * params.batchSizeCompute + nRemVal) * nIn]);
                 self.lossesValidation[epoch] += loss.computeLoss(pred, outputs[(nTrain + nBatchesVal * params.batchSizeCompute) * nOut .. (nTrain + nBatchesVal * params.batchSizeCompute + nRemVal) * nOut], self.dLoss[0 .. nRemVal * nOut], params.lossFunc) / nValF / nOut;
             }
 

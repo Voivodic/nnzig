@@ -80,8 +80,8 @@ fn createTree(
         const threads_flag = try std.fmt.bufPrint(&buf, "-DNUM_THREADS={}", .{numThreads});
         eigen_wrapper.addCSourceFiles(.{
             .root = b.path("src/eigen"),
-            .files = &.{ "linalg.cpp", "activations.cpp", "losses.cpp", "normalizations.cpp", "random.cpp" },
-            .flags = &.{ "-O3", "-fPIC", "-fopenmp", precision_flag, threads_flag },
+            .files = &.{ "linalg.cpp", "activations.cpp", "losses.cpp", "normalizations.cpp", "random.cpp", "fused_kernels.cpp" },
+            .flags = &.{ "-O3", "-DNDEBUG", "-march=native", "-fPIC", "-fopenmp", precision_flag, threads_flag },
         });
         eigen_wrapper.addIncludePath(eigen.path("./"));
         eigen_wrapper.linkSystemLibrary("gomp", .{});
@@ -91,8 +91,8 @@ fn createTree(
     } else {
         eigen_wrapper.addCSourceFiles(.{
             .root = b.path("src/eigen"),
-            .files = &.{ "linalg.cpp", "activations.cpp", "losses.cpp", "normalizations.cpp", "random.cpp" },
-            .flags = &.{ "-O3", "-fPIC", precision_flag },
+            .files = &.{ "linalg.cpp", "activations.cpp", "losses.cpp", "normalizations.cpp", "random.cpp", "fused_kernels.cpp" },
+            .flags = &.{ "-O3", "-DNDEBUG", "-march=native", "-fPIC", precision_flag },
         });
         eigen_wrapper.addIncludePath(eigen.path("./"));
     }
