@@ -41,19 +41,17 @@ pub fn main(init: std.process.Init) !void {
     defer nn.deinit();
 
     // Load training data, then normalize it
-    var inputs: [200]f32 = undefined;
-    var outputs: [200]f32 = undefined;
-    try io.loadData(init.io, "data.bin", &inputs, &outputs);
-    try nn.computeNormalization(&inputs, &outputs);
-    try nn.normalize(&inputs, &outputs);
+    const data = try nn.loadData("data.bin");
+    defer {
+        allocator.free(data[0]);
+        allocator.free(data[1]);
+    }
+    try nn.computeNormalization(data[0], data[1]);
+    try nn.normalize(data[0], data[1]);
 
     // Train and save the loss history
-    try nn.train(&inputs, &outputs);
+    try nn.train(data[0], data[1]);
     try nn.saveLosses("losses.bin");
-
-    // Run a forward pass
-    const x = [_]f32{ 1.0, 2.0 };
-    const y = try nn.forward(&x);
 }
 ```
 

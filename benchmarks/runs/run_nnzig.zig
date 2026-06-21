@@ -19,27 +19,19 @@ pub fn main(init: std.process.Init) !void {
 
     // Load the dataset
     std.log.info("Loading dataset...", .{});
-    const results = try nn.loadData(fileName);
-    const dataIn = results[0];
-    defer allocator.free(dataIn);
-    const dataOut = results[1];
-    defer allocator.free(dataOut);
+    const data = try nn.loadData(fileName);
+    defer allocator.free(data[0]);
+    defer allocator.free(data[1]);
 
     // Normalize the dataset
     std.log.info("Computing normalization...", .{});
-    try nn.computeNormalization(dataIn, dataOut);
-    try nn.normalize(dataIn, dataOut);
+    try nn.computeNormalization(data[0], data[1]);
+    try nn.normalize(data[0], data[1]);
 
     // Train the network
     std.log.info("Training network...", .{});
     const _bench_train_t0 = std.Io.Timestamp.now(ioContext, .awake);
-    try nn.train(dataIn, dataOut);
-    // Training-only wall time, printed for bench_resources.py to parse. This
-    // excludes init + dataset load + normalization + loss saving, removing
-    // the fixed startup cost from the reported time (matches the Python
-    // runners, which time only their training loop). Zig 0.16 moved monotonic
-    // timing into the I/O layer (std.Io.Clock), so read the .awake clock
-    // (CLOCK_MONOTONIC on Linux) through the ioContext the harness passes in.
+    try nn.train(data[0], data[1]);
     const _bench_train_seconds: f64 =
         @as(f64, @floatFromInt(_bench_train_t0.durationTo(std.Io.Timestamp.now(ioContext, .awake)).nanoseconds)) /
         1_000_000_000.0;
