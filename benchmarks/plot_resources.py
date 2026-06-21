@@ -11,13 +11,13 @@ from config import load_config
 # Plot order matches plot_losses.py so the default color cycle assigns the
 # same colors across both figures
 # (C0=PyTorch, C1=Equinox, C2=TensorFlow, C3=nnzig, C4=nnzig(bC=1)).
-_LIBS = ("pytorch", "equinox", "tensorflow", "nnzig", "nnzig_b1")
+_LIBS = ("pytorch", "equinox", "tensorflow", "nnzig_b1", "nnzig", )
 _LABELS = {
     "pytorch": "PyTorch",
     "equinox": "Equinox",
     "tensorflow": "TensorFlow",
-    "nnzig": "nnzig",
     "nnzig_b1": "nnzig (bC=1)",
+    "nnzig": "nnzig",
 }
 # Libraries compared against nnzig (full-batch) in the ratio panels: every
 # other series, including the bC=1 variant, to show the memory/speed gap.
