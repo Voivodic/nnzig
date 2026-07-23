@@ -1,7 +1,5 @@
 # NNzig
 
-Adding something for test.
-
 A small, compile-time-configured neural network library written in Zig, with the
 heavy linear algebra offloaded to C++/Eigen kernels. Network shape, numeric
 precision, and training hyperparameters are all fixed at compile time from a
